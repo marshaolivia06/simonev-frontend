@@ -1,12 +1,15 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard,
   Database,
   ClipboardList,
   FileText,
   Megaphone,
+  User,
+  LogOut,
 } from "lucide-react";
 import Sidebar, { NavItem } from "@/components/Sidebar";
 
@@ -38,7 +41,6 @@ const navItems: NavItem[] = [
 
 const pageTitles: Record<string, string> = {
   "/admin/dashboard": "Dashboard Admin",
-
   "/admin/data-guru": "Data Guru",
   "/admin/data-kelas": "Data Kelas",
   "/admin/data-anak": "Data Anak",
@@ -56,9 +58,37 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const pageTitle =
-    pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
+  const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    setShowDropdown(false);
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    router.push("/");
+  };
+
+  const handleProfile = () => {
+    setShowDropdown(false);
+    router.push("/admin/profile");
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -72,9 +102,34 @@ export default function AdminLayout({
             {pageTitle}
           </h1>
 
-          <div className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium">
-            <div className="w-5 h-5 bg-blue-300 rounded-full" />
-            Admin
+          {/* Admin Button + Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
+            >
+              <div className="w-5 h-5 bg-blue-300 rounded-full" />
+              Admin
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                <button
+                  onClick={handleProfile}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <User size={14} />
+                  Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-100"
+                >
+                  <LogOut size={14} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -82,6 +137,35 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
+
+      {/* Modal Konfirmasi Logout */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-80 shadow-xl text-center">
+            <div className="flex justify-center mb-3">
+              <div className="bg-red-100 p-3 rounded-full">
+                <LogOut size={24} className="text-red-500" />
+              </div>
+            </div>
+            <h2 className="text-base font-semibold text-gray-800 mb-1">Keluar dari Akun?</h2>
+            <p className="text-sm text-gray-500 mb-5">Apakah Anda yakin ingin logout dari akun ini?.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 border border-gray-300 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

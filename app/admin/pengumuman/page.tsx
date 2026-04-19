@@ -7,6 +7,7 @@ interface Pengumuman {
   id: number;
   judul: string;
   tanggal: string;
+  isi: string;
 }
 
 const dummyData: Pengumuman[] = [];
@@ -17,7 +18,7 @@ export default function PengumumanPage() {
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Pengumuman | null>(null);
   const [viewData, setViewData] = useState<Pengumuman | null>(null);
-  const [form, setForm] = useState({ judul: "", tanggal: "" });
+  const [form, setForm] = useState({ judul: "", tanggal: "", isi: "" });
 
   const filtered = data.filter(
     (p) =>
@@ -27,13 +28,13 @@ export default function PengumumanPage() {
 
   const handleTambah = () => {
     setEditData(null);
-    setForm({ judul: "", tanggal: "" });
+    setForm({ judul: "", tanggal: "", isi: "" });
     setShowModal(true);
   };
 
   const handleEdit = (item: Pengumuman) => {
     setEditData(item);
-    setForm({ judul: item.judul, tanggal: item.tanggal });
+    setForm({ judul: item.judul, tanggal: item.tanggal, isi: item.isi });
     setShowModal(true);
   };
 
@@ -83,44 +84,24 @@ export default function PengumumanPage() {
 
       {/* Tabel */}
       <div className="border border-black">
-        {/* ✅ INI SATU-SATUNYA PERUBAHAN */}
         <table className="w-full table-fixed text-sm border-collapse">
           <thead>
             <tr className="bg-gray-300">
-              <th className="border border-black px-3 py-2 w-[60px]">No</th>
-
-              <th className="border border-black px-3 py-2 w-[65%] text-center">
-                Judul
-              </th>
-
-              <th className="border border-black px-3 py-2 w-[15%]">
-                Tanggal
-              </th>
-
-              <th className="border border-black px-3 py-2 w-[10%]">
-                Detail
-              </th>
-
-              <th className="border border-black px-3 py-2 w-[10%]">
-                Aksi
-              </th>
+              <th className="border border-black px-3 py-2 w-[50px]">No</th>
+              <th className="border border-black px-3 py-2 w-[50%] text-center">Judul</th>
+              <th className="border border-black px-3 py-2 w-[15%]">Tanggal</th>
+              <th className="border border-black px-3 py-2 w-[10%]">Detail</th>
+              <th className="border border-black px-3 py-2 w-[15%]">Aksi</th>
             </tr>
           </thead>
 
           <tbody>
             {filtered.map((item, index) => (
               <tr key={item.id}>
-                <td className="border border-black text-center">{index + 1}.</td>
-
-                <td className="border border-black px-3 text-center">
-                  {item.judul}
-                </td>
-
-                <td className="border border-black text-center">
-                  {item.tanggal}
-                </td>
-
-                <td className="border border-black text-center">
+                <td className="border border-black px-3 py-2 text-center">{index + 1}.</td>
+                <td className="border border-black px-3 py-2 text-center">{item.judul}</td>
+                <td className="border border-black px-3 py-2 text-center">{item.tanggal}</td>
+                <td className="border border-black px-3 py-2 text-center">
                   <button
                     onClick={() => setViewData(item)}
                     className="bg-gray-300 px-3 py-1 rounded text-xs flex items-center gap-1 mx-auto"
@@ -128,19 +109,17 @@ export default function PengumumanPage() {
                     <Eye size={12} /> View
                   </button>
                 </td>
-
-                <td className="border border-black">
-                  <div className="flex justify-center gap-1">
+                <td className="border border-black px-3 py-2">
+                  <div className="flex justify-center items-center gap-2">
                     <button
                       onClick={() => handleEdit(item)}
-                      className="bg-green-500 text-white px-2 py-1 text-xs rounded flex items-center gap-1"
+                      className="bg-green-500 text-white px-2 py-1 text-xs rounded flex items-center gap-1 whitespace-nowrap"
                     >
                       <Pencil size={12} /> Edit
                     </button>
-
                     <button
                       onClick={() => handleHapus(item.id)}
-                      className="bg-red-500 text-white px-2 py-1 text-xs rounded flex items-center gap-1"
+                      className="bg-red-500 text-white px-2 py-1 text-xs rounded flex items-center gap-1 whitespace-nowrap"
                     >
                       <Trash2 size={12} /> Hapus
                     </button>
@@ -151,11 +130,11 @@ export default function PengumumanPage() {
 
             {Array.from({ length: Math.max(0, 10 - filtered.length) }).map((_, i) => (
               <tr key={`empty-${i}`}>
-                <td className="border border-black">&nbsp;</td>
-                <td className="border border-black">&nbsp;</td>
-                <td className="border border-black">&nbsp;</td>
-                <td className="border border-black">&nbsp;</td>
-                <td className="border border-black">&nbsp;</td>
+                <td className="border border-black px-3 py-2">&nbsp;</td>
+                <td className="border border-black px-3 py-2">&nbsp;</td>
+                <td className="border border-black px-3 py-2">&nbsp;</td>
+                <td className="border border-black px-3 py-2">&nbsp;</td>
+                <td className="border border-black px-3 py-2">&nbsp;</td>
               </tr>
             ))}
           </tbody>
@@ -175,14 +154,22 @@ export default function PengumumanPage() {
               placeholder="Judul"
               value={form.judul}
               onChange={(e) => setForm({ ...form, judul: e.target.value })}
-              className="w-full border mb-3 px-3 py-2"
+              className="w-full border mb-3 px-4 py-3 text-center text-base"
             />
 
             <input
               type="date"
               value={form.tanggal}
               onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
-              className="w-full border mb-4 px-3 py-2"
+              className="w-full border mb-3 px-4 py-3 text-base"
+            />
+
+            <textarea
+              placeholder="Isi Pengumuman"
+              value={form.isi}
+              onChange={(e) => setForm({ ...form, isi: e.target.value })}
+              className="w-full border mb-4 px-3 py-2 resize-none"
+              rows={4}
             />
 
             <div className="flex justify-end gap-2">
@@ -203,10 +190,9 @@ export default function PengumumanPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-96">
             <h2 className="font-semibold mb-4">Detail Pengumuman</h2>
-
-            <p className="mb-2"><b>Judul:</b> {viewData.judul}</p>
-            <p className="mb-4"><b>Tanggal:</b> {viewData.tanggal}</p>
-
+            <p className="mb-1"><b>Judul:</b> {viewData.judul}</p>
+            <p className="mb-3"><b>Tanggal:</b> {viewData.tanggal}</p>
+            <p className="mb-4 text-gray-700 text-sm leading-relaxed">{viewData.isi}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setViewData(null)}

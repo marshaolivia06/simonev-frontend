@@ -36,7 +36,7 @@ export default function LoginPage() {
 
       if (role === 'admin') router.push('/admin/dashboard')
       else if (role === 'guru') router.push('/guru/dashboard')
-      else router.push('/orangtua/dashboard')
+      else router.push('/OrangTua/dashboard')
     }, 2000)
   }
 
