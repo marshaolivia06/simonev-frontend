@@ -27,7 +27,14 @@ const dummyRiwayat: RiwayatItem[] = [];
 
 const aspekList = ["FM", "KOG", "BHS", "SOS-EM", "NAM"];
 const aspekColors = ["#4DB6AC", "#F48FB1", "#FFF176", "#CE93D8", "#FFCC80"];
-const defaultNilai = [3, 2, 4, 3, 2];
+const defaultNilai = [3, 2, 4, 3, 2]; // 1=BB, 2=MB, 3=BSH, 4=BSB
+
+const nilaiLabel: Record<number, string> = {
+  1: "BB",
+  2: "MB",
+  3: "BSH",
+  4: "BSB",
+};
 
 const dummyAspekNilai = [
   { aspek: "Perkembangan Motorik", nilai: "" },
@@ -37,10 +44,27 @@ const dummyAspekNilai = [
   { aspek: "Nilai Agama dan Moral", nilai: "" },
 ];
 
+const kelasOptions = ["Kelas A", "Kelas B"];
+const namaAnakOptions = ["Anak 1", "Anak 2"];
 const semesterOptions = ["Semester 1", "Semester 2"];
 const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
-const kelasOptions = ["Kelas A", "Kelas B"];
-const namaAnakOptions = ["Pilih Anak"];
+
+const selectClass =
+  "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
+
+// Custom Tooltip
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const val = payload[0].value;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs shadow">
+        <p className="font-semibold text-gray-700">{label}</p>
+        <p className="text-gray-500">{nilaiLabel[val] ?? val}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function LaporanPerkembanganPage() {
   const [namaAnak, setNamaAnak] = useState("");
@@ -57,84 +81,80 @@ export default function LaporanPerkembanganPage() {
     color: aspekColors[i],
   }));
 
-  const selectClass =
-    "w-full border border-gray-300 rounded-full px-4 py-1.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
-
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       {/* Top section: filters + chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 relative">
         {/* PDF Button */}
         <button className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors">
-          <FileText size={15} />
           PDF
         </button>
 
         <div className="flex gap-8">
-         {/* Filters */}
-<div className="flex flex-col gap-3 min-w-[220px]">
-  {/* Kelas */}
-  <div className="relative">
-    <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass}>
-      <option value="">Kelas</option>
-      {kelasOptions.map((k) => (
-        <option key={k} value={k}>{k}</option>
-      ))}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">▼</span>
-  </div>
+          {/* Filters */}
+          <div className="flex flex-col gap-3 max-w-[420px]">
+            <div className="grid grid-cols-2 gap-3">
+              {/* Kelas */}
+              <div className="relative">
+                <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass}>
+                  <option value="">Pilih kelas</option>
+                  {kelasOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+              </div>
 
-  {/* Nama Anak */}
-  <div className="relative">
-    <select value={namaAnak} onChange={(e) => setNamaAnak(e.target.value)} className={selectClass}>
-      <option value="">Nama Anak</option>
-      {namaAnakOptions.map((n) => (
-        <option key={n} value={n}>{n}</option>
-      ))}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">▼</span>
-  </div>
+              {/* Nama Anak */}
+              <div className="relative">
+                <select value={namaAnak} onChange={(e) => setNamaAnak(e.target.value)} className={selectClass}>
+                  <option value="">Pilih anak</option>
+                  {namaAnakOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+              </div>
 
-  <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full transition-colors text-left w-fit">
-    Tampilkan
-  </button>
-</div>
+              {/* Semester */}
+              <div className="relative">
+                <select value={semester} onChange={(e) => setSemester(e.target.value)} className={selectClass}>
+                  <option value="">Pilih semester</option>
+                  {semesterOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+              </div>
 
-{/* Semester & Tahun Ajaran */}
-<div className="flex flex-col gap-3 min-w-[180px]">
-  {/* Semester */}
-  <div className="relative">
-    <select value={semester} onChange={(e) => setSemester(e.target.value)} className={selectClass}>
-      <option value="">Semester</option>
-      {semesterOptions.map((s) => (
-        <option key={s} value={s}>{s}</option>
-      ))}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">▼</span>
-  </div>
+              {/* Tahun Ajaran */}
+              <div className="relative">
+                <select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)} className={selectClass}>
+                  <option value="">Pilih tahun</option>
+                  {tahunAjaranOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+              </div>
+            </div>
 
-  {/* Tahun Ajaran */}
-  <div className="relative">
-    <select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)} className={selectClass}>
-      <option value="">Tahun Ajaran</option>
-      {tahunAjaranOptions.map((t) => (
-        <option key={t} value={t}>{t}</option>
-      ))}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">▼</span>
-  </div>
-</div>
+            {/* Tampilkan Button */}
+            <div>
+              <button className="bg-gray-200 hover:bg-gray-300 hover:shadow-sm active:scale-95 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150">
+                Tampilkan
+              </button>
+            </div>
+          </div>
+
           {/* Chart */}
-          <div className="flex-1 h-44 mt-8 pr-4">
+          <div className="flex-1 h-44 mt-2 pr-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} barSize={36} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis hide domain={[0, 5]} />
-                <Tooltip
-                  cursor={{ fill: "rgba(0,0,0,0.04)" }}
-                  contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "12px" }}
+                <YAxis
+                  domain={[0, 4]}
+                  ticks={[1, 2, 3, 4]}
+                  tickFormatter={(v) => nilaiLabel[v] ?? v}
+                  tick={{ fontSize: 10, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={32}
                 />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
                 <Bar dataKey="nilai" radius={[6, 6, 0, 0]}>
                   {chartData.map((entry, index) => (
                     <Cell key={index} fill={entry.color} />

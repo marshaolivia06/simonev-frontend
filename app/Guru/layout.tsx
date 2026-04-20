@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Megaphone,
   LogOut,
+  User,
 } from "lucide-react";
 import Sidebar, { NavItem } from "@/components/Sidebar";
 
@@ -34,7 +35,7 @@ const navItems: NavItem[] = [
 
 const pageTitles: Record<string, string> = {
   "/guru/dashboard": "Dashboard Guru",
-  "/guru/data-anak": "Data Anak",
+  "/guru/data-anak": "Data Anak Kelas",
   "/guru/penilaian-perkembangan": "Penilaian Perkembangan",
   "/guru/laporan-perkembangan": "Laporan Perkembangan",
   "/guru/pengumuman": "Pengumuman",
@@ -85,28 +86,27 @@ export default function GuruLayout({
             {open && (
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden z-50">
                 
-                <button
-                  onClick={() => {
-                    router.push("/guru/profil");
-                    setOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition"
-                >
-                  Profil
-                </button>
+               <button
+  onClick={() => {
+    setOpen(false);
+    router.push("/guru/profil");
+  }}
+  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
+>
+  <User size={14} />
+  Profil
+</button>
 
-                <div className="border-t border-gray-200" />
-
-                <button
-                  onClick={() => {
-                    setShowLogout(true);
-                    setOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
-                >
-                  Logout
-                </button>
-
+<button
+  onClick={() => {
+    setOpen(false);
+    setShowLogout(true);
+  }}
+  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-100"
+>
+  <LogOut size={14} />
+  Logout
+</button>
               </div>
             )}
           </div>

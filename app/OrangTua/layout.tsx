@@ -15,6 +15,7 @@ const pageTitles: Record<string, string> = {
   "/OrangTua/dashboard": "Dashboard Orangtua",
   "/OrangTua/laporan-perkembangan": "Perkembangan Anak",
   "/OrangTua/pengumuman": "Pengumuman",
+  "/OrangTua/profile": "Profil Orangtua",
 };
 
 export default function OrangtuaLayout({ children }: { children: React.ReactNode }) {
@@ -54,8 +55,7 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
             >
-              <div className="w-5 h-5 bg-blue-300 rounded-full" />
-              orangtua
+              Orangtua
             </button>
 
             {showDropdown && (
@@ -63,7 +63,7 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    router.push("/OrangTua/profil");
+                    router.push("/OrangTua/profile");
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
                 >

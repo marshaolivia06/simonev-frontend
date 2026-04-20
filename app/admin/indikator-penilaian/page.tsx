@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
 
 interface Indikator {
   id: number;
@@ -10,7 +10,26 @@ interface Indikator {
   aspek: string;
 }
 
-const dummyData: Indikator[] = [];
+const dummyData: Indikator[] = [
+  {
+    id: 1,
+    indikator: "Anak dapat memegang pensil dengan benar",
+    kegiatan: "Menulis dan Menggambar",
+    aspek: "Motorik",
+  },
+  {
+    id: 2,
+    indikator: "Anak dapat menyebutkan warna dasar",
+    kegiatan: "Mengenal Warna",
+    aspek: "Kognitif",
+  },
+  {
+    id: 3,
+    indikator: "Anak dapat mengucapkan kalimat sederhana",
+    kegiatan: "Bercerita",
+    aspek: "Bahasa",
+  },
+];
 
 export default function IndikatorPenilaianPage() {
   const [search, setSearch] = useState("");
@@ -59,71 +78,75 @@ export default function IndikatorPenilaianPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full">
+
       {/* Toolbar */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={handleTambah}
-          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
         >
-          <Plus size={16} />
+          <Plus size={15} />
           Tambah
         </button>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-48"
-        />
+
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari indikator..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-48"
+          />
+        </div>
       </div>
 
       {/* Tabel */}
-      <div className="bg-white rounded-lg border border-black overflow-hidden">
-        <table className="w-full text-sm border-collapse">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full text-sm table-fixed border-collapse">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-2 text-center font-bold text-gray-900 w-16 border border-black">No</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Indikator</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Kegiatan</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Aspek</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 w-32 border border-black">Aksi</th>
+            <tr className="bg-gray-200 border-b border-gray-200">
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[48px]">No</th>
+              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Indikator</th>
+              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Kegiatan</th>
+              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800 w-[140px]">Aspek</th>
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[140px]">Aksi</th>
             </tr>
           </thead>
-          <tbody>
-            {filtered.map((item, index) => (
-              <tr key={item.id}>
-                <td className="px-4 py-2 text-center text-gray-700 border border-black">{index + 1}.</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{item.indikator}</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{item.kegiatan}</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{item.aspek}</td>
-                <td className="px-4 py-2 text-center border border-black">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="flex items-center gap-1 text-xs bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      <Pencil size={11} /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleHapus(item.id)}
-                      className="flex items-center gap-1 text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      <Trash2 size={11} /> Hapus
-                    </button>
-                  </div>
+          <tbody className="divide-y divide-gray-100">
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
+                  Belum ada data indikator penilaian
                 </td>
               </tr>
-            ))}
-            {Array.from({ length: Math.max(0, 15 - filtered.length) }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-              </tr>
-            ))}
+            ) : (
+              filtered.map((item, index) => (
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-center text-black-400">{index + 1}</td>
+                  <td className="px-4 py-3 font-medium text-gray-800">{item.indikator}</td>
+                  <td className="px-4 py-3 text-gray-600">{item.kegiatan}</td>
+                  <td className="px-4 py-3 text-gray-600">{item.aspek}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                      >
+                        <Pencil size={12} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleHapus(item.id)}
+                        className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                      >
+                        <Trash2 size={12} /> Hapus
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -132,37 +155,37 @@ export default function IndikatorPenilaianPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-base font-semibold text-gray-800 mb-4">
+            <h2 className="text-base font-semibold text-gray-800 mb-5">
               {editData ? "Edit Indikator Penilaian" : "Tambah Indikator Penilaian"}
             </h2>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Indikator</label>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Indikator</label>
                 <input
                   type="text"
                   value={form.indikator}
                   onChange={(e) => setForm({ ...form, indikator: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                   placeholder="Masukkan indikator"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Kegiatan</label>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Kegiatan</label>
                 <input
                   type="text"
                   value={form.kegiatan}
                   onChange={(e) => setForm({ ...form, kegiatan: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                   placeholder="Masukkan kegiatan"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Aspek</label>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Aspek</label>
                 <input
                   type="text"
                   value={form.aspek}
                   onChange={(e) => setForm({ ...form, aspek: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                   placeholder="Masukkan aspek"
                 />
               </div>
@@ -170,13 +193,13 @@ export default function IndikatorPenilaianPage() {
             <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="border border-gray-300 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Batal
               </button>
               <button
                 onClick={handleSimpan}
-                className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
               >
                 Simpan
               </button>

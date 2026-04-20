@@ -50,6 +50,7 @@ const pageTitles: Record<string, string> = {
   "/admin/indikator-penilaian": "Indikator Penilaian",
   "/admin/laporan-perkembangan": "Laporan Perkembangan",
   "/admin/pengumuman": "Pengumuman",
+  "/admin/profile": "Profil Admin",
 };
 
 export default function AdminLayout({
@@ -105,12 +106,11 @@ export default function AdminLayout({
           {/* Admin Button + Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setShowDropdown((prev) => !prev)}
-              className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
-            >
-              <div className="w-5 h-5 bg-blue-300 rounded-full" />
-              Admin
-            </button>
+  onClick={() => setShowDropdown((prev) => !prev)}
+  className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
+>
+  Admin
+</button>
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
@@ -147,8 +147,8 @@ export default function AdminLayout({
                 <LogOut size={24} className="text-red-500" />
               </div>
             </div>
-            <h2 className="text-base font-semibold text-gray-800 mb-1">Keluar dari Akun?</h2>
-            <p className="text-sm text-gray-500 mb-5">Apakah Anda yakin ingin logout dari akun ini?.</p>
+            <h2 className="text-base font-semibold text-gray-800 mb-1">Konfirmasi Logout?</h2>
+            <p className="text-sm text-gray-500 mb-5">Apakah Anda yakin ingin logout dari akun ini?</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
@@ -160,7 +160,7 @@ export default function AdminLayout({
                 onClick={confirmLogout}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
               >
-                Ya, Keluar
+                Logout
               </button>
             </div>
           </div>

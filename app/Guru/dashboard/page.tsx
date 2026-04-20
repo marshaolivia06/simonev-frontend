@@ -13,6 +13,31 @@ const stats = [
   { label: 'Jumlah Anak dikelas', value: 30, color: 'bg-purple-100 border-purple-200', iconColor: 'text-purple-600', textColor: 'text-purple-800' },
 ]
 
+// ✅ sama kayak sebelumnya
+const announcements = [
+  {
+    badge: "Kegiatan",
+    badgeColor: "bg-blue-100 text-blue-800",
+    title: "Pentas Seni Akhir Tahun 2024/2025",
+    postedAt: "Diposting: 18 April 2025",
+    body: "Pentas seni akan dilaksanakan pada Sabtu, 24 Mei 2025 pukul 08.00–12.00 WIB.",
+  },
+  {
+    badge: "Libur",
+    badgeColor: "bg-green-100 text-green-800",
+    title: "Libur Hari Raya Waisak",
+    postedAt: "Diposting: 10 April 2025",
+    body: "Sekolah diliburkan pada 12 Mei 2025 dan kembali aktif seperti biasa.",
+  },
+  {
+    badge: "Penting",
+    badgeColor: "bg-yellow-100 text-yellow-800",
+    title: "Pengumpulan Foto Buku Tahunan",
+    postedAt: "Diposting: 5 April 2025",
+    body: "Mohon orang tua mengumpulkan foto anak sebelum 30 April 2025.",
+  },
+]
+
 const pieData = {
   labels: ['BSB', 'MB', 'BSH'],
   datasets: [
@@ -25,7 +50,6 @@ const pieData = {
 }
 
 export default function DashboardGuru() {
-  const announcements: string[] = []
 
   return (
     <div>
@@ -62,18 +86,28 @@ export default function DashboardGuru() {
       {/* Pengumuman */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="font-semibold text-gray-800 mb-4">Pengumuman Terbaru</h2>
-        {announcements.length === 0 ? (
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-3 bg-gray-100 rounded-full w-full" />
-            ))}
-            <p className="text-sm text-gray-400 text-center pt-2">Belum ada pengumuman</p>
-          </div>
-        ) : (
-          announcements.map((a, i) => (
-            <div key={i} className="py-3 border-b border-gray-100 last:border-0 text-sm text-gray-700">{a}</div>
-          ))
-        )}
+
+        <div className="divide-y divide-gray-100">
+          {announcements.map((ann, i) => (
+            <div key={i} className="py-3 first:pt-0 last:pb-0">
+
+              {/* Badge */}
+              <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1 ${ann.badgeColor}`}>
+                {ann.badge}
+              </span>
+
+              {/* Judul */}
+              <p className="text-sm font-bold text-black">{ann.title}</p>
+
+              {/* Tanggal */}
+              <p className="text-xs text-gray-600 mb-1">{ann.postedAt}</p>
+
+              {/* Isi */}
+              <p className="text-sm text-black">{ann.body}</p>
+
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

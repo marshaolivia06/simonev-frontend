@@ -87,7 +87,6 @@ export default function LaporanPerkembanganPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 relative">
         {/* PDF Button */}
         <button className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors">
-          <FileText size={15} />
           PDF
         </button>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle } from "lucide-react";
 
 interface Penilaian {
   aspek: string;
@@ -23,6 +24,7 @@ export default function PenilaianPage() {
   const [semester, setSemester] = useState("");
   const [tahunAjaran, setTahunAjaran] = useState("");
   const [komentar, setKomentar] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false); // ✅ TAMBAHAN
 
   const [data, setData] = useState<Penilaian[]>([
     {
@@ -37,6 +39,24 @@ export default function PenilaianPage() {
       indikator: "Mampu berlari lurus",
       nilai: "",
     },
+    {
+      aspek: "Sosial-Emosional",
+      kegiatan: "Bermain dengan teman",
+      indikator: "Mampu bermain bersama teman sebaya",
+      nilai: "",
+    },
+    {
+      aspek: "Agama",
+      kegiatan: "Berdoa",
+      indikator: "Mampu berdoa dengan benar",
+      nilai: "",
+    },
+    {
+      aspek: "Kreatifitas/Seni",
+      kegiatan: "Menggambar",
+      indikator: "Mampu menggambar objek sederhana",
+      nilai: "",
+    },
   ]);
 
   const handleChange = (index: number, value: string) => {
@@ -48,55 +68,73 @@ export default function PenilaianPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
 
+      {/* ✅ POPUP SUCCESS (TAMBAHAN) */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-80 shadow-xl text-center">
+            <div className="flex justify-center mb-3">
+              <CheckCircle size={48} className="text-green-500" />
+            </div>
+            <h3 className="text-base font-semibold text-gray-800 mb-1">
+              Berhasil Disimpan
+            </h3>
+            <p className="text-sm text-gray-500 mb-5">
+              Penilaian perkembangan anak berhasil disimpan.
+            </p>
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium"
+            >
+              Oke
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filter Panel */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex flex-col gap-3 max-w-[420px]">
 
-          {/* Row 1: Kelas + Anak */}
           <div className="grid grid-cols-2 gap-3 max-w-[420px]">
 
-  {/* Kelas */}
-  <div className="relative">
-    <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass}>
-      <option value="">Pilih kelas</option>
-      {kelasOptions.map((k) => <option key={k} value={k}>{k}</option>)}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
-  </div>
+            <div className="relative">
+              <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass}>
+                <option value="">Pilih kelas</option>
+                {kelasOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+            </div>
 
-  {/* Anak */}
-  <div className="relative">
-    <select value={anak} onChange={(e) => setAnak(e.target.value)} className={selectClass}>
-      <option value="">Pilih anak</option>
-      {anakOptions.map((a) => <option key={a} value={a}>{a}</option>)}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
-  </div>
+            <div className="relative">
+              <select value={anak} onChange={(e) => setAnak(e.target.value)} className={selectClass}>
+                <option value="">Pilih anak</option>
+                {anakOptions.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+            </div>
 
-  {/* Semester */}
-  <div className="relative">
-    <select value={semester} onChange={(e) => setSemester(e.target.value)} className={selectClass}>
-      <option value="">Pilih semester</option>
-      {semesterOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
-  </div>
+            <div className="relative">
+              <select value={semester} onChange={(e) => setSemester(e.target.value)} className={selectClass}>
+                <option value="">Pilih semester</option>
+                {semesterOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+            </div>
 
-  {/* Tahun Ajaran */}
-  <div className="relative">
-    <select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)} className={selectClass}>
-      <option value="">Pilih tahun</option>
-      {tahunAjaranOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-    </select>
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
-  </div>
+            <div className="relative">
+              <select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)} className={selectClass}>
+                <option value="">Pilih tahun</option>
+                {tahunAjaranOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+            </div>
 
-</div>
-          {/* Tampilkan Button */}
+          </div>
+
           <div>
             <button className="bg-gray-200 hover:bg-gray-300 hover:shadow-sm active:scale-95 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150">
-  Tampilkan
-</button>
+              Tampilkan
+            </button>
           </div>
         </div>
       </div>
@@ -109,6 +147,10 @@ export default function PenilaianPage() {
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Aspek</th>
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Kegiatan</th>
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Indikator</th>
+
+              {/* ✅ TAMBAHAN BB */}
+              <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-14">BB</th>
+
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-14">MB</th>
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-14">BSH</th>
               <th className="px-4 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-14">BSB</th>
@@ -120,7 +162,9 @@ export default function PenilaianPage() {
                 <td className="px-4 py-2.5 text-gray-700 border border-gray-300">{item.aspek}</td>
                 <td className="px-4 py-2.5 text-gray-700 border border-gray-300">{item.kegiatan}</td>
                 <td className="px-4 py-2.5 text-gray-700 border border-gray-300">{item.indikator}</td>
-                {(["MB", "BSH", "BSB"] as const).map((val) => (
+
+                {/* ✅ TAMBAHAN BB */}
+                {(["BB", "MB", "BSH", "BSB"] as const).map((val) => (
                   <td key={val} className="border border-gray-300 text-center">
                     <input
                       type="radio"
@@ -131,16 +175,6 @@ export default function PenilaianPage() {
                     />
                   </td>
                 ))}
-              </tr>
-            ))}
-            {Array.from({ length: Math.max(0, 5 - data.length) }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-4 py-2.5 border border-gray-300">&nbsp;</td>
               </tr>
             ))}
           </tbody>
@@ -160,12 +194,25 @@ export default function PenilaianPage() {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-2">
-        <button className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">
+        <button
+          onClick={() => {
+            const semuaTerisi = data.every((d) => d.nilai !== "");
+
+            if (!semuaTerisi) {
+              alert("Semua penilaian harus diisi!");
+              return;
+            }
+
+            setShowSuccess(true); // ✅ trigger popup
+          }}
+          className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+        >
           Simpan
         </button>
+
         <button className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">
-  Ubah
-</button>
+          Ubah
+        </button>
       </div>
 
     </div>

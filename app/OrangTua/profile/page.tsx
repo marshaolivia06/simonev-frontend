@@ -1,128 +1,124 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileText, Megaphone, User, LogOut } from "lucide-react";
-import Sidebar, { NavItem } from "@/components/Sidebar";
+import { useState } from "react";
+import { User, CheckCircle } from "lucide-react";
 
-const navItems: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/OrangTua/dashboard" },
-  { label: "Laporan Perkembangan", icon: FileText, href: "/OrangTua/laporan-perkembangan" },
-  { label: "Pengumuman", icon: Megaphone, href: "/OrangTua/pengumuman" },
-];
+export default function ProfilePage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [telepon, setTelepon] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-const pageTitles: Record<string, string> = {
-  "/OrangTua/dashboard": "Dashboard Orangtua",
-  "/OrangTua/laporan-perkembangan": "Perkembangan Anak",
-  "/OrangTua/pengumuman": "Pengumuman",
-};
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setImage(URL.createObjectURL(file));
+  };
 
-export default function OrangtuaLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowSuccess(true);
+  };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar navItems={navItems} />
+    <div className="max-w-3xl mx-auto space-y-6">
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div className="w-[120px]" />
-
-          <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">
-            {pageTitle}
-          </h1>
-
-          {/* Dropdown Orangtua */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setShowDropdown((prev) => !prev)}
-              className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
-            >
-              <div className="w-5 h-5 bg-blue-300 rounded-full" />
-              orangtua
-            </button>
-
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    router.push("/OrangTua/profil");
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <User size={14} />
-                  Profil
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    setShowLogoutModal(true);
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-100"
-                >
-                  <LogOut size={14} />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-
-      {/* Modal Konfirmasi Logout */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-80 shadow-xl text-center">
-            <div className="mx-auto mb-3 flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
-              <LogOut className="text-red-500" size={20} />
+      {/* ── SUCCESS POPUP ── */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-80 text-center">
+            <div className="flex justify-center mb-3">
+              <CheckCircle size={48} className="text-green-500" />
             </div>
             <h3 className="text-base font-semibold text-gray-800 mb-1">
-              Konfirmasi Logout
+              Profil Berhasil Diperbarui
             </h3>
             <p className="text-sm text-gray-500 mb-5">
-              Apakah Anda yakin ingin logout dari akun ini?
+              Perubahan data profil kamu telah tersimpan.
             </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-              >
-                Batal
-              </button>
-              <button
-                onClick={() => {
-                  setShowLogoutModal(false);
-                  router.push("/");
-                }}
-                className="flex-1 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
-              >
-                Logout
-              </button>
-            </div>
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium transition"
+            >
+              Oke
+            </button>
           </div>
         </div>
       )}
+
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="text-base font-semibold text-gray-800 mb-5">My Profile</h2>
+
+        {/* Avatar + Upload */}
+        <div className="flex items-center gap-6 mb-6">
+          <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border">
+            {image ? (
+              <img src={image} alt="profile" className="w-full h-full object-cover" />
+            ) : (
+              <User size={42} className="text-gray-500" />
+            )}
+          </div>
+          <input
+            type="file"
+            onChange={handleImageChange}
+            className="text-sm text-gray-600
+              file:mr-3 file:py-1.5 file:px-3
+              file:rounded-md file:border-0
+              file:bg-gray-200 file:text-gray-700
+              hover:file:bg-gray-300 cursor-pointer"
+          />
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} noValidate={false}>
+          <div className="space-y-4">
+
+            <div>
+              <label className="text-sm text-gray-600">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600">Nomor Telepon</label>
+              <input
+                type="text"
+                value={telepon}
+                onChange={(e) => setTelepon(e.target.value)}
+                required
+                className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+          </div>
+
+          <div className="flex justify-end mt-6">
+            <button
+              type="submit"
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition active:scale-95"
+            >
+              Simpan
+            </button>
+          </div>
+        </form>
+
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
 
 interface Kelas {
   id: number;
@@ -10,15 +10,23 @@ interface Kelas {
   tahunAjaran: string;
 }
 
-// ✅ DIUBAH: kosong (biar gak ada nomor 1 palsu)
-const dummyData: Kelas[] = [];
+// ✅ Dummy Data (3)
+const dummyData: Kelas[] = [
+  { id: 1, namaKelas: "TK A", waliKelas: "Bu Siti", tahunAjaran: "2024/2025" },
+  { id: 2, namaKelas: "TK B", waliKelas: "Pak Budi", tahunAjaran: "2024/2025" },
+  { id: 3, namaKelas: "Playgroup", waliKelas: "Bu Rina", tahunAjaran: "2024/2025" },
+];
 
 export default function DataKelasPage() {
   const [search, setSearch] = useState("");
   const [data, setData] = useState<Kelas[]>(dummyData);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Kelas | null>(null);
-  const [form, setForm] = useState({ namaKelas: "", waliKelas: "", tahunAjaran: "" });
+  const [form, setForm] = useState({
+    namaKelas: "",
+    waliKelas: "",
+    tahunAjaran: "",
+  });
 
   const filtered = data.filter(
     (k) =>
@@ -35,12 +43,12 @@ export default function DataKelasPage() {
 
   const handleEdit = (kelas: Kelas) => {
     setEditData(kelas);
-    setForm({ namaKelas: kelas.namaKelas, waliKelas: kelas.waliKelas, tahunAjaran: kelas.tahunAjaran });
+    setForm(kelas);
     setShowModal(true);
   };
 
   const handleHapus = (id: number) => {
-    if (confirm("Yakin ingin menghapus data ini?")) {
+    if (confirm("Yakin ingin hapus data ini?")) {
       setData(data.filter((k) => k.id !== id));
     }
   };
@@ -50,82 +58,100 @@ export default function DataKelasPage() {
       alert("Semua field wajib diisi!");
       return;
     }
+
     if (editData) {
-      setData(data.map((k) => k.id === editData.id ? { ...k, ...form } : k));
+      setData(data.map((k) => (k.id === editData.id ? { ...k, ...form } : k)));
     } else {
-      const newId = data.length > 0 ? Math.max(...data.map((k) => k.id)) + 1 : 1;
+      const newId =
+        data.length > 0 ? Math.max(...data.map((k) => k.id)) + 1 : 1;
       setData([...data, { id: newId, ...form }]);
     }
+
     setShowModal(false);
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full">
+
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handleTambah}
-          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
         >
-          <Plus size={16} />
+          <Plus size={15} />
           Tambah
         </button>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-48"
-        />
+
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari kelas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-48"
+          />
+        </div>
       </div>
 
       {/* Tabel */}
-      <div className="bg-white rounded-lg border border-black overflow-hidden">
-        <table className="w-full text-sm border-collapse">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full text-sm table-fixed border-collapse">
           <thead>
-            <tr className="bg-gray-200"> 
-              <th className="px-4 py-2 text-center font-bold text-gray-900 w-16 border border-black">No</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Nama Kelas</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Wali Kelas</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 border border-black">Tahun Ajaran</th>
-              <th className="px-4 py-2 text-center font-bold text-gray-900 w-32 border border-black">Aksi</th>
+            <tr className="bg-gray-200 border-b border-gray-200">
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[48px]">No</th>
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Nama Kelas</th>
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Wali Kelas</th>
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Tahun Ajaran</th>
+              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[140px]">Aksi</th>
             </tr>
           </thead>
-          <tbody>
-            {filtered.map((kelas, index) => (
-              // ✅ BONUS: biar gak ada efek putih aneh
-              <tr key={kelas.id} className="bg-white hover:bg-gray-50">
-                <td className="px-4 py-2 text-center text-gray-700 border border-black">{index + 1}.</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{kelas.namaKelas}</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{kelas.waliKelas}</td>
-                <td className="px-4 py-2 text-gray-700 border border-black">{kelas.tahunAjaran}</td>
-                <td className="px-4 py-2 text-center border border-black">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <button
-                      onClick={() => handleEdit(kelas)}
-                      className="flex items-center gap-1 text-xs bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      <Pencil size={11} /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleHapus(kelas.id)}
-                      className="flex items-center gap-1 text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      <Trash2 size={11} /> Hapus
-                    </button>
-                  </div>
+
+          <tbody className="divide-y divide-gray-100">
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
+                  Belum ada data kelas
                 </td>
               </tr>
-            ))}
-            {Array.from({ length: Math.max(0, 15 - filtered.length) }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-                <td className="px-4 py-2 border border-black">&nbsp;</td>
-              </tr>
-            ))}
+            ) : (
+              filtered.map((kelas, index) => (
+                <tr key={kelas.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-center">{index + 1}</td>
+
+                  <td className="px-4 py-3 text-center font-medium text-gray-800">
+                    {kelas.namaKelas}
+                  </td>
+
+                  <td className="px-4 py-3 text-center text-gray-700">
+                    {kelas.waliKelas}
+                  </td>
+
+                  <td className="px-4 py-3 text-center text-gray-700">
+                    {kelas.tahunAjaran}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(kelas)}
+                        className="inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                      >
+                        <Pencil size={12} /> Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleHapus(kelas.id)}
+                        className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                      >
+                        <Trash2 size={12} /> Hapus
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -133,52 +159,60 @@ export default function DataKelasPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-base font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
+            <h2 className="text-base font-semibold text-gray-800 mb-5">
               {editData ? "Edit Data Kelas" : "Tambah Data Kelas"}
             </h2>
+
             <div className="space-y-3">
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Nama Kelas</label>
+                <label className="text-xs text-gray-500">Nama Kelas</label>
                 <input
                   type="text"
                   value={form.namaKelas}
-                  onChange={(e) => setForm({ ...form, namaKelas: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Contoh: TK A"
+                  onChange={(e) =>
+                    setForm({ ...form, namaKelas: e.target.value })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
+
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Wali Kelas</label>
+                <label className="text-xs text-gray-500">Wali Kelas</label>
                 <input
                   type="text"
                   value={form.waliKelas}
-                  onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Nama wali kelas"
+                  onChange={(e) =>
+                    setForm({ ...form, waliKelas: e.target.value })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
+
               <div>
-                <label className="text-sm text-gray-600 mb-1 block">Tahun Ajaran</label>
+                <label className="text-xs text-gray-500">Tahun Ajaran</label>
                 <input
                   type="text"
                   value={form.tahunAjaran}
-                  onChange={(e) => setForm({ ...form, tahunAjaran: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Contoh: 2024/2025"
+                  onChange={(e) =>
+                    setForm({ ...form, tahunAjaran: e.target.value })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </div>
+
             <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="border border-gray-300 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50"
               >
                 Batal
               </button>
+
               <button
                 onClick={handleSimpan}
-                className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg"
               >
                 Simpan
               </button>
@@ -186,6 +220,7 @@ export default function DataKelasPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
