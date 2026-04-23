@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
       { label: "Data Guru", href: "/admin/data-guru" },
       { label: "Data Kelas", href: "/admin/data-kelas" },
       { label: "Data Anak", href: "/admin/data-anak" },
-      { label: "Akun Pengguna", href: "/admin/akun-pengguna" },
+      { label: "Verifikasi Akun", href: "/admin/verifikasi-akun" },
     ],
   },
   {
@@ -44,7 +44,7 @@ const pageTitles: Record<string, string> = {
   "/admin/data-guru": "Data Guru",
   "/admin/data-kelas": "Data Kelas",
   "/admin/data-anak": "Data Anak",
-  "/admin/akun-pengguna": "Akun Pengguna",
+  "/admin/verifikasi-akun": "Verifikasi Akun",
   "/admin/penilaian-input": "Aspek Perkembangan",
   "/admin/aspek-perkembangan": "Aspek Perkembangan",
   "/admin/indikator-penilaian": "Indikator Penilaian",

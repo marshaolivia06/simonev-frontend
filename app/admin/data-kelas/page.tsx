@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, X, Users } from "lucide-react";
 
 interface Kelas {
   id: number;
@@ -10,11 +10,16 @@ interface Kelas {
   tahunAjaran: string;
 }
 
-// ✅ Dummy Data (3)
 const dummyData: Kelas[] = [
-  { id: 1, namaKelas: "TK A", waliKelas: "Bu Siti", tahunAjaran: "2024/2025" },
-  { id: 2, namaKelas: "TK B", waliKelas: "Pak Budi", tahunAjaran: "2024/2025" },
-  { id: 3, namaKelas: "Playgroup", waliKelas: "Bu Rina", tahunAjaran: "2024/2025" },
+  { id: 1, namaKelas: "TK A1", waliKelas: "Siti Rahayu, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 2, namaKelas: "TK A2", waliKelas: "Dewi Lestari, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 3, namaKelas: "TK B1", waliKelas: "Budi Santoso, M.Pd", tahunAjaran: "2024/2025" },
+  { id: 4, namaKelas: "TK B2", waliKelas: "Rina Marlina, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 5, namaKelas: "Playgroup A", waliKelas: "Ani Wijaya, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 6, namaKelas: "TK A3", waliKelas: "Cinta Laura, S.Pd", tahunAjaran: "2025/2026"},
+  {id: 7, namaKelas: "TK A4", waliKelas: "Agus Pratama, S.Pd", tahunAjaran: "2025/2026"},
+  {id: 8, namaKelas: "Playgroup B", waliKelas: "Fatimah Larasati, S.Pd", tahunAjaran: "2025/2026"},
+  
 ];
 
 export default function DataKelasPage() {
@@ -28,12 +33,14 @@ export default function DataKelasPage() {
     tahunAjaran: "",
   });
 
-  const filtered = data.filter(
-    (k) =>
-      k.namaKelas.toLowerCase().includes(search.toLowerCase()) ||
-      k.waliKelas.toLowerCase().includes(search.toLowerCase()) ||
-      k.tahunAjaran.includes(search)
-  );
+  const filtered = data
+    .filter(
+      (k) =>
+        k.namaKelas.toLowerCase().includes(search.toLowerCase()) ||
+        k.waliKelas.toLowerCase().includes(search.toLowerCase()) ||
+        k.tahunAjaran.includes(search)
+    )
+    .sort((a, b) => a.namaKelas.localeCompare(b.namaKelas));
 
   const handleTambah = () => {
     setEditData(null);
@@ -54,7 +61,7 @@ export default function DataKelasPage() {
   };
 
   const handleSimpan = () => {
-    if (!form.namaKelas.trim() || !form.waliKelas.trim() || !form.tahunAjaran.trim()) {
+    if (!form.namaKelas || !form.waliKelas || !form.tahunAjaran) {
       alert("Semua field wajib diisi!");
       return;
     }
@@ -62,93 +69,125 @@ export default function DataKelasPage() {
     if (editData) {
       setData(data.map((k) => (k.id === editData.id ? { ...k, ...form } : k)));
     } else {
-      const newId =
-        data.length > 0 ? Math.max(...data.map((k) => k.id)) + 1 : 1;
+      const newId = data.length ? Math.max(...data.map((k) => k.id)) + 1 : 1;
       setData([...data, { id: newId, ...form }]);
     }
 
     setShowModal(false);
   };
 
+  const getInitials = (name: string) =>
+    name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+
+  const avatarColors = [
+    "bg-blue-100 text-blue-700",
+    "bg-emerald-100 text-emerald-700",
+    "bg-violet-100 text-violet-700",
+    "bg-amber-100 text-amber-700",
+    "bg-rose-100 text-rose-700",
+  ];
+
   return (
-    <div className="w-full">
+    <div className="w-full font-sans">
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={handleTambah}
-          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
-        >
-          <Plus size={15} />
-          Tambah
-        </button>
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="bg-green-500 text-white rounded-lg p-2">
+            <Users size={18} />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-gray-900">Data Kelas</h1>
+            <p className="text-xs text-gray-400">{data.length} kelas terdaftar</p>
+          </div>
+        </div>
 
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Cari kelas..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-48"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari kelas..."
+              className="bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-4 py-2 text-xs w-56 focus:outline-none"
+            />
+          </div>
+
+          <button
+            onClick={handleTambah}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm flex items-center gap-1"
+          >
+            <Plus size={15} />
+            Tambah
+          </button>
         </div>
       </div>
 
-      {/* Tabel */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm table-fixed border-collapse">
+      {/* TABLE (FIXED STYLE LIKE DATA GURU) */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[48px]">No</th>
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Nama Kelas</th>
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Wali Kelas</th>
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800">Tahun Ajaran</th>
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[140px]">Aksi</th>
+            <tr className="bg-gray-200 border-b border-gray-300">
+              <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[60px] border-r border-gray-300">No</th>
+              <th className="px-5 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-300">Nama Kelas</th>
+              <th className="px-5 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-300">Wali Kelas</th>
+              <th className="px-5 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-300">Tahun Ajaran</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[140px]">Aksi</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
-                  Belum ada data kelas
+                <td colSpan={5} className="text-center py-10 text-gray-400">
+                  Tidak ada data
                 </td>
               </tr>
             ) : (
-              filtered.map((kelas, index) => (
-                <tr key={kelas.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-center">{index + 1}</td>
+              filtered.map((k, i) => (
+                <tr key={k.id} className="hover:bg-gray-50">
 
-                  <td className="px-4 py-3 text-center font-medium text-gray-800">
-                    {kelas.namaKelas}
+                  <td className="text-center px-4 py-3 text-gray-500 border-r border-gray-200">
+                    {i + 1}
                   </td>
 
-                  <td className="px-4 py-3 text-center text-gray-700">
-                    {kelas.waliKelas}
+                  {/* NAMA KELAS */}
+                  <td className="px-5 py-3 border-r border-gray-200 font-medium text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${avatarColors[i % avatarColors.length]}`}>
+                        {getInitials(k.namaKelas)}
+                      </div>
+                      {k.namaKelas}
+                    </div>
                   </td>
 
-                  <td className="px-4 py-3 text-center text-gray-700">
-                    {kelas.tahunAjaran}
+                  {/* WALI KELAS (STYLE GURU) */}
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">
+                    {k.waliKelas}
+                  </td>
+
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-600">
+                    {k.tahunAjaran}
                   </td>
 
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex justify-center gap-2">
                       <button
-                        onClick={() => handleEdit(kelas)}
-                        className="inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                        onClick={() => handleEdit(k)}
+                        className="bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
                       >
                         <Pencil size={12} /> Edit
                       </button>
 
                       <button
-                        onClick={() => handleHapus(kelas.id)}
-                        className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                        onClick={() => handleHapus(k.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
                       >
                         <Trash2 size={12} /> Hapus
                       </button>
                     </div>
                   </td>
+
                 </tr>
               ))
             )}
@@ -156,67 +195,44 @@ export default function DataKelasPage() {
         </table>
       </div>
 
-      {/* Modal */}
+      {/* MODAL (tidak diubah) */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
-            <h2 className="text-base font-semibold text-gray-800 mb-5">
-              {editData ? "Edit Data Kelas" : "Tambah Data Kelas"}
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <h2 className="font-semibold mb-4">
+              {editData ? "Edit Kelas" : "Tambah Kelas"}
             </h2>
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-gray-500">Nama Kelas</label>
-                <input
-                  type="text"
-                  value={form.namaKelas}
-                  onChange={(e) =>
-                    setForm({ ...form, namaKelas: e.target.value })
-                  }
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
+            <input
+              className="w-full border p-2 rounded mb-2"
+              placeholder="Nama Kelas"
+              value={form.namaKelas}
+              onChange={(e) => setForm({ ...form, namaKelas: e.target.value })}
+            />
 
-              <div>
-                <label className="text-xs text-gray-500">Wali Kelas</label>
-                <input
-                  type="text"
-                  value={form.waliKelas}
-                  onChange={(e) =>
-                    setForm({ ...form, waliKelas: e.target.value })
-                  }
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
+            <input
+              className="w-full border p-2 rounded mb-2"
+              placeholder="Wali Kelas"
+              value={form.waliKelas}
+              onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
+            />
 
-              <div>
-                <label className="text-xs text-gray-500">Tahun Ajaran</label>
-                <input
-                  type="text"
-                  value={form.tahunAjaran}
-                  onChange={(e) =>
-                    setForm({ ...form, tahunAjaran: e.target.value })
-                  }
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
+            <input
+              className="w-full border p-2 rounded mb-4"
+              placeholder="Tahun Ajaran"
+              value={form.tahunAjaran}
+              onChange={(e) => setForm({ ...form, tahunAjaran: e.target.value })}
+            />
 
-            <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => setShowModal(false)}
-                className="border border-gray-300 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50"
-              >
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowModal(false)} className="px-3 py-1 border rounded">
                 Batal
               </button>
-
-              <button
-                onClick={handleSimpan}
-                className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg"
-              >
+              <button onClick={handleSimpan} className="px-3 py-1 bg-green-500 text-white rounded">
                 Simpan
               </button>
             </div>
+
           </div>
         </div>
       )}
