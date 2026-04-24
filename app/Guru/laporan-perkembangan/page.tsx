@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { FileText } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -23,25 +22,33 @@ interface RiwayatItem {
   dokumentasi?: string;
 }
 
-const dummyRiwayat: RiwayatItem[] = [];
+const dummyRiwayat: RiwayatItem[] = [
+  { id: 1, tanggal: "10 Jan 2025", aspek: "Bahasa", kegiatan: "Bicara", indikator: "Menyebutkan nama benda", nilai: "BSH", dokumentasi: "foto1.jpg" },
+  { id: 2, tanggal: "10 Jan 2025", aspek: "Motorik", kegiatan: "Berlari", indikator: "Mampu berlari lurus", nilai: "BSB", dokumentasi: "foto2.jpg" },
+  { id: 3, tanggal: "12 Jan 2025", aspek: "Sosial-Emosional", kegiatan: "Bermain bersama", indikator: "Mampu bermain bersama teman sebaya", nilai: "MB", dokumentasi: "" },
+  { id: 4, tanggal: "12 Jan 2025", aspek: "Agama", kegiatan: "Berdoa", indikator: "Mampu berdoa dengan benar", nilai: "BSH", dokumentasi: "foto3.jpg" },
+  { id: 5, tanggal: "15 Jan 2025", aspek: "Kreatifitas/Seni", kegiatan: "Menggambar", indikator: "Mampu menggambar objek sederhana", nilai: "BSB", dokumentasi: "" },
+];
 
 const aspekList = ["FM", "KOG", "BHS", "SOS-EM", "NAM"];
 const aspekColors = ["#4DB6AC", "#F48FB1", "#FFF176", "#CE93D8", "#FFCC80"];
-const defaultNilai = [3, 2, 4, 3, 2]; // 1=BB, 2=MB, 3=BSH, 4=BSB
+const defaultNilai = [3, 2, 4, 3, 2];
 
-const nilaiLabel: Record<number, string> = {
-  1: "BB",
-  2: "MB",
-  3: "BSH",
-  4: "BSB",
+const nilaiLabel: Record<number, string> = { 1: "BB", 2: "MB", 3: "BSH", 4: "BSB" };
+
+const nilaiColor: Record<string, string> = {
+  BB: "bg-red-100 text-red-600",
+  MB: "bg-orange-100 text-orange-600",
+  BSH: "bg-yellow-100 text-yellow-700",
+  BSB: "bg-green-100 text-green-600",
 };
 
 const dummyAspekNilai = [
-  { aspek: "Perkembangan Motorik", nilai: "" },
-  { aspek: "Perkembangan Kognitif", nilai: "" },
-  { aspek: "Perkembangan Bahasa", nilai: "" },
-  { aspek: "Perkembangan Sosial-Emosional", nilai: "" },
-  { aspek: "Nilai Agama dan Moral", nilai: "" },
+  { aspek: "Perkembangan Motorik", nilai: "BSH" },
+  { aspek: "Perkembangan Kognitif", nilai: "MB" },
+  { aspek: "Perkembangan Bahasa", nilai: "BSB" },
+  { aspek: "Perkembangan Sosial-Emosional", nilai: "BSH" },
+  { aspek: "Nilai Agama dan Moral", nilai: "MB" },
 ];
 
 const kelasOptions = ["Kelas A", "Kelas B"];
@@ -52,7 +59,6 @@ const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
 const selectClass =
   "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
 
-// Custom Tooltip
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const val = payload[0].value;
@@ -71,7 +77,7 @@ export default function LaporanPerkembanganPage() {
   const [semester, setSemester] = useState("");
   const [kelas, setKelas] = useState("");
   const [tahunAjaran, setTahunAjaran] = useState("");
-  const [komentar] = useState("");
+  const komentar = "Anak menunjukkan perkembangan yang baik dalam aspek bahasa dan motorik. Perlu peningkatan pada aspek kognitif dan sosial-emosional.";
   const [riwayat] = useState<RiwayatItem[]>(dummyRiwayat);
   const [aspekNilai] = useState(dummyAspekNilai);
 
@@ -83,9 +89,9 @@ export default function LaporanPerkembanganPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+
       {/* Top section: filters + chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 relative">
-        {/* PDF Button */}
         <button className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors">
           PDF
         </button>
@@ -94,46 +100,37 @@ export default function LaporanPerkembanganPage() {
           {/* Filters */}
           <div className="flex flex-col gap-3 max-w-[420px]">
             <div className="grid grid-cols-2 gap-3">
-              {/* Kelas */}
               <div className="relative">
                 <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass}>
                   <option value="">Pilih kelas</option>
-                  {kelasOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+                  {kelasOptions.map((k) => <option key={k}>{k}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
               </div>
-
-              {/* Nama Anak */}
               <div className="relative">
                 <select value={namaAnak} onChange={(e) => setNamaAnak(e.target.value)} className={selectClass}>
                   <option value="">Pilih anak</option>
-                  {namaAnakOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+                  {namaAnakOptions.map((n) => <option key={n}>{n}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
               </div>
-
-              {/* Semester */}
               <div className="relative">
                 <select value={semester} onChange={(e) => setSemester(e.target.value)} className={selectClass}>
                   <option value="">Pilih semester</option>
-                  {semesterOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {semesterOptions.map((s) => <option key={s}>{s}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
               </div>
-
-              {/* Tahun Ajaran */}
               <div className="relative">
                 <select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)} className={selectClass}>
                   <option value="">Pilih tahun</option>
-                  {tahunAjaranOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {tahunAjaranOptions.map((t) => <option key={t}>{t}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
               </div>
             </div>
-
-            {/* Tampilkan Button */}
             <div>
-              <button className="bg-gray-200 hover:bg-gray-300 hover:shadow-sm active:scale-95 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-all duration-150">
+              <button className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-sm font-medium px-5 py-2 rounded-lg transition-all duration-150 shadow-sm">
                 Tampilkan
               </button>
             </div>
@@ -177,15 +174,13 @@ export default function LaporanPerkembanganPage() {
           </thead>
           <tbody>
             {aspekNilai.map((item, i) => (
-              <tr key={i}>
+              <tr key={i} className="hover:bg-gray-50">
                 <td className="px-5 py-2.5 border border-gray-300 text-gray-700">{item.aspek}</td>
-                <td className="px-5 py-2.5 border border-gray-300 text-gray-700">{item.nilai}</td>
-              </tr>
-            ))}
-            {Array.from({ length: Math.max(0, 5 - aspekNilai.length) }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td className="px-5 py-2.5 border border-gray-300">&nbsp;</td>
-                <td className="px-5 py-2.5 border border-gray-300">&nbsp;</td>
+                <td className="px-5 py-2.5 border border-gray-300 text-center">
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${nilaiColor[item.nilai]}`}>
+                    {item.nilai}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -194,9 +189,8 @@ export default function LaporanPerkembanganPage() {
 
       {/* Komentar Guru */}
       <div className="bg-gray-100 rounded-xl border border-gray-200 p-4 min-h-[80px]">
-        <p className="text-sm text-gray-400 italic">
-          {komentar || "Komentar Guru ..."}
-        </p>
+        <p className="text-xs font-semibold text-gray-500 mb-1">Komentar Guru</p>
+        <p className="text-sm text-gray-600 italic">{komentar}</p>
       </div>
 
       {/* Riwayat Perkembangan */}
@@ -211,41 +205,44 @@ export default function LaporanPerkembanganPage() {
                 <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Aspek</th>
                 <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Kegiatan</th>
                 <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Indikator</th>
-                <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Nilai</th>
-                <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300">Dokumentasi</th>
+                <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-16">Nilai</th>
+                <th className="px-3 py-2.5 text-center font-bold text-gray-800 border border-gray-300 w-28">Dokumentasi</th>
               </tr>
             </thead>
             <tbody>
               {riwayat.map((item, index) => (
-                <tr key={item.id}>
+                <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2.5 text-center text-gray-700 border border-gray-300">{index + 1}</td>
                   <td className="px-3 py-2.5 text-gray-700 border border-gray-300">{item.tanggal}</td>
                   <td className="px-3 py-2.5 text-gray-700 border border-gray-300">{item.aspek}</td>
                   <td className="px-3 py-2.5 text-gray-700 border border-gray-300">{item.kegiatan}</td>
                   <td className="px-3 py-2.5 text-gray-700 border border-gray-300">{item.indikator}</td>
-                  <td className="px-3 py-2.5 text-center text-gray-700 border border-gray-300">{item.nilai}</td>
                   <td className="px-3 py-2.5 text-center border border-gray-300">
-                    {item.dokumentasi && (
-                      <span className="bg-gray-100 border border-gray-300 text-gray-600 text-xs px-3 py-1 rounded-full">foto</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${nilaiColor[item.nilai]}`}>
+                      {item.nilai}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-center border border-gray-300">
+                    {item.dokumentasi ? (
+                      <span className="text-xs text-blue-500 underline cursor-pointer">{item.dokumentasi}</span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
                     )}
                   </td>
                 </tr>
               ))}
               {Array.from({ length: Math.max(0, 5 - riwayat.length) }).map((_, i) => (
                 <tr key={`empty-${i}`}>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
-                  <td className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
+                  {Array.from({ length: 7 }).map((__, j) => (
+                    <td key={j} className="px-3 py-2.5 border border-gray-300">&nbsp;</td>
+                  ))}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
   );
 }

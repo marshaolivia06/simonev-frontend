@@ -1,60 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+
+// ── DATA ────────────────────────────────────────────────────────────────────
 
 const features = [
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
+    emoji: "📊",
+    bg: "#E3F2FD",
     title: "Laporan Perkembangan",
     desc: "Rekapitulasi lengkap perkembangan anak berdasarkan indikator penilaian yang terstruktur, jelas, dan mudah dipahami dari waktu ke waktu.",
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-      </svg>
-    ),
+    emoji: "📈",
+    bg: "#E8F5E9",
     title: "Grafik Monitoring",
     desc: "Visualisasi perkembangan anak berdasarkan data penilaian guru agar progres setiap anak dapat dipantau secara lebih jelas dan mudah dianalisis.",
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-    ),
+    emoji: "🔔",
+    bg: "#E3F2FD",
     title: "Pengumuman",
     desc: "Informasi penting dari sekolah kepada guru dan orang tua — jadwal kegiatan, akademik, dan pemberitahuan lainnya secara cepat dan terpusat.",
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
+    emoji: "✅",
+    bg: "#E1F5FE",
     title: "Penilaian",
     desc: "Catat dan evaluasi perkembangan anak berdasarkan indikator PAUD yang ditentukan agar hasil penilaian lebih objektif dan mudah dipantau orang tua.",
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
+    emoji: "👤",
+    bg: "#E8EAF6",
     title: "Manajemen Profil",
     desc: "Kelola informasi pengguna — admin, guru, dan orang tua — termasuk data pribadi, akun, serta pengaturan akses secara mandiri dan terstruktur.",
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
-        <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
+    emoji: "🧒",
+    bg: "#E3F2FD",
     title: "Data Anak",
     desc: "Kelola seluruh informasi peserta didik PAUD mulai dari identitas, data orang tua, hingga catatan perkembangan harian secara terpusat dan rapi.",
   },
@@ -66,271 +49,552 @@ const stats = [
   { value: "6", label: "Fitur Utama" },
 ];
 
-const previews = [
-  { src: "/dashboard.png", label: "Dashboard Admin" },
-  { src: "/perkembangan.png", label: "Laporan Perkembangan" },
-  { src: "/dashboard guru.png", label: "Dashboard Guru" },
-  { src: "/pengumuman.png", label: "Pengumuman" },
-];
+const footerLinks = ["Laporan", "Grafik", "Pengumuman", "Penilaian", "Data Anak"];
 
-const footerLinks = [
-  { label: "Laporan", href: "#" },
-  { label: "Grafik", href: "#" },
-  { label: "Pengumuman", href: "#" },
-  { label: "Penilaian", href: "#" },
-  { label: "Data Anak", href: "#" },
-];
+// ── ILLUSTRATIONS ────────────────────────────────────────────────────────────
+
+function HeroIllustration() {
+  return (
+    <svg viewBox="0 0 320 300" width="100%" style={{ maxWidth: 340 }} xmlns="http://www.w3.org/2000/svg">
+      {/* Sky circle */}
+      <circle cx="160" cy="150" r="140" fill="#E3F2FD" />
+      <circle cx="160" cy="150" r="140" fill="none" stroke="#90CAF9" strokeWidth="2" />
+
+      {/* Clouds */}
+      <ellipse cx="220" cy="68" rx="32" ry="15" fill="white" />
+      <ellipse cx="200" cy="72" rx="20" ry="13" fill="white" />
+      <ellipse cx="240" cy="72" rx="20" ry="13" fill="white" />
+      <ellipse cx="88" cy="88" rx="22" ry="11" fill="white" opacity={0.7} />
+      <ellipse cx="73" cy="92" rx="14" ry="10" fill="white" opacity={0.7} />
+      <ellipse cx="103" cy="92" rx="14" ry="10" fill="white" opacity={0.7} />
+
+      {/* Sun */}
+      <circle cx="62" cy="65" r="22" fill="#FDD835" />
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+        const rad = (angle * Math.PI) / 180;
+        const x1 = 62 + 28 * Math.cos(rad);
+        const y1 = 65 + 28 * Math.sin(rad);
+        const x2 = 62 + 36 * Math.cos(rad);
+        const y2 = 65 + 36 * Math.sin(rad);
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#FDD835" strokeWidth="3" strokeLinecap="round" />;
+      })}
+
+      {/* Grass */}
+      <ellipse cx="160" cy="272" rx="130" ry="26" fill="#81C784" />
+      <ellipse cx="160" cy="270" rx="130" ry="15" fill="#A5D6A7" />
+
+      {/* Tree left */}
+      <rect x="58" y="210" width="10" height="52" rx="3" fill="#795548" />
+      <circle cx="63" cy="196" r="27" fill="#42A5F5" />
+      <circle cx="46" cy="208" r="17" fill="#64B5F6" />
+      <circle cx="80" cy="208" r="17" fill="#64B5F6" />
+
+      {/* Tree right */}
+      <rect x="250" y="218" width="8" height="44" rx="3" fill="#795548" />
+      <circle cx="254" cy="205" r="21" fill="#42A5F5" />
+      <circle cx="240" cy="214" r="14" fill="#64B5F6" />
+      <circle cx="268" cy="214" r="14" fill="#64B5F6" />
+
+      {/* ── GIRL (blue dress, pigtails) ── */}
+      <ellipse cx="118" cy="230" rx="18" ry="22" fill="#1976D2" />
+      <ellipse cx="118" cy="210" rx="10" ry="5" fill="#1565C0" />
+      <path d="M100 220 Q88 215 84 222" stroke="#FFCC80" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <path d="M136 220 Q148 215 152 222" stroke="#FFCC80" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <rect x="108" y="248" width="8" height="18" rx="4" fill="#0D47A1" />
+      <rect x="120" y="248" width="8" height="18" rx="4" fill="#0D47A1" />
+      <ellipse cx="112" cy="268" rx="7" ry="4" fill="#F44336" />
+      <ellipse cx="124" cy="268" rx="7" ry="4" fill="#F44336" />
+      <circle cx="118" cy="194" r="22" fill="#FFCC80" />
+      <ellipse cx="118" cy="178" rx="22" ry="12" fill="#5D4037" />
+      <ellipse cx="96" cy="182" rx="7" ry="10" fill="#5D4037" />
+      <ellipse cx="140" cy="182" rx="7" ry="10" fill="#5D4037" />
+      <ellipse cx="96" cy="174" rx="6" ry="4" fill="#42A5F5" transform="rotate(-20 96 174)" />
+      <ellipse cx="140" cy="174" rx="6" ry="4" fill="#42A5F5" transform="rotate(20 140 174)" />
+      <ellipse cx="110" cy="193" rx="4" ry="4.5" fill="white" />
+      <ellipse cx="126" cy="193" rx="4" ry="4.5" fill="white" />
+      <circle cx="111" cy="194" r="2.5" fill="#3E2723" />
+      <circle cx="127" cy="194" r="2.5" fill="#3E2723" />
+      <circle cx="112" cy="192.5" r="1" fill="white" />
+      <circle cx="128" cy="192.5" r="1" fill="white" />
+      <path d="M112 202 Q118 207 124 202" stroke="#E64A19" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <circle cx="104" cy="200" r="5" fill="#FFB3A7" opacity={0.5} />
+      <circle cx="132" cy="200" r="5" fill="#FFB3A7" opacity={0.5} />
+
+      {/* ── BOY (light blue, waving) ── */}
+      <ellipse cx="202" cy="228" rx="18" ry="22" fill="#42A5F5" />
+      <path d="M184 214 Q172 200 168 192" stroke="#FFCC80" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <path d="M220 214 Q232 200 240 192" stroke="#FFCC80" strokeWidth="7" strokeLinecap="round" fill="none" />
+      <circle cx="166" cy="189" r="8" fill="#FFCC80" />
+      <circle cx="241" cy="189" r="8" fill="#FFCC80" />
+      <rect x="191" y="246" width="9" height="20" rx="4" fill="#1565C0" />
+      <rect x="203" y="246" width="9" height="20" rx="4" fill="#1565C0" />
+      <ellipse cx="196" cy="268" rx="7" ry="4" fill="#37474F" />
+      <ellipse cx="207" cy="268" rx="7" ry="4" fill="#37474F" />
+      <circle cx="202" cy="192" r="22" fill="#FFCC80" />
+      <ellipse cx="202" cy="176" rx="22" ry="11" fill="#4E342E" />
+      <ellipse cx="194" cy="191" rx="4" ry="4.5" fill="white" />
+      <ellipse cx="210" cy="191" rx="4" ry="4.5" fill="white" />
+      <circle cx="195" cy="192" r="2.5" fill="#3E2723" />
+      <circle cx="211" cy="192" r="2.5" fill="#3E2723" />
+      <circle cx="196" cy="190.5" r="1" fill="white" />
+      <circle cx="212" cy="190.5" r="1" fill="white" />
+      <path d="M195 201 Q202 208 209 201" stroke="#E64A19" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <circle cx="186" cy="198" r="5" fill="#FFB3A7" opacity={0.5} />
+      <circle cx="218" cy="198" r="5" fill="#FFB3A7" opacity={0.5} />
+
+      {/* Flowers */}
+      <circle cx="90" cy="258" r="5" fill="#90CAF9" />
+      <circle cx="87" cy="253" r="3.5" fill="#42A5F5" />
+      <circle cx="93" cy="253" r="3.5" fill="#42A5F5" />
+      <circle cx="85" cy="257" r="3.5" fill="#42A5F5" />
+      <circle cx="95" cy="257" r="3.5" fill="#42A5F5" />
+      <circle cx="238" cy="258" r="5" fill="#FFF176" />
+      <circle cx="235" cy="253" r="3.5" fill="#FDD835" />
+      <circle cx="241" cy="253" r="3.5" fill="#FDD835" />
+      <circle cx="233" cy="257" r="3.5" fill="#FDD835" />
+      <circle cx="243" cy="257" r="3.5" fill="#FDD835" />
+
+      {/* Sparkles */}
+      <text x="156" y="108" fontSize="16" fill="#FDD835" textAnchor="middle">★</text>
+      <text x="174" y="95" fontSize="11" fill="#90CAF9" textAnchor="middle">★</text>
+      <text x="145" y="96" fontSize="11" fill="#42A5F5" textAnchor="middle">✦</text>
+    </svg>
+  );
+}
+
+function TeacherIllustration() {
+  return (
+    <svg viewBox="0 0 220 145" width={220} height={145} xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      {/* Blackboard */}
+      <rect x="10" y="10" width="120" height="80" rx="8" fill="#1565C0" />
+      <rect x="14" y="14" width="112" height="72" rx="6" fill="#1976D2" />
+      <text x="70" y="42" fontFamily="'Fredoka One', cursive" fontSize="13" fill="white" textAnchor="middle">SIMONEV</text>
+      <line x1="30" y1="52" x2="110" y2="52" stroke="white" strokeWidth="1.5" opacity={0.5} />
+      <line x1="30" y1="62" x2="90" y2="62" stroke="white" strokeWidth="1.5" opacity={0.5} />
+      <line x1="30" y1="72" x2="100" y2="72" stroke="white" strokeWidth="1.5" opacity={0.5} />
+      <line x1="50" y1="90" x2="40" y2="118" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+      <line x1="90" y1="90" x2="100" y2="118" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+      {/* Teacher */}
+      <ellipse cx="168" cy="100" rx="16" ry="22" fill="#1976D2" />
+      <circle cx="168" cy="72" r="18" fill="#FFCC80" />
+      <ellipse cx="168" cy="58" rx="18" ry="10" fill="#4E342E" />
+      <circle cx="168" cy="52" r="8" fill="#4E342E" />
+      <ellipse cx="162" cy="72" rx="3" ry="3.5" fill="white" />
+      <ellipse cx="174" cy="72" rx="3" ry="3.5" fill="white" />
+      <circle cx="163" cy="73" r="2" fill="#3E2723" />
+      <circle cx="175" cy="73" r="2" fill="#3E2723" />
+      <path d="M162 80 Q168 85 174 80" stroke="#E64A19" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <rect x="158" y="69" width="8" height="6" rx="3" fill="none" stroke="#37474F" strokeWidth="1.2" />
+      <rect x="170" y="69" width="8" height="6" rx="3" fill="none" stroke="#37474F" strokeWidth="1.2" />
+      <line x1="166" y1="72" x2="170" y2="72" stroke="#37474F" strokeWidth="1.2" />
+      <path d="M152 92 Q138 85 126 80" stroke="#FFCC80" strokeWidth="6" strokeLinecap="round" fill="none" />
+      <circle cx="123" cy="79" r="6" fill="#FFCC80" />
+      <circle cx="156" cy="78" r="4" fill="#FFB3A7" opacity={0.5} />
+      <circle cx="180" cy="78" r="4" fill="#FFB3A7" opacity={0.5} />
+      <rect x="158" y="118" width="7" height="16" rx="3.5" fill="#0D47A1" />
+      <rect x="169" y="118" width="7" height="16" rx="3.5" fill="#0D47A1" />
+      <ellipse cx="162" cy="135" rx="6" ry="3.5" fill="#37474F" />
+      <ellipse cx="172" cy="135" rx="6" ry="3.5" fill="#37474F" />
+    </svg>
+  );
+}
+
+// ── PAGE ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#F7FAFF] text-gray-800 font-sans">
+    <>
+      {/* Google Fonts */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
 
-      {/* ── NAVBAR ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-blue-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
+        .paud-body {
+          font-family: 'Nunito', sans-serif;
+          background: #F0F6FF;
+          color: #1A2B4A;
+          overflow-x: hidden;
+        }
 
-       {/* Logo */}
-<div className="flex items-center gap-3">
-  <img
-    src="/logo.png"
-    alt="Logo"
-    className="w-14 h-14 object-contain"
+        .paud-btn-primary {
+          background: linear-gradient(135deg, #42A5F5, #1565C0);
+          color: white;
+          border: none;
+          padding: 11px 24px;
+          border-radius: 50px;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(25,118,210,0.3);
+          transition: transform 0.15s, box-shadow 0.15s;
+          display: inline-block;
+          text-decoration: none;
+        }
+        .paud-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+        }
+
+        .paud-btn-secondary {
+          background: white;
+          color: #1976D2;
+          border: 2px solid #90CAF9;
+          padding: 11px 24px;
+          border-radius: 50px;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.15s;
+          display: inline-block;
+          text-decoration: none;
+        }
+        .paud-btn-secondary:hover { background: #E3F2FD; }
+
+        .paud-feature-card {
+          background: white;
+          border: 2px solid #BBDEFB;
+          border-radius: 20px;
+          padding: 22px;
+          transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+          cursor: default;
+        }
+        .paud-feature-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 28px rgba(25,118,210,0.12);
+          border-color: #42A5F5;
+        }
+
+        .paud-stat-card {
+          background: white;
+          border: 2px solid #BBDEFB;
+          border-radius: 18px;
+          padding: 16px 18px;
+          flex: 1;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(25,118,210,0.06);
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        .paud-float { animation: float 4s ease-in-out infinite; }
+      `}</style>
+
+      <div className="paud-body min-h-screen">
+
+        {/* ── NAVBAR ────────────────────────────────────────────────── */}
+        <header className="sticky top-0 z-50 bg-white border-b-2 border-blue-100 shadow-sm">
+          <div className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              {/* Logo */}
+             <div style={{
+  width: 46,
+  height: 46,
+  borderRadius: 14,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+}}>
+  <img 
+    src="/logo.png" 
+    alt="Logo SIMONEV"
+    className="w-10 h-10 object-contain"
   />
-
-  <div className="leading-tight">
-    <p className="font-bold text-[#1976D2] text-base tracking-wide">
-      SIMONEV PAUD
-    </p>
-    <p className="text-[10px] text-gray-400 tracking-wide hidden sm:block">
-      Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini
-    </p>
-  </div>
 </div>
-
-          {/* Nav actions */}
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <button className="bg-[#1976D2] hover:bg-[#1565C0] active:scale-95 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-sm shadow-blue-200">
-                Masuk
-              </button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* ── HERO ───────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-20 pb-28 px-6 text-center">
-
-        {/* Decorative blobs */}
-        <div className="pointer-events-none absolute -top-20 -left-20 w-96 h-96 rounded-full bg-blue-100 opacity-40 blur-3xl" />
-        <div className="pointer-events-none absolute top-10 right-0 w-72 h-72 rounded-full bg-sky-100 opacity-50 blur-3xl" />
-
-        <div className="relative max-w-3xl mx-auto">
-          <span className="inline-block mb-4 px-4 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#1976D2] text-xs font-semibold tracking-widest uppercase">
-            Platform Digital PAUD
-          </span>
-
-          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-gray-900">
-            Pantau Perkembangan Anak{" "}
-            <span className="text-[#1976D2]">Secara Cerdas & Terstruktur</span>
-          </h1>
-
-          <p className="mt-5 text-gray-500 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-            Platform berbasis web yang membantu guru dan lembaga PAUD dalam memantau serta mengevaluasi perkembangan anak — lebih mudah, rapi, dan dapat diakses kapan saja secara digital.
-          </p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/login">
-              <button className="bg-[#1976D2] hover:bg-[#1565C0] text-white px-7 py-3 rounded-full font-semibold text-sm shadow-md shadow-blue-200 hover:shadow-blue-300 transition-all active:scale-95">
-                Mulai Sekarang
-              </button>
-            </Link>
-            <a href="#fitur">
-              <button className="border border-blue-200 bg-white hover:bg-blue-50 text-[#1976D2] px-7 py-3 rounded-full font-semibold text-sm transition-all active:scale-95">
-                Lihat Fitur
-              </button>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ──────────────────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-6 -mt-10 mb-20">
-        <div className="grid grid-cols-3 gap-4 sm:gap-6">
-          {stats.map((s, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-blue-100 shadow-sm p-6 sm:p-8 text-center"
-            >
-              <p className="text-3xl sm:text-4xl font-extrabold text-[#1976D2]">{s.value}</p>
-              <p className="mt-1.5 text-xs sm:text-sm text-gray-400 font-medium">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURES ───────────────────────────────────────────────── */}
-      <section id="fitur" className="max-w-6xl mx-auto px-6 mb-24">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold text-[#1976D2] uppercase tracking-widest mb-2">Fitur Utama</p>
-          <h2 className="text-3xl font-extrabold text-gray-900">Semua yang Anda Butuhkan</h2>
-          <p className="mt-3 text-gray-500 text-sm max-w-lg mx-auto">
-            Enam fitur utama yang dirancang khusus untuk kebutuhan monitoring dan evaluasi perkembangan anak usia dini.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {features.map((f, i) => (
-            <div
-              key={i}
-              className="group bg-white border border-gray-100 rounded-2xl p-7 hover:-translate-y-1 hover:shadow-lg hover:border-blue-200 transition-all duration-300"
-            >
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#1976D2] flex items-center justify-center mb-4 group-hover:bg-[#1976D2] group-hover:text-white transition-colors duration-300">
-                {f.icon}
+              <div>
+                <p style={{ fontFamily: "'Fredoka One', cursive", color: "#1565C0", fontSize: 17, lineHeight: 1 }}>
+                  SIMONEV PAUD
+                </p>
+                <p className="text-[10px] text-gray-400 tracking-wide hidden sm:block">
+                  Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini
+                </p>
               </div>
-              <h3 className="font-bold text-gray-900 text-base mb-2">{f.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ── APP PREVIEW ────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-white to-[#EBF3FF] py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-[#1976D2] uppercase tracking-widest mb-2">Tampilan Aplikasi</p>
-            <h2 className="text-3xl font-extrabold text-gray-900">Preview Sistem SIMONEV</h2>
-            <p className="mt-3 text-gray-500 text-sm max-w-lg mx-auto">
-              Desain bersih dan terstruktur yang memudahkan guru dalam proses pemantauan perkembangan anak setiap harinya.
-            </p>
+            <div className="flex items-center gap-3">
+  <Link href="/login">
+    <button
+      className="paud-btn-primary"
+      style={{ padding: "8px 22px", fontSize: 13 }}
+    >
+      Masuk
+    </button>
+  </Link>
+
+  <Link href="/register">
+    <button
+      className="paud-btn-primary"
+      style={{ padding: "8px 22px", fontSize: 13 }}
+    >
+      Daftar
+    </button>
+  </Link>
+</div>
           </div>
+        </header>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {previews.map((item, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <div className="overflow-hidden">
-                  <Image
-                    src={item.src}
-                    alt={item.label}
-                    width={400}
-                    height={300}
-                    className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="px-4 py-3">
-                  <p className="text-xs font-semibold text-gray-600">{item.label}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Preview {i + 1}</p>
-                </div>
+        {/* ── HERO ──────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden pt-14 pb-6 px-6">
+          {/* Decorative blobs */}
+          <div className="pointer-events-none absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-30"
+            style={{ background: "#BBDEFB", filter: "blur(60px)" }} />
+          <div className="pointer-events-none absolute top-10 right-0 w-72 h-72 rounded-full opacity-30"
+            style={{ background: "#E3F2FD", filter: "blur(50px)" }} />
+
+          <div className="relative max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left */}
+            <div>
+              <span style={{
+                display: "inline-block", marginBottom: 14,
+                padding: "4px 14px", borderRadius: 50,
+                background: "#E3F2FD", border: "1.5px solid #90CAF9",
+                color: "#1565C0", fontSize: 10, fontWeight: 800,
+                textTransform: "uppercase", letterSpacing: "1.5px"
+              }}>
+                Platform Digital PAUD
+              </span>
+
+              <h1 style={{ fontFamily: "'Fredoka One', cursive", fontSize: "clamp(28px,4vw,40px)", lineHeight: 1.15, color: "#1A2B4A", margin: "0 0 14px" }}>
+                Pantau Tumbuh Kembang Anak{" "}
+                <span style={{ color: "#1976D2" }}>Lebih Cerdas & Menyenangkan!</span>
+              </h1>
+
+              <p style={{ fontSize: 14, color: "#546E8A", lineHeight: 1.75, margin: "0 0 22px" }}>
+                Platform berbasis web yang membantu guru dan lembaga PAUD dalam memantau serta
+                mengevaluasi perkembangan anak — lebih mudah, rapi, dan dapat diakses kapan saja secara digital.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link href="/login">
+                  <button className="paud-btn-primary">✨ Mulai Sekarang</button>
+                </Link>
+                <a href="#fitur">
+                  <button className="paud-btn-secondary">Lihat Fitur</button>
+                </a>
+              </div>
+            </div>
+
+            {/* Right - Illustration */}
+            <div className="flex justify-center paud-float">
+              <HeroIllustration />
+            </div>
+          </div>
+        </section>
+
+        {/* ── STATS ─────────────────────────────────────────────────── */}
+        <section className="max-w-4xl mx-auto px-6 mt-8 mb-12">
+          <div className="flex gap-4">
+            {stats.map((s, i) => (
+              <div key={i} className="paud-stat-card">
+                <p style={{ fontFamily: "'Fredoka One', cursive", fontSize: 30, color: "#1976D2", margin: 0 }}>{s.value}</p>
+                <p style={{ fontSize: 12, color: "#90A4AE", fontWeight: 600, marginTop: 4 }}>{s.label}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── CTA BANNER ─────────────────────────────────────────────── */}
-      <section className="bg-[#1976D2] py-16 px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-snug">
-            Siap Memulai Pemantauan Perkembangan Anak?
-          </h2>
-          <p className="mt-3 text-blue-100 text-sm">
-            Ayo Bergabung bersama menggunakan SIMONEV untuk me-monitoring dan mengevaluasi perkembangan anak usia dini sekarang juga
-          </p>
-          <Link href="/login">
-            <button className="mt-6 bg-white text-[#1976D2] hover:bg-blue-50 px-8 py-3 rounded-full font-bold text-sm transition-all active:scale-95 shadow-md">
-              Mulai Sekarang
-            </button>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── FOOTER ─────────────────────────────────────────────────── */}
-<footer className="bg-gradient-to-b from-[#0D47A1] to-[#08306B] text-white px-6 py-10">
-  <div className="max-w-6xl mx-auto">
-
-    {/* TOP SECTION */}
-    <div className="flex flex-col lg:flex-row justify-between gap-10 pb-8 border-b border-white/10">
-
-      {/* BRAND */}
-      <div className="max-w-sm">
-        <div className="flex items-center gap-4 mb-4">
-          <img
-            src="/logo.png"
-            alt="Logo"
-            className="w-16 h-16 object-contain drop-shadow"
-          />
-
-          <div>
-            <p className="font-bold text-base tracking-wide">
-              SIMONEV PAUD
+        {/* ── FEATURES ──────────────────────────────────────────────── */}
+        <section id="fitur" className="max-w-6xl mx-auto px-6 mb-16">
+          <div className="text-center mb-10">
+            <p style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#1976D2", marginBottom: 6 }}>
+              Fitur Utama
             </p>
-            <p className="text-[11px] text-blue-200 leading-snug">
-              Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini
+            <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#1A2B4A", margin: "0 0 6px" }}>
+              Semua yang Anda Butuhkan 🌟
+            </h2>
+            <p style={{ fontSize: 13, color: "#90A4AE", maxWidth: 480, margin: "0 auto" }}>
+              Enam fitur utama yang dirancang khusus untuk kebutuhan monitoring dan evaluasi
+              perkembangan anak usia dini.
             </p>
           </div>
-        </div>
 
-        <p className="text-blue-200 text-xs leading-relaxed">
-          Platform digital untuk pemantauan perkembangan anak secara terstruktur, cepat, dan mudah digunakan oleh guru.
-        </p>
-      </div>
-
-      {/* FITUR (1 KOLOM) */}
-<div>
-  <p className="font-semibold text-sm mb-3">Fitur</p>
-  <ul className="space-y-2 text-xs text-blue-200">
-    {footerLinks.map((l, i) => (
-      <li key={i}>
-        <a className="hover:text-white transition" href={l.href}>
-          {l.label}
-        </a>
-      </li>
-    ))}
-  </ul>
-</div>
-
-      {/* KONTAK */}
-      <div>
-        <p className="font-semibold text-sm mb-3">Kontak</p>
-
-        <div className="space-y-3 text-xs text-blue-200">
-
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-            +62 812-0000-0000
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <div key={i} className="paud-feature-card">
+                <div style={{
+                  width: 46, height: 46, borderRadius: 14,
+                  background: f.bg, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: 22, marginBottom: 14
+                }}>
+                  {f.emoji}
+                </div>
+                <h3 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 16, color: "#1A2B4A", margin: "0 0 8px" }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: 12.5, color: "#90A4AE", lineHeight: 1.65, margin: 0 }}>
+                  {f.desc}
+                </p>
+              </div>
+            ))}
           </div>
+        </section>
 
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            admin@simonev.com
+        {/* ── TEACHER SECTION ───────────────────────────────────────── */}
+        <section className="max-w-5xl mx-auto px-6 mb-16">
+          <div style={{
+            background: "white", borderRadius: 28, border: "2px solid #BBDEFB",
+            padding: "28px 32px", display: "flex", alignItems: "center", gap: 28,
+            flexWrap: "wrap"
+          }}>
+            <TeacherIllustration />
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <h3 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 22, color: "#1A2B4A", marginBottom: 10 }}>
+                Dirancang untuk Guru PAUD 🧑‍🏫
+              </h3>
+              <p style={{ fontSize: 13.5, color: "#546E8A", lineHeight: 1.75, margin: 0 }}>
+                SIMONEV hadir sebagai sahabat guru dalam proses monitoring harian. Tidak perlu repot
+                mencatat manual — semua data perkembangan si kecil tersimpan rapi dan bisa diakses
+                kapan saja oleh guru maupun orang tua.
+              </p>
+            </div>
           </div>
-          
-          <div className="pt-2 border-t border-white/10">
-  <p className="text-[11px] leading-relaxed text-blue-200 max-w-[240px] break-words">
-    📍 Perum. Dotamana Komplek Masjid Al-Muhajirin, Kec. Batam Kota, Kota Batam, Prov. Kepulauan Riau
-  </p>
+        </section>
+
+        {/* ── APP PREVIEW ───────────────────────────────────────────── */}
+        <section style={{ background: "linear-gradient(to bottom, white, #EBF3FF)", padding: "48px 24px" }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-10">
+              <p style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#1976D2", marginBottom: 6 }}>
+                Tampilan Aplikasi
+              </p>
+              <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#1A2B4A", margin: "0 0 6px" }}>
+                Preview Sistem SIMONEV
+              </h2>
+              <p style={{ fontSize: 13, color: "#90A4AE", maxWidth: 480, margin: "0 auto" }}>
+                Desain bersih dan terstruktur yang memudahkan guru dalam proses pemantauan
+                perkembangan anak setiap harinya.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
+              {[
+                { src: "/dashboard.png", label: "Dashboard Admin" },
+                { src: "/perkembangan.png", label: "Laporan Perkembangan" },
+                { src: "/dashboard guru.png", label: "Dashboard Guru" },
+                { src: "/pengumuman.png", label: "Pengumuman" },
+              ].map((item, i) => (
+                <div key={i} style={{
+                  background: "white", borderRadius: 20,
+                  overflow: "hidden", border: "2px solid #BBDEFB",
+                  boxShadow: "0 2px 8px rgba(25,118,210,0.07)",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.src}
+                    alt={item.label}
+                    style={{ width: "100%", height: 160, objectFit: "cover" }}
+                  />
+                  <div style={{ padding: "10px 14px" }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "#546E8A", margin: 0 }}>{item.label}</p>
+                    <p style={{ fontSize: 10, color: "#90A4AE", marginTop: 2 }}>Preview {i + 1}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA ───────────────────────────────────────────────────── */}
+        <section style={{ padding: "0 24px", marginTop: 48, marginBottom: 48 }}>
+          <div style={{
+            maxWidth: 860, margin: "0 auto",
+            background: "linear-gradient(135deg, #1976D2, #0D47A1)",
+            borderRadius: 28, padding: "40px 32px", textAlign: "center",
+            position: "relative", overflow: "hidden"
+          }}>
+            <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "white", opacity: 0.07, borderRadius: "50%" }} />
+            <div style={{ position: "absolute", bottom: -30, left: 20, width: 80, height: 80, background: "white", opacity: 0.07, borderRadius: "50%" }} />
+            <div style={{ fontSize: 36, marginBottom: 10 }}>🎉</div>
+            <h2 style={{ fontFamily: "'Fredoka One', cursive", color: "white", fontSize: 24, margin: "0 0 10px" }}>
+              Siap Memulai Pemantauan Perkembangan Anak?
+            </h2>
+            <p style={{ color: "#90CAF9", fontSize: 13, margin: "0 0 20px", lineHeight: 1.7 }}>
+              Bergabunglah dengan SIMONEV dan buat proses monitoring anak usia dini jadi lebih mudah,
+              cepat, dan menyenangkan!
+            </p>
+            <Link href="/login">
+              <button style={{
+                background: "white", color: "#1976D2", border: "none",
+                padding: "12px 30px", borderRadius: 50,
+                fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14,
+                cursor: "pointer", boxShadow: "0 4px 16px rgba(0,0,0,0.15)"
+              }}>
+                ✨ Mulai Sekarang
+              </button>
+            </Link>
+          </div>
+        </section>
+
+        {/* ── FOOTER ────────────────────────────────────────────────── */}
+        <footer style={{ background: "linear-gradient(180deg,#0D47A1,#08306B)", color: "#90CAF9", padding: "32px 24px 20px" }}>
+          <div style={{ maxWidth: 1024, margin: "0 auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, paddingBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
+
+              {/* Brand */}
+              <div style={{ maxWidth: 240 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                 <div style={{
+  width: 46,
+  height: 46,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+}}>
+  <img 
+    src="/logo.png" 
+    alt="Logo SIMONEV"
+    className="w-10 h-10 object-contain"
+  />
 </div>
-        </div>
+                  <div>
+                    <p style={{ fontFamily: "'Fredoka One', cursive", color: "white", fontSize: 16, margin: 0 }}>SIMONEV PAUD</p>
+                    <p style={{ fontSize: 10, color: "#64B5F6", margin: 0, lineHeight: 1.4 }}>Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini</p>
+                  </div>
+                </div>
+                <p style={{ fontSize: 11, color: "#64B5F6", lineHeight: 1.6, margin: 0 }}>
+                  Platform digital untuk pemantauan perkembangan anak secara terstruktur, cepat, dan mudah digunakan oleh guru.
+                </p>
+              </div>
+
+              {/* Fitur links */}
+              <div>
+                <p style={{ color: "white", fontWeight: 800, fontSize: 12, margin: "0 0 10px" }}>Fitur</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {footerLinks.map((l, i) => (
+                    <li key={i} style={{ marginBottom: 6 }}>
+                      <a href="#" style={{ color: "#64B5F6", fontSize: 12, textDecoration: "none" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "white")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "#64B5F6")}
+                      >{l}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <p style={{ color: "white", fontWeight: 800, fontSize: 12, margin: "0 0 10px" }}>Kontak</p>
+                <div style={{ fontSize: 12, color: "#64B5F6", lineHeight: 2 }}>
+                  <p style={{ margin: 0 }}>📞 +62 812-0000-0000</p>
+                  <p style={{ margin: 0 }}>✉️ admin@simonev.com</p>
+                  <p style={{ margin: "8px 0 0", fontSize: 11, maxWidth: 200, lineHeight: 1.5 }}>
+  📍 Kota Batam, Kepulauan Riau
+</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ paddingTop: 14, display: "flex", justifyContent: "space-between", fontSize: 11, color: "#1E88E5", flexWrap: "wrap", gap: 4 }}>
+              <span>© {new Date().getFullYear()} SIMONEV PAUD</span>
+              <span>PBL IF4PA-08 Polibatam 2026</span>
+            </div>
+          </div>
+        </footer>
+
       </div>
-    </div>
-
-    {/* BOTTOM */}
-    <div className="pt-6 flex flex-col sm:flex-row justify-between items-center text-[11px] text-blue-300">
-      <p>© {new Date().getFullYear()} SIMONEV PAUD</p>
-      <p className="opacity-80">PBL IF4PA-08 Polibatam 2026</p>
-    </div>
-
-  </div>
-</footer>
-
-    </div>
+    </>
   );
 }

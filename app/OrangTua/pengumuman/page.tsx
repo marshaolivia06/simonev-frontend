@@ -1,5 +1,7 @@
 "use client";
 
+import { Calendar, Megaphone } from "lucide-react";
+
 interface Pengumuman {
   id: number;
   judul: string;
@@ -18,7 +20,7 @@ const dummyPengumuman: Pengumuman[] = [
     posting: "Diposting: 10 Maret 2026",
     isi: "Sekolah akan diliburkan selama dua minggu menjelang Hari Raya Idul Fitri.",
     badge: "Libur",
-    badgeColor: "bg-green-100 text-green-800",
+    badgeColor: "bg-green-100 text-green-700",
   },
   {
     id: 2,
@@ -27,7 +29,7 @@ const dummyPengumuman: Pengumuman[] = [
     posting: "Diposting: 28 Maret 2026",
     isi: "Siswa akan mengikuti kegiatan outing class ke taman edukasi sebagai sarana pembelajaran di luar kelas.",
     badge: "Kegiatan",
-    badgeColor: "bg-blue-100 text-blue-800",
+    badgeColor: "bg-blue-100 text-blue-700",
   },
   {
     id: 3,
@@ -36,7 +38,7 @@ const dummyPengumuman: Pengumuman[] = [
     posting: "Diposting: 10 Juni 2026",
     isi: "Pembagian raport semester genap akan dilaksanakan di sekolah bersama wali murid.",
     badge: "Penting",
-    badgeColor: "bg-yellow-100 text-yellow-800",
+    badgeColor: "bg-yellow-100 text-yellow-700",
   },
   {
     id: 4,
@@ -45,55 +47,115 @@ const dummyPengumuman: Pengumuman[] = [
     posting: "Diposting: 20 Juni 2026",
     isi: "Pendaftaran siswa baru tahun ajaran 2026/2027 telah dibuka secara online.",
     badge: "Info",
-    badgeColor: "bg-purple-100 text-purple-800",
+    badgeColor: "bg-purple-100 text-purple-700",
   },
 ];
 
 export default function PengumumanPage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
+    <div className="max-w-5xl mx-auto space-y-6">
 
-      {dummyPengumuman.map((item) => (
-        <div
-          key={item.id}
-          className="bg-gradient-to-r from-blue-50 to-white 
-                     border border-blue-100 
-                     rounded-xl p-5 
-                     transition-all duration-200 
-                     hover:shadow-md hover:-translate-y-1"
-        >
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Pengumuman Sekolah</h1>
+        <p className="text-sm text-gray-500">
+          Informasi terbaru terkait kegiatan dan agenda sekolah
+        </p>
+      </div>
 
-          {/* Header */}
-          <div className="flex justify-between items-start mb-2">
+      {/* LIST */}
+      <div className="grid gap-5">
 
-            <div>
-              <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1 ${item.badgeColor}`}>
-                {item.badge}
-              </span>
+        {dummyPengumuman.map((item) => (
+          <div
+            key={item.id}
+            className="
+              group relative overflow-hidden
+              bg-gradient-to-br from-white via-blue-50 to-blue-100
+              border border-blue-100
+              rounded-2xl p-6
+              shadow-sm
+              transition-all duration-300
+              hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01]
+            "
+          >
 
-              <h3 className="text-sm font-bold text-gray-800">
-                {item.judul}
-              </h3>
+            {/* Glow effect */}
+            <div className="
+              absolute inset-0 opacity-0 group-hover:opacity-100
+              bg-gradient-to-r from-blue-200/20 via-blue-300/10 to-blue-200/20
+              transition duration-500
+            "></div>
 
-              <p className="text-xs text-gray-500">
-                {item.tanggal}
+            {/* Content */}
+            <div className="relative z-10">
+
+              {/* Header */}
+              <div className="flex justify-between items-start gap-4 mb-3">
+
+                <div className="flex gap-3">
+
+                  {/* Icon */}
+                  <div className="
+                    w-11 h-11 flex items-center justify-center
+                    rounded-xl bg-blue-100
+                    group-hover:bg-blue-600 transition
+                  ">
+                    <Megaphone
+                      size={18}
+                      className="text-blue-600 group-hover:text-white transition"
+                    />
+                  </div>
+
+                  <div>
+                    {/* Badge */}
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${item.badgeColor}`}>
+                      {item.badge}
+                    </span>
+
+                    {/* Judul */}
+                    <h3 className="
+                      text-base font-semibold text-gray-800 mt-1
+                      group-hover:text-blue-700 transition
+                    ">
+                      {item.judul}
+                    </h3>
+
+                    {/* Tanggal */}
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                      <Calendar size={12} />
+                      {item.tanggal}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Posting */}
+                <span className="
+                  text-[11px] text-blue-600
+                  bg-blue-50 px-2 py-1 rounded-full
+                  border border-blue-100
+                  group-hover:bg-blue-600 group-hover:text-white
+                  transition
+                ">
+                  {item.posting}
+                </span>
+
+              </div>
+
+              {/* Isi */}
+              <p className="
+                text-sm text-gray-700 leading-relaxed
+                group-hover:text-gray-800 transition
+              ">
+                {item.isi}
               </p>
+
             </div>
 
-            <span className="text-[11px] text-gray-500 bg-white/70 px-2 py-1 rounded-full border border-gray-100">
-              {item.posting}
-            </span>
-
           </div>
+        ))}
 
-          {/* Isi */}
-          <p className="text-sm text-gray-700 leading-relaxed">
-            {item.isi}
-          </p>
-
-        </div>
-      ))}
-
+      </div>
     </div>
   );
 }
