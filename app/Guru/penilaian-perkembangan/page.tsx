@@ -21,8 +21,9 @@ const selectClass =
   "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
 
 const initialData: Penilaian[] = [
-  { aspek: "Bahasa", kegiatan: "Bicara", indikator: "Menyebutkan nama benda", nilai: "", tanggal: "", dokumentasi: "" },
   { aspek: "Motorik", kegiatan: "Berlari", indikator: "Mampu berlari lurus", nilai: "", tanggal: "", dokumentasi: "" },
+  { aspek: "Kognitif", kegiatan: "Mengenal angka", indikator: "Mampu menyebutkan angka 1-10", nilai: "", tanggal: "", dokumentasi: "" },
+  { aspek: "Bahasa", kegiatan: "Bicara", indikator: "Menyebutkan nama benda", nilai: "", tanggal: "", dokumentasi: "" },
   { aspek: "Sosial-Emosional", kegiatan: "Bermain dengan teman", indikator: "Mampu bermain bersama teman sebaya", nilai: "", tanggal: "", dokumentasi: "" },
   { aspek: "Agama", kegiatan: "Berdoa", indikator: "Mampu berdoa dengan benar", nilai: "", tanggal: "", dokumentasi: "" },
   { aspek: "Kreatifitas/Seni", kegiatan: "Menggambar", indikator: "Mampu menggambar objek sederhana", nilai: "", tanggal: "", dokumentasi: "" },

@@ -73,10 +73,12 @@ export default function LoginPage() {
             className="drop-shadow mb-2"
           />
           <h1 className="text-xl font-bold text-gray-800 leading-tight">SIMONEV PAUD</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini
+          </p>
         </div>
 
-        {/* Form */}
+        {/* Form (TIDAK DIUBAH) */}
         <form onSubmit={handleLogin} className="space-y-3">
 
           {error && (
@@ -103,9 +105,10 @@ export default function LoginPage() {
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-400 transition"
           />
 
+          {/* BUTTON FIX */}
           <button
             type="submit"
-            className="w-full py-2.5 bg-gradient-to-r from-[#1976D2] to-[#1565C0] text-white font-semibold text-sm rounded-xl hover:opacity-90 hover:shadow-md transition mt-1"
+            className="w-full py-2.5 text-white font-semibold text-sm rounded-xl mt-1 paud-btn"
           >
             LOGIN
           </button>
@@ -114,13 +117,28 @@ export default function LoginPage() {
         <p className="text-xs text-center text-gray-400 mt-6">© 2026 SIMONEV PAUD</p>
       </div>
 
+      {/* STYLE */}
       <style jsx>{`
+        .paud-btn {
+          background: linear-gradient(135deg, #42A5F5, #1565C0);
+          box-shadow: 0 4px 14px rgba(25,118,210,0.3);
+          transition: all 0.2s ease;
+        }
+
+        .paud-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(25,118,210,0.4);
+        }
+
         @keyframes popIn {
           0% { opacity: 0; transform: scale(0.7); }
           70% { transform: scale(1.04); }
           100% { opacity: 1; transform: scale(1); }
         }
-        .animate-popIn { animation: popIn 0.3s ease-out; }
+
+        .animate-popIn {
+          animation: popIn 0.3s ease-out;
+        }
       `}</style>
     </div>
   )
