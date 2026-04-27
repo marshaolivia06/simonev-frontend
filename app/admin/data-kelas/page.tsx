@@ -16,22 +16,24 @@ const dummyData: Kelas[] = [
   { id: 3, namaKelas: "TK B1", waliKelas: "Budi Santoso, M.Pd", tahunAjaran: "2024/2025" },
   { id: 4, namaKelas: "TK B2", waliKelas: "Rina Marlina, S.Pd", tahunAjaran: "2024/2025" },
   { id: 5, namaKelas: "Playgroup A", waliKelas: "Ani Wijaya, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 6, namaKelas: "TK A3", waliKelas: "Cinta Laura, S.Pd", tahunAjaran: "2025/2026"},
-  {id: 7, namaKelas: "TK A4", waliKelas: "Agus Pratama, S.Pd", tahunAjaran: "2025/2026"},
-  {id: 8, namaKelas: "Playgroup B", waliKelas: "Fatimah Larasati, S.Pd", tahunAjaran: "2025/2026"},
-  
+  { id: 6, namaKelas: "TK A3", waliKelas: "Cinta Laura, S.Pd", tahunAjaran: "2025/2026" },
+  { id: 7, namaKelas: "TK A4", waliKelas: "Agus Pratama, S.Pd", tahunAjaran: "2025/2026" },
+  { id: 8, namaKelas: "Playgroup B", waliKelas: "Fatimah Larasati, S.Pd", tahunAjaran: "2025/2026" },
 ];
+
+const namaKelasOptions = [
+  "TK A1", "TK A2", "TK A3", "TK A4",
+  "TK B1", "TK B2", "TK B3", "TK B4",
+  "Playgroup A", "Playgroup B",
+];
+const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
 
 export default function DataKelasPage() {
   const [search, setSearch] = useState("");
   const [data, setData] = useState<Kelas[]>(dummyData);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Kelas | null>(null);
-  const [form, setForm] = useState({
-    namaKelas: "",
-    waliKelas: "",
-    tahunAjaran: "",
-  });
+  const [form, setForm] = useState({ namaKelas: "", waliKelas: "", tahunAjaran: "" });
 
   const filtered = data
     .filter(
@@ -65,14 +67,12 @@ export default function DataKelasPage() {
       alert("Semua field wajib diisi!");
       return;
     }
-
     if (editData) {
       setData(data.map((k) => (k.id === editData.id ? { ...k, ...form } : k)));
     } else {
       const newId = data.length ? Math.max(...data.map((k) => k.id)) + 1 : 1;
       setData([...data, { id: newId, ...form }]);
     }
-
     setShowModal(false);
   };
 
@@ -112,7 +112,6 @@ export default function DataKelasPage() {
               className="bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-4 py-2 text-xs w-56 focus:outline-none"
             />
           </div>
-
           <button
             onClick={handleTambah}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm flex items-center gap-1"
@@ -123,7 +122,7 @@ export default function DataKelasPage() {
         </div>
       </div>
 
-      {/* TABLE (FIXED STYLE LIKE DATA GURU) */}
+      {/* TABLE */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full text-sm border-collapse">
           <thead>
@@ -135,23 +134,15 @@ export default function DataKelasPage() {
               <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[140px]">Aksi</th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-10 text-gray-400">
-                  Tidak ada data
-                </td>
+                <td colSpan={5} className="text-center py-10 text-gray-400">Tidak ada data</td>
               </tr>
             ) : (
               filtered.map((k, i) => (
                 <tr key={k.id} className="hover:bg-gray-50">
-
-                  <td className="text-center px-4 py-3 text-gray-500 border-r border-gray-200">
-                    {i + 1}
-                  </td>
-
-                  {/* NAMA KELAS */}
+                  <td className="text-center px-4 py-3 text-gray-500 border-r border-gray-200">{i + 1}</td>
                   <td className="px-5 py-3 border-r border-gray-200 font-medium text-gray-800">
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${avatarColors[i % avatarColors.length]}`}>
@@ -160,16 +151,8 @@ export default function DataKelasPage() {
                       {k.namaKelas}
                     </div>
                   </td>
-
-                  {/* WALI KELAS (STYLE GURU) */}
-                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">
-                    {k.waliKelas}
-                  </td>
-
-                  <td className="px-5 py-3 border-r border-gray-200 text-gray-600">
-                    {k.tahunAjaran}
-                  </td>
-
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">{k.waliKelas}</td>
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-600">{k.tahunAjaran}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center gap-2">
                       <button
@@ -178,7 +161,6 @@ export default function DataKelasPage() {
                       >
                         <Pencil size={12} /> Edit
                       </button>
-
                       <button
                         onClick={() => handleHapus(k.id)}
                         className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
@@ -187,7 +169,6 @@ export default function DataKelasPage() {
                       </button>
                     </div>
                   </td>
-
                 </tr>
               ))
             )}
@@ -195,41 +176,82 @@ export default function DataKelasPage() {
         </table>
       </div>
 
-      {/* MODAL (tidak diubah) */}
+      {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md">
-            <h2 className="font-semibold mb-4">
-              {editData ? "Edit Kelas" : "Tambah Kelas"}
-            </h2>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
 
-            <input
-              className="w-full border p-2 rounded mb-2"
-              placeholder="Nama Kelas"
-              value={form.namaKelas}
-              onChange={(e) => setForm({ ...form, namaKelas: e.target.value })}
-            />
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  {editData ? "Edit Data Kelas" : "Tambah Data Kelas"}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {editData ? "Perbarui informasi kelas" : "Isi data kelas baru"}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
 
-            <input
-              className="w-full border p-2 rounded mb-2"
-              placeholder="Wali Kelas"
-              value={form.waliKelas}
-              onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
-            />
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Nama Kelas</label>
+                <select
+                  value={form.namaKelas}
+                  onChange={(e) => setForm({ ...form, namaKelas: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                >
+                  <option value="">Pilih nama kelas</option>
+                  {namaKelasOptions.map((k) => (
+                    <option key={k}>{k}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Wali Kelas</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Siti Rahayu, S.Pd"
+                  value={form.waliKelas}
+                  onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Tahun Ajaran</label>
+                <select
+                  value={form.tahunAjaran}
+                  onChange={(e) => setForm({ ...form, tahunAjaran: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                >
+                  <option value="">Pilih tahun ajaran</option>
+                  {tahunAjaranOptions.map((t) => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-            <input
-              className="w-full border p-2 rounded mb-4"
-              placeholder="Tahun Ajaran"
-              value={form.tahunAjaran}
-              onChange={(e) => setForm({ ...form, tahunAjaran: e.target.value })}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setShowModal(false)} className="px-3 py-1 border rounded">
+            {/* Footer */}
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
+              <button
+                onClick={() => setShowModal(false)}
+                className="border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              >
                 Batal
               </button>
-              <button onClick={handleSimpan} className="px-3 py-1 bg-green-500 text-white rounded">
-                Simpan
+              <button
+                onClick={handleSimpan}
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
+              >
+                {editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>
             </div>
 

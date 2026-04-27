@@ -18,6 +18,19 @@ const pageTitles: Record<string, string> = {
   "/OrangTua/profile": "Profil Orangtua",
 };
 
+/* ── Helper inisial ── */
+function getInitials(nama: string): string {
+  return nama
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
+/* Ganti dengan nama dari session / auth */
+const NAMA_ORTU = "Budi Santoso";
+
 export default function OrangtuaLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -49,12 +62,18 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
             {pageTitle}
           </h1>
 
-          {/* Dropdown Orangtua */}
+          {/* ── Tombol Orangtua: kotak biru + buletan inisial di kiri ── */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
-              className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
+              className="flex items-center gap-2 bg-[#1976D2] text-white pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#1565C0] transition-colors"
             >
+              {/* Buletan inisial */}
+              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-bold text-white leading-none">
+                  {getInitials(NAMA_ORTU)}
+                </span>
+              </div>
               Orangtua
             </button>
 

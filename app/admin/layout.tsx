@@ -3,13 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import {
-  LayoutDashboard,
-  Database,
-  ClipboardList,
-  FileText,
-  Megaphone,
-  User,
-  LogOut,
+  LayoutDashboard, Database, ClipboardList, FileText, Megaphone, User, LogOut,
 } from "lucide-react";
 import Sidebar, { NavItem } from "@/components/Sidebar";
 
@@ -20,10 +14,10 @@ const navItems: NavItem[] = [
     icon: Database,
     href: "/admin/data-guru",
     children: [
-      { label: "Data Guru", href: "/admin/data-guru" },
-      { label: "Data Kelas", href: "/admin/data-kelas" },
-      { label: "Data Anak", href: "/admin/data-anak" },
-      { label: "Verifikasi Akun", href: "/admin/verifikasi-akun" },
+      { label: "Data Guru",        href: "/admin/data-guru"        },
+      { label: "Data Kelas",       href: "/admin/data-kelas"       },
+      { label: "Data Anak",        href: "/admin/data-anak"        },
+      { label: "Verifikasi Akun",  href: "/admin/verifikasi-akun"  },
     ],
   },
   {
@@ -31,65 +25,59 @@ const navItems: NavItem[] = [
     icon: ClipboardList,
     href: "/admin/penilaian-input",
     children: [
-      { label: "Aspek Perkembangan", href: "/admin/aspek-perkembangan" },
+      { label: "Aspek Perkembangan",  href: "/admin/aspek-perkembangan"  },
       { label: "Indikator Penilaian", href: "/admin/indikator-penilaian" },
     ],
   },
-  { label: "Laporan Perkembangan", icon: FileText, href: "/admin/laporan-perkembangan" },
-  { label: "Pengumuman", icon: Megaphone, href: "/admin/pengumuman" },
+  { label: "Laporan Perkembangan", icon: FileText,  href: "/admin/laporan-perkembangan" },
+  { label: "Pengumuman",           icon: Megaphone, href: "/admin/pengumuman"           },
 ];
 
 const pageTitles: Record<string, string> = {
-  "/admin/dashboard": "Dashboard Admin",
-  "/admin/data-guru": "Data Guru",
-  "/admin/data-kelas": "Data Kelas",
-  "/admin/data-anak": "Data Anak",
-  "/admin/verifikasi-akun": "Verifikasi Akun",
-  "/admin/penilaian-input": "Aspek Perkembangan",
-  "/admin/aspek-perkembangan": "Aspek Perkembangan",
-  "/admin/indikator-penilaian": "Indikator Penilaian",
-  "/admin/laporan-perkembangan": "Laporan Perkembangan",
-  "/admin/pengumuman": "Pengumuman",
-  "/admin/profile": "Profil Admin",
+  "/admin/dashboard":             "Dashboard Admin",
+  "/admin/data-guru":             "Data Guru",
+  "/admin/data-kelas":            "Data Kelas",
+  "/admin/data-anak":             "Data Anak",
+  "/admin/verifikasi-akun":       "Verifikasi Akun",
+  "/admin/aspek-perkembangan":    "Aspek Perkembangan",
+  "/admin/indikator-penilaian":   "Indikator Penilaian",
+  "/admin/laporan-perkembangan":  "Laporan Perkembangan",
+  "/admin/pengumuman":            "Pengumuman",
+  "/admin/profile":               "Profil Admin",
 };
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+/* Ganti dengan nama dari session / auth */
+const NAMA_ADMIN = "Siti Rahayu";
+
+function getInitials(nama: string): string {
+  return nama
+    .replace(/,.*/, "")
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname    = usePathname();
+  const router      = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [showDropdown,   setShowDropdown]   = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  const handleLogout = () => {
-    setShowDropdown(false);
-    setShowLogoutModal(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutModal(false);
-    router.push("/");
-  };
-
-  const handleProfile = () => {
-    setShowDropdown(false);
-    router.push("/admin/profile");
-  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -99,43 +87,42 @@ export default function AdminLayout({
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div className="w-[120px]" />
 
-          <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">
-            {pageTitle}
-          </h1>
+          <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">{pageTitle}</h1>
 
-          {/* Admin Button + Dropdown */}
+          {/* Tombol Admin — dengan lingkaran inisial */}
           <div className="relative" ref={dropdownRef}>
             <button
-  onClick={() => setShowDropdown((prev) => !prev)}
-  className="flex items-center gap-2 bg-[#1976D2] text-white px-4 py-1.5 rounded-lg text-sm font-medium"
->
-  Admin
-</button>
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="flex items-center gap-2 bg-[#1976D2] text-white pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#1565C0] transition-colors"
+            >
+              <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-bold text-white leading-none">
+                  {getInitials(NAMA_ADMIN)}
+                </span>
+              </div>
+              Admin
+            </button>
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
                 <button
-                  onClick={handleProfile}
+                  onClick={() => { setShowDropdown(false); router.push("/admin/profile"); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <User size={14} />
-                  Profile
+                  <User size={14} /> Profil
                 </button>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setShowDropdown(false); setShowLogoutModal(true); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-100"
                 >
-                  <LogOut size={14} />
-                  Logout
+                  <LogOut size={14} /> Logout
                 </button>
               </div>
             )}
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
 
       {/* Modal Konfirmasi Logout */}
@@ -157,7 +144,7 @@ export default function AdminLayout({
                 Batal
               </button>
               <button
-                onClick={confirmLogout}
+                onClick={() => { setShowLogoutModal(false); router.push("/"); }}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
               >
                 Logout

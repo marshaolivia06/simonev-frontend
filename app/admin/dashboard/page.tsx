@@ -1,84 +1,145 @@
 "use client";
 
-import { Users, School, GraduationCap } from "lucide-react";
+import { Users, School, GraduationCap, ShieldCheck } from "lucide-react";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Pie } from "react-chartjs-2";
 
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+/* ── Stat cards ── */
 const stats = [
-  { label: "Jumlah Guru", value: 12, icon: Users, color: "bg-emerald-100 border-emerald-200", iconColor: "text-emerald-600", textColor: "text-emerald-800" },
-  { label: "Jumlah Kelas", value: 6, icon: School, color: "bg-rose-100 border-rose-200", iconColor: "text-rose-600", textColor: "text-rose-800" },
-  { label: "Jumlah Anak", value: 148, icon: GraduationCap, color: "bg-yellow-100 border-yellow-200", iconColor: "text-yellow-600", textColor: "text-yellow-800" },
-  { label: "Jumlah Anak TK A", value: 72, icon: Users, color: "bg-purple-100 border-purple-200", iconColor: "text-purple-600", textColor: "text-purple-800" },
-  { label: "Jumlah Anak TK B", value: 76, icon: Users, color: "bg-orange-100 border-orange-200", iconColor: "text-orange-600", textColor: "text-orange-800" },
+  { label: "Jumlah Guru",       value: 12,  color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
+  { label: "Jumlah Kelas",      value: 8,   color: "from-rose-200 to-rose-100",       iconColor: "text-rose-600",    icon: School },
+  { label: "Total Anak",        value: 148, color: "from-blue-200 to-blue-100",       iconColor: "text-blue-600",    icon: GraduationCap },
+  { label: "Akun Perlu Verifikasi", value: 3, color: "from-yellow-200 to-yellow-100", iconColor: "text-yellow-600",  icon: ShieldCheck },
 ];
 
+/* ── Distribusi tingkat perkembangan seluruh anak ── */
+const distribusiData = {
+  labels: ["BB", "MB", "BSH", "BSB"],
+  datasets: [
+    {
+      data: [8, 22, 75, 43],
+      backgroundColor: ["#fca5a5", "#fdba74", "#93c5fd", "#86efac"],
+      borderWidth: 0,
+    },
+  ],
+};
+
+const distribusiDetail = [
+  { label: "Belum Berkembang (BB)",           value: 8,  color: "bg-red-100 text-red-700" },
+  { label: "Mulai Berkembang (MB)",           value: 22, color: "bg-orange-100 text-orange-700" },
+  { label: "Berkembang Sesuai Harapan (BSH)", value: 75, color: "bg-blue-100 text-blue-700" },
+  { label: "Berkembang Sangat Baik (BSB)",    value: 43, color: "bg-green-100 text-green-700" },
+];
+
+/* ── Pengumuman ── */
 const announcements = [
   {
     badge: "Kegiatan",
     badgeColor: "bg-blue-100 text-blue-800",
-    title: "Pentas Seni Akhir Tahun Ajaran 2024/2025",
-    postedAt: "Diposting: 18 April 2025",
-    body: "Pentas seni akan dilaksanakan pada Sabtu, 24 Mei 2025 pukul 08.00–12.00 WIB. Orang tua/wali murid diundang untuk hadir. Info kostum menyusul.",
+    dot: "bg-blue-400",
+    title: "Pentas Seni Akhir Tahun 2024/2025",
+    postedAt: "18 April 2025",
+    body: "Pentas seni akan dilaksanakan pada Sabtu, 24 Mei 2025 pukul 08.00–12.00 WIB.",
   },
   {
     badge: "Libur",
     badgeColor: "bg-green-100 text-green-800",
+    dot: "bg-green-400",
     title: "Libur Hari Raya Waisak",
-    postedAt: "Diposting: 10 April 2025",
-    body: "Sekolah diliburkan pada Kamis, 12 Mei 2025 dalam rangka Hari Raya Waisak. Kegiatan belajar kembali normal pada Jumat, 13 Mei 2025.",
+    postedAt: "10 April 2025",
+    body: "Sekolah diliburkan pada 12 Mei 2025 dan kembali aktif seperti biasa.",
   },
   {
     badge: "Penting",
     badgeColor: "bg-yellow-100 text-yellow-800",
-    title: "Pengumpulan Foto untuk Buku Tahunan",
-    postedAt: "Diposting: 5 April 2025",
-    body: "Mohon orang tua mengumpulkan 3 foto terbaik anak (format JPG, min. 1MB) kepada wali kelas masing-masing paling lambat 30 April 2025.",
+    dot: "bg-yellow-400",
+    title: "Pengumpulan Foto Buku Tahunan",
+    postedAt: "5 April 2025",
+    body: "Mohon orang tua mengumpulkan foto anak sebelum 30 April 2025.",
   },
 ];
 
-export default function AdminDashboard() {
+export default function DashboardAdmin() {
   return (
-    <div>
-      {/* Stat Cards Row 1 */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        {stats.slice(0, 3).map((stat) => (
-          <div key={stat.label} className={`${stat.color} border rounded-xl p-5 flex flex-col gap-3`}>
-            <p className={`text-sm font-semibold ${stat.textColor}`}>{stat.label} :</p>
-            <div className="flex items-center gap-3">
-              <stat.icon size={32} className={stat.iconColor} />
-              <span className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</span>
+    <div className="space-y-6">
+
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Selamat Datang, Admin!</h1>
+        <p className="text-sm text-gray-500">Ringkasan data sekolah dan informasi terbaru</p>
+      </div>
+
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <div key={s.label}
+            className={`bg-gradient-to-br ${s.color} rounded-2xl p-5 shadow-md hover:shadow-lg transition`}>
+            <p className="text-sm font-medium text-gray-700">{s.label}</p>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-3xl font-bold text-gray-800">{s.value}</span>
+              <s.icon size={28} className={s.iconColor} />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Stat Cards Row 2 */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        {stats.slice(3).map((stat) => (
-          <div key={stat.label} className={`${stat.color} border rounded-xl p-5 flex flex-col gap-3`}>
-            <p className={`text-sm font-semibold ${stat.textColor}`}>{stat.label} :</p>
-            <div className="flex items-center gap-3">
-              <stat.icon size={32} className={stat.iconColor} />
-              <span className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</span>
+      {/* DISTRIBUSI + LEGENDA */}
+      <div className="grid grid-cols-3 gap-4">
+
+        {/* Legenda distribusi */}
+        <div className="bg-white rounded-2xl p-6 shadow-md flex flex-col justify-center space-y-3">
+          <p className="text-sm font-semibold text-gray-700 mb-1">Distribusi Perkembangan</p>
+          {distribusiDetail.map((d) => (
+            <div key={d.label} className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 flex-1">{d.label}</span>
+              <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold ${d.color}`}>{d.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Pie chart */}
+        <div className="col-span-2 bg-white rounded-2xl p-6 shadow-md">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+            Grafik Perkembangan Seluruh Anak
+          </h2>
+          <div className="flex justify-center">
+            <div className="w-56 h-56">
+              <Pie
+                data={distribusiData}
+                options={{
+                  plugins: {
+                    legend: {
+                      position: "right",
+                      labels: { boxWidth: 12, font: { size: 11 } },
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Pengumuman */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      {/* PENGUMUMAN */}
+      <div className="bg-white rounded-2xl p-6 shadow-md">
         <h2 className="font-semibold text-gray-800 mb-4">Pengumuman Terbaru</h2>
-        <div className="divide-y divide-gray-100">
+        <div className="space-y-4">
           {announcements.map((ann, i) => (
-            <div key={i} className="py-3 first:pt-0 last:pb-0">
-              <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1 ${ann.badgeColor}`}>
+            <div key={i} className="p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${ann.badgeColor}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${ann.dot}`} />
                 {ann.badge}
               </span>
-              <p className="text-sm font-semibold text-gray-800">{ann.title}</p>
+              <p className="font-bold text-gray-800 mt-1">{ann.title}</p>
               <p className="text-xs text-gray-400 mb-1">{ann.postedAt}</p>
               <p className="text-sm text-gray-600">{ann.body}</p>
             </div>
           ))}
         </div>
       </div>
+
     </div>
   );
 }
