@@ -68,12 +68,10 @@ export default function RegisterPage() {
       alert("Password dan konfirmasi password tidak sama.");
       return;
     }
-    // Validasi NIK
     if (form.nik.length !== 16 || !/^\d+$/.test(form.nik)) {
       setNikError("NIK harus 16 digit angka.");
       return;
     }
-    // Validasi NIP (hanya guru, kalau diisi)
     if (role === "guru" && formGuru.nipNoPegawai) {
       if (formGuru.nipNoPegawai.length !== 18 || !/^\d+$/.test(formGuru.nipNoPegawai)) {
         setNipError("NIP harus 18 digit angka.");
@@ -119,13 +117,22 @@ export default function RegisterPage() {
 
         {/* LEFT - Branding */}
         <div className="w-64 shrink-0 bg-[#1976D2] flex flex-col items-center justify-center p-8 text-center gap-4">
-    
-          <div className="text-white">
-            <p className="font-bold text-lg leading-tight">SIMONEV</p>
-            <p className="text-xs text-white/70 leading-tight mt-1">
-              Sistem Monitoring dan Evaluasi<br />Perkembangan Anak Usia Dini
-            </p>
+
+          {/* Logo + nama sistem */}
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="Logo SIMONEV"
+              className="w-27 h-16 object-contain drop-shadow-md"
+            />
+            <div className="text-white">
+              <p className="font-bold text-lg leading-tight tracking-wide">SIMONEV</p>
+              <p className="text-xs text-white/70 leading-tight mt-1">
+                Sistem Monitoring dan Evaluasi<br />Perkembangan Anak Usia Dini
+              </p>
+            </div>
           </div>
+
           <div className="border-t border-white/20 w-full pt-4">
             <p className="text-xs text-white/60 leading-relaxed">
               Daftarkan akun kamu untuk mengakses sistem. Akun akan diverifikasi admin terlebih dahulu.
@@ -147,7 +154,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setRole("guru")}
-                className={`flex items-center gap-3 border-2 rounded-lg px-4 py-3 transition-all text-left ${
+                className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 transition-all text-left ${
                   role === "guru"
                     ? "border-[#1a7bbf] bg-blue-50"
                     : "border-gray-300 bg-white hover:border-gray-400"
@@ -164,7 +171,7 @@ export default function RegisterPage() {
 
               <button
                 onClick={() => setRole("ortu")}
-                className={`flex items-center gap-3 border-2 rounded-lg px-4 py-3 transition-all text-left ${
+                className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 transition-all text-left ${
                   role === "ortu"
                     ? "border-[#1a7bbf] bg-blue-50"
                     : "border-gray-300 bg-white hover:border-gray-400"
@@ -388,14 +395,14 @@ export default function RegisterPage() {
               </div>
 
               {/* Info pending */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs text-[#1a7bbf] leading-relaxed mb-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-[#1a7bbf] leading-relaxed mb-4">
                 ℹ️ Akun kamu akan berstatus <strong>Pending</strong> hingga diverifikasi admin.
                 Proses membutuhkan <strong>1–2 hari kerja</strong>.
               </div>
 
               {/* Submit */}
               <button onClick={handleSubmit}
-                className="w-full py-2.5 bg-[#1a7bbf] text-white font-bold text-sm rounded-lg hover:bg-[#155f99] transition">
+                className="w-full py-2.5 bg-[#1a7bbf] text-white font-bold text-sm rounded-xl hover:bg-[#155f99] transition">
                 Kirim Pendaftaran
               </button>
             </>

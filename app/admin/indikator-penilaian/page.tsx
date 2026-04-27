@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, X, ClipboardList } from "lucide-react";
 
 interface Indikator {
   id: number;
@@ -10,25 +10,19 @@ interface Indikator {
   aspek: string;
 }
 
+const aspekOptions = [
+  "Nilai Agama dan Moral",
+  "Motorik",
+  "Kognitif",
+  "Bahasa",
+  "Sosial-Emosional",
+  "Kreativitas/Seni",
+];
+
 const dummyData: Indikator[] = [
-  {
-    id: 1,
-    indikator: "Anak dapat memegang pensil dengan benar",
-    kegiatan: "Menulis dan Menggambar",
-    aspek: "Motorik",
-  },
-  {
-    id: 2,
-    indikator: "Anak dapat menyebutkan warna dasar",
-    kegiatan: "Mengenal Warna",
-    aspek: "Kognitif",
-  },
-  {
-    id: 3,
-    indikator: "Anak dapat mengucapkan kalimat sederhana",
-    kegiatan: "Bercerita",
-    aspek: "Bahasa",
-  },
+  { id: 1, indikator: "Anak dapat memegang pensil dengan benar", kegiatan: "Menulis dan Menggambar", aspek: "Motorik" },
+  { id: 2, indikator: "Anak dapat menyebutkan warna dasar", kegiatan: "Mengenal Warna", aspek: "Kognitif" },
+  { id: 3, indikator: "Anak dapat mengucapkan kalimat sederhana", kegiatan: "Bercerita", aspek: "Bahasa" },
 ];
 
 export default function IndikatorPenilaianPage() {
@@ -78,69 +72,80 @@ export default function IndikatorPenilaianPage() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full font-sans">
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={handleTambah}
-          className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
-        >
-          <Plus size={15} />
-          Tambah
-        </button>
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="bg-green-500 text-white rounded-lg p-2">
+            <ClipboardList size={18} />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-gray-900 leading-tight">Indikator Penilaian</h1>
+            <p className="text-xs text-gray-400">{data.length} indikator terdaftar</p>
+          </div>
+        </div>
 
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Cari indikator..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-48"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari indikator..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 w-56 transition-all"
+            />
+          </div>
+          <button
+            onClick={handleTambah}
+            className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
+          >
+            <Plus size={15} />
+            Tambah Indikator
+          </button>
         </div>
       </div>
 
-      {/* Tabel */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm table-fixed border-collapse">
+      {/* TABLE */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[48px]">No</th>
-              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Indikator</th>
-              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800">Kegiatan</th>
-              <th className="px-4 py-3 text-left text-sm font-bold text-gray-800 w-[140px]">Aspek</th>
-              <th className="px-4 py-3 text-center text-sm font-bold text-gray-800 w-[140px]">Aksi</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-[52px] border-r border-gray-200">No</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200">Indikator</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200">Kegiatan</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[180px] border-r border-gray-200">Aspek</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-[140px]">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
-                  Belum ada data indikator penilaian
-                </td>
+                <td colSpan={5} className="text-center py-16 text-gray-400 text-sm">Belum ada data indikator penilaian</td>
               </tr>
             ) : (
               filtered.map((item, index) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-center text-black-400">{index + 1}</td>
-                  <td className="px-4 py-3 font-medium text-gray-800">{item.indikator}</td>
-                  <td className="px-4 py-3 text-gray-600">{item.kegiatan}</td>
-                  <td className="px-4 py-3 text-gray-600">{item.aspek}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
+                <tr key={item.id} className="hover:bg-blue-50/40 transition-colors">
+                  <td className="px-4 py-3.5 text-center text-xs text-gray-400 font-medium border-r border-gray-100">{index + 1}</td>
+                  <td className="px-5 py-3.5 border-r border-gray-100">
+                    <span className="font-medium text-gray-800 text-sm">{item.indikator}</span>
+                  </td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.kegiatan}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.aspek}</td>
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center justify-center gap-1.5">
                       <button
                         onClick={() => handleEdit(item)}
-                        className="inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                        className="inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-md transition-all"
                       >
-                        <Pencil size={12} /> Edit
+                        <Pencil size={11} /> Edit
                       </button>
                       <button
                         onClick={() => handleHapus(item.id)}
-                        className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md transition-colors"
+                        className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-md transition-all"
                       >
-                        <Trash2 size={12} /> Hapus
+                        <Trash2 size={11} /> Hapus
                       </button>
                     </div>
                   </td>
@@ -149,64 +154,95 @@ export default function IndikatorPenilaianPage() {
             )}
           </tbody>
         </table>
+
+        {filtered.length > 0 && (
+          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
+            <span className="text-xs text-gray-400">
+              Menampilkan <span className="font-medium text-gray-600">{filtered.length}</span> dari <span className="font-medium text-gray-600">{data.length}</span> data
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-base font-semibold text-gray-800 mb-5">
-              {editData ? "Edit Indikator Penilaian" : "Tambah Indikator Penilaian"}
-            </h2>
-            <div className="flex flex-col gap-3">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+
+            {/* Header Modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Indikator</label>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  {editData ? "Edit Indikator Penilaian" : "Tambah Indikator Penilaian"}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {editData ? "Perbarui data indikator" : "Isi data indikator baru"}
+                </p>
+              </div>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Body Modal */}
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Indikator</label>
                 <input
                   type="text"
                   value={form.indikator}
                   onChange={(e) => setForm({ ...form, indikator: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="Masukkan indikator"
+                  placeholder="Masukkan indikator penilaian"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                 />
               </div>
+
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Kegiatan</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Kegiatan</label>
                 <input
                   type="text"
                   value={form.kegiatan}
                   onChange={(e) => setForm({ ...form, kegiatan: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="Masukkan kegiatan"
+                  placeholder="Masukkan nama kegiatan"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                 />
               </div>
+
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Aspek</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Aspek</label>
+                <select
                   value={form.aspek}
                   onChange={(e) => setForm({ ...form, aspek: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="Masukkan aspek"
-                />
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                >
+                  <option value="">Pilih Aspek</option>
+                  {aspekOptions.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-5">
+
+            {/* Footer Modal */}
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={() => setShowModal(false)}
-                className="border border-gray-300 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
               >
                 Batal
               </button>
               <button
                 onClick={handleSimpan}
-                className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200 transition-colors"
               >
-                Simpan
+                {editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -70,10 +70,8 @@ const dummyAspekNilai = [
   { aspek: "Seni dan Kreativitas",          nilai: "BSH", color: "#80CBC4" },
 ];
 
-/* ── Kelas yang diampu guru ini — ganti sesuai data dari session/auth ── */
 const GURU_KELAS = ["TK A1", "TK A2"];
 
-/* Hanya anak dari kelas yang diampu guru ini */
 const anakPerKelas: Record<string, string[]> = {
   "TK A1": ["Aisyah Putri Lestari","Johan Prasetyo","Keysa Aulia Putri","Qonita Azzahra","Rizki Maulana","Salma Rahmawati","Farrel Adhitya","Naura Salsabila"],
   "TK A2": ["Bima Alfarizi","Intan Permata","Luthfi Hakim","Taufik Hidayat","Citra Dewi","Mikael Pratama","Nadira Zahra","Oki Firmansyah"],
@@ -135,7 +133,6 @@ export default function LaporanPerkembanganGuruPage() {
       {/* Filter */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {/* Kelas — hanya kelas yang diampu guru */}
           <div className="relative">
             <select value={kelas} onChange={(e) => handleKelasChange(e.target.value)} className={selectCls}>
               <option value="">Pilih kelas</option>
@@ -280,23 +277,13 @@ export default function LaporanPerkembanganGuruPage() {
         </div>
       </div>
 
-      {/* Komentar Guru */}
+      {/* Komentar Guru — read only, diisi dari menu Penilaian Perkembangan */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-1">Komentar Guru</h3>
         <p className="text-xs text-gray-500 mb-3">Catatan dan evaluasi</p>
-        <textarea
-          defaultValue={hasData ? komentar : ""}
-          placeholder={hasData ? "" : "Tulis komentar perkembangan anak..."}
-          rows={4}
-          className="w-full text-sm text-gray-700 border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
-        />
-        {hasData && (
-          <div className="flex justify-end mt-2">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium px-4 py-1.5 rounded-lg">
-              Simpan Komentar
-            </button>
-          </div>
-        )}
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {hasData ? komentar : <span className="text-gray-300">-</span>}
+        </p>
       </div>
 
       {/* Riwayat Penilaian */}

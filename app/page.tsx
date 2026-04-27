@@ -289,20 +289,20 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-3">
               {/* Logo */}
-             <div style={{
-  width: 46,
-  height: 46,
-  borderRadius: 14,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center"
-}}>
-  <img 
-    src="/logo.png" 
-    alt="Logo SIMONEV"
-    className="w-10 h-10 object-contain"
-  />
-</div>
+              <div style={{
+                width: 46,
+                height: 46,
+                borderRadius: 14,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <img
+                  src="/logo.png"
+                  alt="Logo SIMONEV"
+                  className="w-10 h-10 object-contain"
+                />
+              </div>
               <div>
                 <p style={{ fontFamily: "'Fredoka One', cursive", color: "#1565C0", fontSize: 17, lineHeight: 1 }}>
                   SIMONEV PAUD
@@ -314,24 +314,24 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-3">
-  <Link href="/login">
-    <button
-      className="paud-btn-primary"
-      style={{ padding: "8px 22px", fontSize: 13 }}
-    >
-      Masuk
-    </button>
-  </Link>
+              <Link href="/login">
+                <button
+                  className="paud-btn-primary"
+                  style={{ padding: "8px 22px", fontSize: 13 }}
+                >
+                  Masuk
+                </button>
+              </Link>
 
-  <Link href="/register">
-    <button
-      className="paud-btn-primary"
-      style={{ padding: "8px 22px", fontSize: 13 }}
-    >
-      Daftar
-    </button>
-  </Link>
-</div>
+              <Link href="/register">
+                <button
+                  className="paud-btn-primary"
+                  style={{ padding: "8px 22px", fontSize: 13 }}
+                >
+                  Daftar
+                </button>
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -368,7 +368,7 @@ export default function HomePage() {
 
               <div className="flex flex-wrap gap-3">
                 <Link href="/login">
-                  <button className="paud-btn-primary">✨ Mulai Sekarang</button>
+                  <button className="paud-btn-primary">Mulai Sekarang</button>
                 </Link>
                 <a href="#fitur">
                   <button className="paud-btn-secondary">Lihat Fitur</button>
@@ -470,8 +470,8 @@ export default function HomePage() {
 
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
               {[
-                { src: "/dashboard.png", label: "Dashboard Admin" },
-                { src: "/perkembangan.png", label: "Laporan Perkembangan" },
+                { src: "/dashboard admin.png", label: "Dashboard Admin" },
+                { src: "/laporan perkembangan.png", label: "Laporan Perkembangan" },
                 { src: "/dashboard guru.png", label: "Dashboard Guru" },
                 { src: "/pengumuman.png", label: "Pengumuman" },
               ].map((item, i) => (
@@ -507,7 +507,7 @@ export default function HomePage() {
           }}>
             <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "white", opacity: 0.07, borderRadius: "50%" }} />
             <div style={{ position: "absolute", bottom: -30, left: 20, width: 80, height: 80, background: "white", opacity: 0.07, borderRadius: "50%" }} />
-            <div style={{ fontSize: 36, marginBottom: 10 }}>🎉</div>
+            <div style={{ fontSize: 36, marginBottom: 10 }}></div>
             <h2 style={{ fontFamily: "'Fredoka One', cursive", color: "white", fontSize: 24, margin: "0 0 10px" }}>
               Siap Memulai Pemantauan Perkembangan Anak?
             </h2>
@@ -522,7 +522,7 @@ export default function HomePage() {
                 fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14,
                 cursor: "pointer", boxShadow: "0 4px 16px rgba(0,0,0,0.15)"
               }}>
-                ✨ Mulai Sekarang
+                Mulai Sekarang
               </button>
             </Link>
           </div>
@@ -536,19 +536,19 @@ export default function HomePage() {
               {/* Brand */}
               <div style={{ maxWidth: 240 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                 <div style={{
-  width: 46,
-  height: 46,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center"
-}}>
-  <img 
-    src="/logo.png" 
-    alt="Logo SIMONEV"
-    className="w-10 h-10 object-contain"
-  />
-</div>
+                  <div style={{
+                    width: 46,
+                    height: 46,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    <img
+                      src="/logo.png"
+                      alt="Logo SIMONEV"
+                      className="w-10 h-10 object-contain"
+                    />
+                  </div>
                   <div>
                     <p style={{ fontFamily: "'Fredoka One', cursive", color: "white", fontSize: 16, margin: 0 }}>SIMONEV PAUD</p>
                     <p style={{ fontSize: 10, color: "#64B5F6", margin: 0, lineHeight: 1.4 }}>Sistem Monitoring & Evaluasi Perkembangan Anak Usia Dini</p>
@@ -581,8 +581,8 @@ export default function HomePage() {
                   <p style={{ margin: 0 }}>📞 +62 812-0000-0000</p>
                   <p style={{ margin: 0 }}>✉️ admin@simonev.com</p>
                   <p style={{ margin: "8px 0 0", fontSize: 11, maxWidth: 200, lineHeight: 1.5 }}>
-  📍 Kota Batam, Kepulauan Riau
-</p>
+                    📍 Kota Batam, Kepulauan Riau
+                  </p>
                 </div>
               </div>
             </div>

@@ -11,16 +11,17 @@ interface Aspek {
 
 const aspekOptions = [
   "Nilai Agama dan Moral",
-  "Fisik-Motorik",
+  "Motorik",
   "Kognitif",
   "Bahasa",
   "Sosial-Emosional",
+  "Kreativitas/Seni",
 ];
 
 const dummyData: Aspek[] = [
   {
     id: 1,
-    nama: "Fisik-Motorik",
+    nama: "Motorik",
     definisi: "Kemampuan anak dalam mengontrol gerakan tubuh.",
   },
   {
@@ -87,7 +88,7 @@ export default function AspekPage() {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-600 text-white rounded-lg p-2">
+          <div className="bg-green-500 text-white rounded-lg p-2">
             <BookOpen size={18} />
           </div>
           <div>
@@ -117,7 +118,7 @@ export default function AspekPage() {
 
           <button
             onClick={handleTambah}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm shadow-blue-200"
+            className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm shadow-green-200"
           >
             <Plus size={13} />
             Tambah Aspek
@@ -245,9 +246,7 @@ export default function AspekPage() {
                 </label>
                 <select
                   value={form.nama}
-                  onChange={(e) =>
-                    setForm({ ...form, nama: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, nama: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Pilih Aspek</option>
@@ -264,9 +263,7 @@ export default function AspekPage() {
                 <input
                   type="text"
                   value={form.definisi}
-                  onChange={(e) =>
-                    setForm({ ...form, definisi: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, definisi: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -281,7 +278,7 @@ export default function AspekPage() {
               </button>
               <button
                 onClick={handleSimpan}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-blue-200"
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200"
               >
                 {editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>

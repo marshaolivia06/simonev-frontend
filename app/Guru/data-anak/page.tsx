@@ -7,6 +7,7 @@ interface Anak {
   id: number;
   namaAnak: string;
   orangTua: string;
+  pekerjaanOrangTua: string;
   email: string;
   alamat: string;
   kelas: string;
@@ -15,16 +16,26 @@ interface Anak {
 }
 
 const dataAwal: Anak[] = [
-  { id: 1, namaAnak: "Aisyah Azizah", orangTua: "Sari Sri Hastuti", email: "sari@email.com", alamat: "Jl. Melati No. 1", kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-03-12" },
-  { id: 2, namaAnak: "Bima Sakti", orangTua: "Andi Saputra", email: "andi@email.com", alamat: "Jl. Mawar No. 5", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-07-24" },
-  { id: 3, namaAnak: "Citra Lestari", orangTua: "Lina Wijaya", email: "lina@email.com", alamat: "Jl. Kenanga No. 3", kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-01-05" },
-  { id: 4, namaAnak: "Dafa Ramadhan", orangTua: "Budi Santoso", email: "budi@email.com", alamat: "Jl. Anggrek No. 7", kelas: "C", jenisKelamin: "Laki-laki", tanggalLahir: "2017-11-30" },
-  { id: 5, namaAnak: "Elsa Nabila", orangTua: "Dewi Rahayu", email: "dewi@email.com", alamat: "Jl. Dahlia No. 2", kelas: "B", jenisKelamin: "Perempuan", tanggalLahir: "2018-05-17" },
-  { id: 6, namaAnak: "Farhan Maulana", orangTua: "Hendra Kusuma", email: "hendra@email.com", alamat: "Jl. Flamboyan No. 9", kelas: "A", jenisKelamin: "Laki-laki", tanggalLahir: "2019-08-09" },
-  { id: 7, namaAnak: "Ghina Aulia", orangTua: "Rina Marlina", email: "rina@email.com", alamat: "Jl. Tulip No. 4", kelas: "C", jenisKelamin: "Perempuan", tanggalLahir: "2017-04-22" },
-  { id: 8, namaAnak: "Hafiz Pratama", orangTua: "Yusuf Hakim", email: "yusuf@email.com", alamat: "Jl. Bougenville No. 6", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-12-01" },
-  { id: 9, namaAnak: "Indira Putri", orangTua: "Nita Sari", email: "nita@email.com", alamat: "Jl. Cempaka No. 8", kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-06-14" },
-  { id: 10, namaAnak: "Jaka Tarub", orangTua: "Agus Priyono", email: "agus@email.com", alamat: "Jl. Seroja No. 10", kelas: "C", jenisKelamin: "Laki-laki", tanggalLahir: "2017-09-03" },
+  { id: 1,  namaAnak: "Aisyah Azizah",   orangTua: "Sari Sri Hastuti", pekerjaanOrangTua: "Guru",          email: "sari@email.com",   alamat: "Jl. Melati No. 1",      kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-03-12" },
+  { id: 2,  namaAnak: "Bima Sakti",       orangTua: "Andi Saputra",     pekerjaanOrangTua: "Wiraswasta",    email: "andi@email.com",   alamat: "Jl. Mawar No. 5",       kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-07-24" },
+  { id: 3,  namaAnak: "Citra Lestari",    orangTua: "Lina Wijaya",      pekerjaanOrangTua: "Ibu Rumah Tangga", email: "lina@email.com", alamat: "Jl. Kenanga No. 3",   kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-01-05" },
+  { id: 4,  namaAnak: "Dafa Ramadhan",    orangTua: "Budi Santoso",     pekerjaanOrangTua: "PNS",           email: "budi@email.com",   alamat: "Jl. Anggrek No. 7",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-11-30" },
+  { id: 5,  namaAnak: "Elsa Nabila",      orangTua: "Dewi Rahayu",      pekerjaanOrangTua: "Dokter",        email: "dewi@email.com",   alamat: "Jl. Dahlia No. 2",      kelas: "B", jenisKelamin: "Perempuan", tanggalLahir: "2018-05-17" },
+  { id: 6,  namaAnak: "Farhan Maulana",   orangTua: "Hendra Kusuma",    pekerjaanOrangTua: "Karyawan Swasta", email: "hendra@email.com", alamat: "Jl. Flamboyan No. 9", kelas: "A", jenisKelamin: "Laki-laki", tanggalLahir: "2019-08-09" },
+  { id: 7,  namaAnak: "Ghina Aulia",      orangTua: "Rina Marlina",     pekerjaanOrangTua: "Pedagang",      email: "rina@email.com",   alamat: "Jl. Tulip No. 4",       kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2017-04-22" },
+  { id: 8,  namaAnak: "Hafiz Pratama",    orangTua: "Yusuf Hakim",      pekerjaanOrangTua: "TNI",           email: "yusuf@email.com",  alamat: "Jl. Bougenville No. 6", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-12-01" },
+  { id: 9,  namaAnak: "Indira Putri",     orangTua: "Nita Sari",        pekerjaanOrangTua: "Bidan",         email: "nita@email.com",   alamat: "Jl. Cempaka No. 8",     kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-06-14" },
+  { id: 10, namaAnak: "Jaka Tarub",       orangTua: "Agus Priyono",     pekerjaanOrangTua: "Petani",        email: "agus@email.com",   alamat: "Jl. Seroja No. 10",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-09-03" },
+  { id: 11, namaAnak: "Kirana Sari",      orangTua: "Maya Dewi",        pekerjaanOrangTua: "Guru",          email: "maya@email.com",   alamat: "Jl. Akasia No. 11",     kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-02-18" },
+  { id: 12, namaAnak: "Lutfi Hakim",      orangTua: "Rudi Hartono",     pekerjaanOrangTua: "Wiraswasta",    email: "rudi@email.com",   alamat: "Jl. Bamboo No. 12",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-10-25" },
+  { id: 13, namaAnak: "Mila Anggraini",   orangTua: "Siti Aminah",      pekerjaanOrangTua: "Ibu Rumah Tangga", email: "siti@email.com", alamat: "Jl. Cemara No. 13",  kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-04-07" },
+  { id: 14, namaAnak: "Naufal Rizki",     orangTua: "Fajar Nugroho",    pekerjaanOrangTua: "Polisi",        email: "fajar@email.com",  alamat: "Jl. Durian No. 14",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-08-13" },
+  { id: 15, namaAnak: "Olivia Rahmawati", orangTua: "Wulan Sari",       pekerjaanOrangTua: "Apoteker",      email: "wulan@email.com",  alamat: "Jl. Eucalyptus No. 15", kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2018-11-29" },
+  { id: 16, namaAnak: "Pandu Wijaya",     orangTua: "Teguh Santoso",    pekerjaanOrangTua: "Karyawan Swasta", email: "teguh@email.com", alamat: "Jl. Flamboyan No. 16", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2019-07-04" },
+  { id: 17, namaAnak: "Qonita Azzahra",   orangTua: "Hana Pertiwi",     pekerjaanOrangTua: "Bidan",         email: "hana@email.com",   alamat: "Jl. Gerbera No. 17",    kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2017-12-20" },
+  { id: 18, namaAnak: "Rafi Ananda",      orangTua: "Doni Setiawan",    pekerjaanOrangTua: "Pedagang",      email: "doni@email.com",   alamat: "Jl. Hyacinth No. 18",   kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-03-16" },
+  { id: 19, namaAnak: "Salma Nuraini",    orangTua: "Fitri Yanti",      pekerjaanOrangTua: "PNS",           email: "fitri@email.com",  alamat: "Jl. Iris No. 19",       kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-09-11" },
+  { id: 20, namaAnak: "Taufik Hidayat",   orangTua: "Eko Prasetyo",     pekerjaanOrangTua: "TNI",           email: "eko@email.com",    alamat: "Jl. Jasmine No. 20",    kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-06-08" },
 ];
 
 const ROWS = 10;
@@ -50,9 +61,12 @@ function getInitials(name: string) {
 }
 
 function formatTanggal(tgl: string) {
-  const [y, m, d] = tgl.split("-");
-  const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  return `${d} ${bulan[parseInt(m) - 1]} ${y}`;
+  return tgl;
+}
+
+function getSubtitleKelas(filter: string, count: number) {
+  if (filter === "Semua") return `${count} anak terdaftar`;
+  return `${count} anak terdaftar di kelas ${filter}`;
 }
 
 export default function DataAnakPage() {
@@ -68,6 +82,10 @@ export default function DataAnakPage() {
     return matchSearch && matchKelas;
   });
 
+  const totalKelas = data.filter((a) =>
+    kelasFilter === "Semua" ? true : a.kelas === kelasFilter
+  ).length;
+
   return (
     <div className="max-w-6xl mx-auto">
 
@@ -79,7 +97,7 @@ export default function DataAnakPage() {
           </div>
           <div>
             <p className="text-lg font-bold text-gray-800 leading-tight">Data Anak</p>
-            <p className="text-sm text-gray-500">{data.length} anak terdaftar</p>
+            <p className="text-sm text-gray-500">{getSubtitleKelas(kelasFilter, totalKelas)}</p>
           </div>
         </div>
 
@@ -118,6 +136,7 @@ export default function DataAnakPage() {
               <th className="px-4 py-3 text-center font-bold text-black">Jenis Kelamin</th>
               <th className="px-4 py-3 text-center font-bold text-black">Tanggal Lahir</th>
               <th className="px-4 py-3 text-center font-bold text-black">Nama Orangtua</th>
+              <th className="px-4 py-3 text-center font-bold text-black">Pekerjaan Orangtua</th>
               <th className="px-4 py-3 text-center font-bold text-black">Email Orangtua</th>
               <th className="px-4 py-3 text-center font-bold text-black">Alamat</th>
               <th className="px-4 py-3 text-center font-bold text-black w-[80px]">Kelas</th>
@@ -143,6 +162,7 @@ export default function DataAnakPage() {
                 </td>
                 <td className="px-4 py-3 text-center text-gray-700">{formatTanggal(anak.tanggalLahir)}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.orangTua}</td>
+                <td className="px-4 py-3 text-center text-gray-700">{anak.pekerjaanOrangTua}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.email}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.alamat}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.kelas}</td>
@@ -151,6 +171,7 @@ export default function DataAnakPage() {
 
             {Array.from({ length: Math.max(0, ROWS - filtered.length) }).map((_, i) => (
               <tr key={`empty-${i}`}>
+                <td className="px-4 py-3">&nbsp;</td>
                 <td className="px-4 py-3">&nbsp;</td>
                 <td className="px-4 py-3">&nbsp;</td>
                 <td className="px-4 py-3">&nbsp;</td>

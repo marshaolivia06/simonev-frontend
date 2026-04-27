@@ -13,6 +13,8 @@ const dataGuru = {
   telepon: "081234567890",
   kelas: ["Kelas A", "Kelas B"],
   role: "Guru",
+  jenisKelamin: "Perempuan",
+  tanggalLahir: "1985-11-02",
 };
 
 export default function ProfilePage() {
@@ -23,6 +25,8 @@ export default function ProfilePage() {
   const [nik, setNik] = useState(dataGuru.nik);
   const [alamat, setAlamat] = useState(dataGuru.alamat);
   const [telepon, setTelepon] = useState(dataGuru.telepon);
+  const [jenisKelamin, setJenisKelamin] = useState(dataGuru.jenisKelamin);
+  const [tanggalLahir, setTanggalLahir] = useState(dataGuru.tanggalLahir);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -108,6 +112,32 @@ export default function ProfilePage() {
                   onChange={(e) => setNik(e.target.value)}
                   required
                   maxLength={16}
+                  className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-600">Jenis Kelamin</label>
+                <select
+                  value={jenisKelamin}
+                  onChange={(e) => setJenisKelamin(e.target.value)}
+                  required
+                  className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+                >
+                  <option value="Perempuan">Perempuan</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Tanggal Lahir</label>
+                <input
+                  type="text"
+                  value={tanggalLahir}
+                  onChange={(e) => setTanggalLahir(e.target.value)}
+                  required
+                  placeholder="YYYY-MM-DD"
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>

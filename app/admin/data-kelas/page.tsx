@@ -10,15 +10,28 @@ interface Kelas {
   tahunAjaran: string;
 }
 
+const dummyDataGuru = [
+  "Siti Rahayu, S.Pd",
+  "Budi Santoso, M.Pd",
+  "Rina Marlina, S.Pd",
+  "Agus Wijaya, S.Pd",
+  "Dewi Kusuma, M.Pd",
+  "Hendra Gunawan, S.Pd",
+  "Yuliana Putri, S.Pd",
+  "Rudi Hermawan, M.Pd",
+  "Fitri Handayani, S.Pd",
+  "Eko Prasetyo, M.Pd",
+];
+
 const dummyData: Kelas[] = [
   { id: 1, namaKelas: "TK A1", waliKelas: "Siti Rahayu, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 2, namaKelas: "TK A2", waliKelas: "Dewi Lestari, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 2, namaKelas: "TK A2", waliKelas: "Dewi Kusuma, M.Pd", tahunAjaran: "2024/2025" },
   { id: 3, namaKelas: "TK B1", waliKelas: "Budi Santoso, M.Pd", tahunAjaran: "2024/2025" },
   { id: 4, namaKelas: "TK B2", waliKelas: "Rina Marlina, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 5, namaKelas: "Playgroup A", waliKelas: "Ani Wijaya, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 6, namaKelas: "TK A3", waliKelas: "Cinta Laura, S.Pd", tahunAjaran: "2025/2026" },
-  { id: 7, namaKelas: "TK A4", waliKelas: "Agus Pratama, S.Pd", tahunAjaran: "2025/2026" },
-  { id: 8, namaKelas: "Playgroup B", waliKelas: "Fatimah Larasati, S.Pd", tahunAjaran: "2025/2026" },
+  { id: 5, namaKelas: "Playgroup A", waliKelas: "Agus Wijaya, S.Pd", tahunAjaran: "2024/2025" },
+  { id: 6, namaKelas: "TK A3", waliKelas: "Hendra Gunawan, S.Pd", tahunAjaran: "2025/2026" },
+  { id: 7, namaKelas: "TK A4", waliKelas: "Agus Wijaya, S.Pd", tahunAjaran: "2025/2026" },
+  { id: 8, namaKelas: "Playgroup B", waliKelas: "Fitri Handayani, S.Pd", tahunAjaran: "2025/2026" },
 ];
 
 const namaKelasOptions = [
@@ -117,7 +130,7 @@ export default function DataKelasPage() {
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm flex items-center gap-1"
           >
             <Plus size={15} />
-            Tambah
+            Tambah Kelas
           </button>
         </div>
       </div>
@@ -214,16 +227,22 @@ export default function DataKelasPage() {
                   ))}
                 </select>
               </div>
+
+              {/* DIUBAH: input text → dropdown guru */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Wali Kelas</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Siti Rahayu, S.Pd"
+                <select
                   value={form.waliKelas}
                   onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                >
+                  <option value="">Pilih wali kelas</option>
+                  {dummyDataGuru.map((guru) => (
+                    <option key={guru} value={guru}>{guru}</option>
+                  ))}
+                </select>
               </div>
+
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Tahun Ajaran</label>
                 <select

@@ -109,7 +109,7 @@ export default function PengumumanPage() {
           <p className="text-sm text-gray-500">Informasi terbaru terkait kegiatan dan agenda sekolah</p>
         </div>
         <button onClick={handleTambah}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors shadow-sm">
+          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors shadow-sm">
           <Plus size={16} /> Tambah Pengumuman
         </button>
       </div>
@@ -245,7 +245,7 @@ export default function PengumumanPage() {
                 Batal
               </button>
               <button onClick={handleSimpan}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors">
+                className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors">
                 {editData ? "Simpan Perubahan" : "Tambah"}
               </button>
             </div>

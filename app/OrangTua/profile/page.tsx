@@ -3,25 +3,20 @@
 import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 
-/* ──────────────────────────────────────────────────────────────
-   DATA DUMMY — ganti dengan fetch dari API / database kamu.
-   Struktur ini yang nantinya dikirim ke backend saat orang tua
-   menekan tombol Simpan, lalu admin bisa melihat perubahan di
-   halaman manajemen data anak.
-   ────────────────────────────────────────────────────────────── */
 const INITIAL_DATA = {
-  /* akun */
   username: "budi.santoso",
   password: "",
-  /* data orang tua — bisa diedit */
   namaLengkap: "Budi Santoso",
   email: "budi.santoso@gmail.com",
   telepon: "+62 812-3456-7890",
   hubungan: "Ayah",
+  pekerjaan: "Wiraswasta", // ✅ TAMBAHAN
   alamat: "Jl. Melati No. 12, RT 03/RW 07, Batam Kota, Kota Batam, Kepulauan Riau 29461",
-  /* data anak — read only, dikelola admin */
+
   namaAnak: "Aisyah Putri Lestari",
   kelas: "TK A1",
+  jenisKelamin: "Perempuan", // ✅ TAMBAHAN
+  tanggalLahir: "2019-03-12", // ✅ TAMBAHAN
 };
 
 export default function ProfilePage() {
@@ -34,22 +29,13 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    /*
-      TODO: kirim `form` ke API kamu, contoh:
-      await fetch("/api/ortu/profile", {
-        method: "PUT",
-        body: JSON.stringify(form),
-      });
-      Data yang berubah (namaLengkap, email, telepon, hubungan, alamat)
-      akan masuk ke tabel data orang tua di sisi admin.
-    */
     setShowSuccess(true);
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
-      {/* ── SUCCESS POPUP ── */}
+      {/* SUCCESS POPUP */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-2xl shadow-xl p-8 w-80 text-center">
@@ -74,7 +60,7 @@ export default function ProfilePage() {
 
       <form onSubmit={handleSubmit}>
 
-        {/* ── SECTION 1: Akun ── */}
+        {/* SECTION 1: AKUN */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
             Akun
@@ -103,7 +89,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── SECTION 2: Data Orang Tua (editable) ── */}
+        {/* SECTION 2: ORANG TUA */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -145,6 +131,17 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* ✅ TAMBAHAN PEKERJAAN */}
+            <div>
+              <label className="text-sm text-gray-600">Pekerjaan</label>
+              <input
+                type="text"
+                value={form.pekerjaan}
+                onChange={handle("pekerjaan")}
+                className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-600">Email</label>
@@ -181,7 +178,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── SECTION 3: Data Anak (read-only) ── */}
+        {/* SECTION 3: DATA ANAK */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -212,12 +209,22 @@ export default function ProfilePage() {
                     </span>
                   </td>
                 </tr>
+
+                {/* ✅ TAMBAHAN */}
+                <tr>
+                  <td className="px-4 py-3 text-gray-500">Jenis Kelamin</td>
+                  <td className="px-4 py-3 text-gray-800">{form.jenisKelamin}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-gray-500">Tanggal Lahir</td>
+                  <td className="px-4 py-3 text-gray-800">{form.tanggalLahir}</td>
+                </tr>
+
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* ── Tombol Simpan ── */}
         <div className="flex justify-end">
           <button
             type="submit"
