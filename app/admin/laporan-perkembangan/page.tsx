@@ -14,39 +14,40 @@ interface RiwayatItem {
   kegiatan: string;
   indikator: string;
   nilai: string;
+  dokumentasi: string;
 }
 
 const dummyRiwayat: RiwayatItem[] = [
-  { id: 1,  tanggal: "2024-10-01", aspek: "Motorik",           kegiatan: "Senam Pagi",            indikator: "Koordinasi gerak tubuh sesuai irama",            nilai: "BSH" },
-  { id: 2,  tanggal: "2024-10-03", aspek: "Motorik",           kegiatan: "Melipat Kertas",         indikator: "Melipat kertas menjadi bentuk sederhana",         nilai: "MB"  },
-  { id: 3,  tanggal: "2024-10-07", aspek: "Motorik",           kegiatan: "Bermain Bola",           indikator: "Melempar dan menangkap bola dengan dua tangan",   nilai: "BSH" },
-  { id: 4,  tanggal: "2024-10-10", aspek: "Motorik",           kegiatan: "Mewarnai Gambar",        indikator: "Menggerakkan jari tangan untuk mewarnai",         nilai: "BSB" },
-  { id: 5,  tanggal: "2024-10-14", aspek: "Motorik",           kegiatan: "Menggunting Pola",       indikator: "Menggunting mengikuti garis pola sederhana",      nilai: "MB"  },
-  { id: 6,  tanggal: "2024-10-18", aspek: "Motorik",           kegiatan: "Berjalan di Papan",      indikator: "Keseimbangan tubuh saat berjalan di atas garis",  nilai: "BSH" },
-  { id: 7,  tanggal: "2024-10-02", aspek: "Kognitif",          kegiatan: "Bermain Puzzle",         indikator: "Memecahkan masalah sederhana secara mandiri",     nilai: "MB"  },
-  { id: 8,  tanggal: "2024-10-05", aspek: "Kognitif",          kegiatan: "Mengenal Angka",         indikator: "Menyebut dan menunjuk angka 1–10",                nilai: "BSH" },
-  { id: 9,  tanggal: "2024-10-09", aspek: "Kognitif",          kegiatan: "Menyusun Balok",         indikator: "Menyusun benda dari besar ke kecil (seriasi)",    nilai: "BSH" },
-  { id: 10, tanggal: "2024-10-13", aspek: "Kognitif",          kegiatan: "Mencocokkan Warna",      indikator: "Mengelompokkan benda berdasarkan warna",          nilai: "BSB" },
-  { id: 11, tanggal: "2024-10-17", aspek: "Kognitif",          kegiatan: "Eksplorasi Pasir",       indikator: "Menunjukkan rasa ingin tahu melalui eksplorasi",  nilai: "MB"  },
-  { id: 12, tanggal: "2024-10-21", aspek: "Kognitif",          kegiatan: "Pola Gambar",            indikator: "Melanjutkan pola gambar secara berulang",         nilai: "BSH" },
-  { id: 13, tanggal: "2024-10-02", aspek: "Bahasa",            kegiatan: "Bercerita Gambar",       indikator: "Menceritakan gambar dengan kalimat sederhana",    nilai: "BSH" },
-  { id: 14, tanggal: "2024-10-06", aspek: "Bahasa",            kegiatan: "Membaca Buku Cerita",    indikator: "Menunjukkan minat terhadap buku dan bacaan",      nilai: "BSB" },
-  { id: 15, tanggal: "2024-10-11", aspek: "Bahasa",            kegiatan: "Menyanyikan Lagu",       indikator: "Melafalkan kata dengan jelas dan tepat",          nilai: "BSB" },
-  { id: 16, tanggal: "2024-10-15", aspek: "Bahasa",            kegiatan: "Diskusi Pagi",           indikator: "Mengungkapkan pendapat dengan kalimat lengkap",   nilai: "MB"  },
-  { id: 17, tanggal: "2024-10-20", aspek: "Bahasa",            kegiatan: "Tanya Jawab Cerita",     indikator: "Menjawab pertanyaan sesuai isi cerita",           nilai: "BSH" },
-  { id: 18, tanggal: "2024-10-03", aspek: "Sosial-Emosional",  kegiatan: "Bermain Peran",          indikator: "Bekerja sama dengan teman dalam permainan",       nilai: "BSH" },
-  { id: 19, tanggal: "2024-10-08", aspek: "Sosial-Emosional",  kegiatan: "Antri Cuci Tangan",      indikator: "Menunggu giliran dengan sabar dan tertib",        nilai: "MB"  },
-  { id: 20, tanggal: "2024-10-12", aspek: "Sosial-Emosional",  kegiatan: "Berbagi Mainan",         indikator: "Bersedia berbagi mainan dengan teman",            nilai: "BSH" },
-  { id: 21, tanggal: "2024-10-16", aspek: "Sosial-Emosional",  kegiatan: "Merapikan Mainan",       indikator: "Bertanggung jawab merapikan alat main sendiri",   nilai: "BSH" },
-  { id: 22, tanggal: "2024-10-22", aspek: "Sosial-Emosional",  kegiatan: "Kegiatan Kelompok",      indikator: "Menunjukkan rasa percaya diri saat tampil",       nilai: "BSB" },
-  { id: 23, tanggal: "2024-10-01", aspek: "Agama & Moral",     kegiatan: "Doa Sebelum Belajar",    indikator: "Melafalkan doa harian dengan benar",              nilai: "BSH" },
-  { id: 24, tanggal: "2024-10-04", aspek: "Agama & Moral",     kegiatan: "Praktik Sholat",         indikator: "Mempraktikkan gerakan sholat dengan tertib",      nilai: "MB"  },
-  { id: 25, tanggal: "2024-10-10", aspek: "Agama & Moral",     kegiatan: "Menyayangi Teman",       indikator: "Berperilaku sopan dan santun kepada orang lain",  nilai: "BSH" },
-  { id: 26, tanggal: "2024-10-19", aspek: "Agama & Moral",     kegiatan: "Mengenal Ciptaan Tuhan", indikator: "Menyebutkan ciptaan Tuhan di lingkungan sekitar", nilai: "BSB" },
-  { id: 27, tanggal: "2024-10-04", aspek: "Seni & Kreativitas",kegiatan: "Melukis Bebas",          indikator: "Mengekspresikan ide melalui lukisan warna",        nilai: "BSH" },
-  { id: 28, tanggal: "2024-10-08", aspek: "Seni & Kreativitas",kegiatan: "Membuat Kolase",         indikator: "Menyusun bahan menjadi karya kolase sederhana",    nilai: "BSB" },
-  { id: 29, tanggal: "2024-10-15", aspek: "Seni & Kreativitas",kegiatan: "Bernyanyi Bersama",      indikator: "Menyanyikan lagu anak dengan ekspresi",           nilai: "MB"  },
-  { id: 30, tanggal: "2024-10-23", aspek: "Seni & Kreativitas",kegiatan: "Membuat Prakarya",       indikator: "Menciptakan karya dari bahan bekas secara kreatif",nilai: "BSH" },
+  { id: 1,  tanggal: "2024-10-01", aspek: "Motorik",           kegiatan: "Senam Pagi",            indikator: "Koordinasi gerak tubuh sesuai irama",            nilai: "BSH", dokumentasi: "senam_pagi_01.jpg" },
+  { id: 2,  tanggal: "2024-10-03", aspek: "Motorik",           kegiatan: "Melipat Kertas",         indikator: "Melipat kertas menjadi bentuk sederhana",         nilai: "MB",  dokumentasi: "melipat_kertas_03.jpg" },
+  { id: 3,  tanggal: "2024-10-07", aspek: "Motorik",           kegiatan: "Bermain Bola",           indikator: "Melempar dan menangkap bola dengan dua tangan",   nilai: "BSH", dokumentasi: "bermain_bola_07.jpg" },
+  { id: 4,  tanggal: "2024-10-10", aspek: "Motorik",           kegiatan: "Mewarnai Gambar",        indikator: "Menggerakkan jari tangan untuk mewarnai",         nilai: "BSB", dokumentasi: "mewarnai_gambar_10.jpg" },
+  { id: 5,  tanggal: "2024-10-14", aspek: "Motorik",           kegiatan: "Menggunting Pola",       indikator: "Menggunting mengikuti garis pola sederhana",      nilai: "MB",  dokumentasi: "menggunting_pola_14.jpg" },
+  { id: 6,  tanggal: "2024-10-18", aspek: "Motorik",           kegiatan: "Berjalan di Papan",      indikator: "Keseimbangan tubuh saat berjalan di atas garis",  nilai: "BSH", dokumentasi: "berjalan_papan_18.jpg" },
+  { id: 7,  tanggal: "2024-10-02", aspek: "Kognitif",          kegiatan: "Bermain Puzzle",         indikator: "Memecahkan masalah sederhana secara mandiri",     nilai: "MB",  dokumentasi: "bermain_puzzle_02.jpg" },
+  { id: 8,  tanggal: "2024-10-05", aspek: "Kognitif",          kegiatan: "Mengenal Angka",         indikator: "Menyebut dan menunjuk angka 1–10",                nilai: "BSH", dokumentasi: "mengenal_angka_05.jpg" },
+  { id: 9,  tanggal: "2024-10-09", aspek: "Kognitif",          kegiatan: "Menyusun Balok",         indikator: "Menyusun benda dari besar ke kecil (seriasi)",    nilai: "BSH", dokumentasi: "menyusun_balok_09.jpg" },
+  { id: 10, tanggal: "2024-10-13", aspek: "Kognitif",          kegiatan: "Mencocokkan Warna",      indikator: "Mengelompokkan benda berdasarkan warna",          nilai: "BSB", dokumentasi: "mencocokkan_warna_13.jpg" },
+  { id: 11, tanggal: "2024-10-17", aspek: "Kognitif",          kegiatan: "Eksplorasi Pasir",       indikator: "Menunjukkan rasa ingin tahu melalui eksplorasi",  nilai: "MB",  dokumentasi: "eksplorasi_pasir_17.jpg" },
+  { id: 12, tanggal: "2024-10-21", aspek: "Kognitif",          kegiatan: "Pola Gambar",            indikator: "Melanjutkan pola gambar secara berulang",         nilai: "BSH", dokumentasi: "pola_gambar_21.jpg" },
+  { id: 13, tanggal: "2024-10-02", aspek: "Bahasa",            kegiatan: "Bercerita Gambar",       indikator: "Menceritakan gambar dengan kalimat sederhana",    nilai: "BSH", dokumentasi: "bercerita_gambar_02.jpg" },
+  { id: 14, tanggal: "2024-10-06", aspek: "Bahasa",            kegiatan: "Membaca Buku Cerita",    indikator: "Menunjukkan minat terhadap buku dan bacaan",      nilai: "BSB", dokumentasi: "membaca_buku_06.jpg" },
+  { id: 15, tanggal: "2024-10-11", aspek: "Bahasa",            kegiatan: "Menyanyikan Lagu",       indikator: "Melafalkan kata dengan jelas dan tepat",          nilai: "BSB", dokumentasi: "menyanyikan_lagu_11.jpg" },
+  { id: 16, tanggal: "2024-10-15", aspek: "Bahasa",            kegiatan: "Diskusi Pagi",           indikator: "Mengungkapkan pendapat dengan kalimat lengkap",   nilai: "MB",  dokumentasi: "diskusi_pagi_15.jpg" },
+  { id: 17, tanggal: "2024-10-20", aspek: "Bahasa",            kegiatan: "Tanya Jawab Cerita",     indikator: "Menjawab pertanyaan sesuai isi cerita",           nilai: "BSH", dokumentasi: "tanya_jawab_20.jpg" },
+  { id: 18, tanggal: "2024-10-03", aspek: "Sosial-Emosional",  kegiatan: "Bermain Peran",          indikator: "Bekerja sama dengan teman dalam permainan",       nilai: "BSH", dokumentasi: "bermain_peran_03.jpg" },
+  { id: 19, tanggal: "2024-10-08", aspek: "Sosial-Emosional",  kegiatan: "Antri Cuci Tangan",      indikator: "Menunggu giliran dengan sabar dan tertib",        nilai: "MB",  dokumentasi: "cuci_tangan_08.jpg" },
+  { id: 20, tanggal: "2024-10-12", aspek: "Sosial-Emosional",  kegiatan: "Berbagi Mainan",         indikator: "Bersedia berbagi mainan dengan teman",            nilai: "BSH", dokumentasi: "berbagi_mainan_12.jpg" },
+  { id: 21, tanggal: "2024-10-16", aspek: "Sosial-Emosional",  kegiatan: "Merapikan Mainan",       indikator: "Bertanggung jawab merapikan alat main sendiri",   nilai: "BSH", dokumentasi: "merapikan_mainan_16.jpg" },
+  { id: 22, tanggal: "2024-10-22", aspek: "Sosial-Emosional",  kegiatan: "Kegiatan Kelompok",      indikator: "Menunjukkan rasa percaya diri saat tampil",       nilai: "BSB", dokumentasi: "kegiatan_kelompok_22.jpg" },
+  { id: 23, tanggal: "2024-10-01", aspek: "Agama & Moral",     kegiatan: "Doa Sebelum Belajar",    indikator: "Melafalkan doa harian dengan benar",              nilai: "BSH", dokumentasi: "doa_belajar_01.jpg" },
+  { id: 24, tanggal: "2024-10-04", aspek: "Agama & Moral",     kegiatan: "Praktik Sholat",         indikator: "Mempraktikkan gerakan sholat dengan tertib",      nilai: "MB",  dokumentasi: "praktik_sholat_04.jpg" },
+  { id: 25, tanggal: "2024-10-10", aspek: "Agama & Moral",     kegiatan: "Menyayangi Teman",       indikator: "Berperilaku sopan dan santun kepada orang lain",  nilai: "BSH", dokumentasi: "menyayangi_teman_10.jpg" },
+  { id: 26, tanggal: "2024-10-19", aspek: "Agama & Moral",     kegiatan: "Mengenal Ciptaan Tuhan", indikator: "Menyebutkan ciptaan Tuhan di lingkungan sekitar", nilai: "BSB", dokumentasi: "ciptaan_tuhan_19.jpg" },
+  { id: 27, tanggal: "2024-10-04", aspek: "Seni & Kreativitas",kegiatan: "Melukis Bebas",          indikator: "Mengekspresikan ide melalui lukisan warna",        nilai: "BSH", dokumentasi: "melukis_bebas_04.jpg" },
+  { id: 28, tanggal: "2024-10-08", aspek: "Seni & Kreativitas",kegiatan: "Membuat Kolase",         indikator: "Menyusun bahan menjadi karya kolase sederhana",    nilai: "BSB", dokumentasi: "membuat_kolase_08.jpg" },
+  { id: 29, tanggal: "2024-10-15", aspek: "Seni & Kreativitas",kegiatan: "Bernyanyi Bersama",      indikator: "Menyanyikan lagu anak dengan ekspresi",           nilai: "MB",  dokumentasi: "bernyanyi_bersama_15.jpg" },
+  { id: 30, tanggal: "2024-10-23", aspek: "Seni & Kreativitas",kegiatan: "Membuat Prakarya",       indikator: "Menciptakan karya dari bahan bekas secara kreatif",nilai: "BSH", dokumentasi: "membuat_prakarya_23.jpg" },
 ];
 
 const aspekList   = ["FM", "KOG", "BHS", "SOS-EM", "NAM", "SENI"];
@@ -70,7 +71,6 @@ const dummyAspekNilai = [
   { aspek: "Seni dan Kreativitas",          nilai: "BSH", color: "#80CBC4" },
 ];
 
-/* ── Expanded children data ── */
 const kelasOptions = ["TK A1","TK A2","TK A3","TK B1","TK B2","TK B3","Playgroup A","Playgroup B"];
 const anakPerKelas: Record<string, string[]> = {
   "TK A1": ["Aisyah Putri Lestari","Johan Prasetyo","Keysa Aulia Putri","Qonita Azzahra","Rizki Maulana","Salma Rahmawati","Farrel Adhitya","Naura Salsabila"],
@@ -211,7 +211,6 @@ export default function LaporanPerkembanganAdminPage() {
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* FIX: left margin 0 dan YAxis width 48 agar label BB/MB/BSH/BSB tidak kepotong */}
                   <BarChart data={chartData} barSize={28} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
@@ -298,11 +297,11 @@ export default function LaporanPerkembanganAdminPage() {
           </div>
         </div>
         <div className="rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm border-collapse" style={{ minWidth: "640px" }}>
+          <table className="w-full text-sm border-collapse" style={{ minWidth: "720px" }}>
             <thead>
               <tr className="bg-gray-100 border-b border-gray-200">
-                {["No","Tanggal","Aspek","Kegiatan","Indikator","Nilai"].map((h, i) => (
-                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 ? "text-center" : "text-left"}`}>{h}</th>
+                {["No","Tanggal","Aspek","Kegiatan","Indikator","Nilai","Dokumentasi"].map((h, i) => (
+                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 || i === 6 ? "text-center" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -315,14 +314,25 @@ export default function LaporanPerkembanganAdminPage() {
                     <td className="px-3 py-3 text-gray-700 border-r border-gray-200 whitespace-nowrap">{item.aspek}</td>
                     <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.kegiatan}</td>
                     <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator}</td>
-                    <td className="px-3 py-3 text-center">
+                    <td className="px-3 py-3 text-center border-r border-gray-200">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer hover:underline whitespace-nowrap">
+                          {item.dokumentasi}
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-gray-300">
+                  <td colSpan={7} className="px-3 py-8 text-center text-gray-300">
                     {hasData ? "Tidak ada data untuk aspek ini" : "Pilih filter lalu klik Tampilkan"}
                   </td>
                 </tr>

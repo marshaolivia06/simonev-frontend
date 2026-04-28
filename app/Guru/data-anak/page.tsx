@@ -133,13 +133,13 @@ export default function DataAnakPage() {
             <tr className="bg-gray-200 border-b border-gray-200">
               <th className="px-4 py-3 text-center font-bold text-black w-[48px]">No</th>
               <th className="px-4 py-3 text-left font-bold text-black">Nama Anak</th>
+              <th className="px-4 py-3 text-center font-bold text-black w-[80px]">Kelas</th>
               <th className="px-4 py-3 text-center font-bold text-black">Jenis Kelamin</th>
               <th className="px-4 py-3 text-center font-bold text-black">Tanggal Lahir</th>
               <th className="px-4 py-3 text-center font-bold text-black">Nama Orangtua</th>
               <th className="px-4 py-3 text-center font-bold text-black">Pekerjaan Orangtua</th>
               <th className="px-4 py-3 text-center font-bold text-black">Email Orangtua</th>
               <th className="px-4 py-3 text-center font-bold text-black">Alamat</th>
-              <th className="px-4 py-3 text-center font-bold text-black w-[80px]">Kelas</th>
             </tr>
           </thead>
 
@@ -155,6 +155,7 @@ export default function DataAnakPage() {
                     <span className="font-medium text-gray-800">{anak.namaAnak}</span>
                   </div>
                 </td>
+                <td className="px-4 py-3 text-center text-gray-700">{anak.kelas}</td>
                 <td className="px-4 py-3 text-center text-gray-700">
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${anak.jenisKelamin === "Perempuan" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600"}`}>
                     {anak.jenisKelamin}
@@ -165,7 +166,6 @@ export default function DataAnakPage() {
                 <td className="px-4 py-3 text-center text-gray-700">{anak.pekerjaanOrangTua}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.email}</td>
                 <td className="px-4 py-3 text-center text-gray-700">{anak.alamat}</td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.kelas}</td>
               </tr>
             ))}
 

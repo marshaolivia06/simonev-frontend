@@ -150,7 +150,7 @@ export default function LaporanPerkembanganOrangTua() {
         </div>
       </div>
 
-      {/* Profil — nama anak tidak bisa diubah */}
+      {/* Profil */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg flex-shrink-0">
@@ -297,7 +297,7 @@ export default function LaporanPerkembanganOrangTua() {
             <thead>
               <tr className="bg-gray-100 border-b border-gray-200">
                 {["No","Tanggal","Aspek","Kegiatan","Indikator","Nilai","Dokumentasi"].map((h, i) => (
-                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 ? "text-center" : "text-left"}`}>{h}</th>
+                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 || i === 6 ? "text-center" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -313,11 +313,20 @@ export default function LaporanPerkembanganOrangTua() {
                     <td className="px-3 py-3 text-center border-r border-gray-200">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
                     </td>
-                    {/* Dokumentasi — nama file saja, read-only */}
-                    <td className="px-3 py-3">
-                      {dummyFoto[item.id]
-                        ? <span className="text-xs text-gray-600">{dummyFoto[item.id]}</span>
-                        : <span className="text-xs text-gray-300">—</span>}
+                    <td className="px-3 py-3 text-center">
+                      {dummyFoto[item.id] ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                          </svg>
+                          <span className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer hover:underline whitespace-nowrap">
+                            {dummyFoto[item.id]}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
