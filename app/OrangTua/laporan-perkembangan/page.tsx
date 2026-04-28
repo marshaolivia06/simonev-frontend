@@ -9,6 +9,18 @@ import {
 /* ─── Data anak (dummy) ─── */
 const ANAK = { nama: "Aisyah Putri Lestari", kelas: "TK A1", foto: "AP" };
 
+/* Foto yang diupload guru dari menu Penilaian — read-only di sini */
+const dummyFoto: Record<number, string> = {
+  1:  "senam_pagi.jpg",
+  4:  "mewarnai_gambar.jpg",
+  8:  "mengenal_angka.jpg",
+  14: "membaca_buku.jpg",
+  18: "bermain_peran.jpg",
+  22: "kegiatan_kelompok.jpg",
+  26: "ciptaan_tuhan.jpg",
+  28: "kolase.jpg",
+};
+
 const riwayat = [
   { id: 1,  tanggal: "2024-10-01", aspek: "Motorik",           kegiatan: "Senam Pagi",            indikator: "Koordinasi gerak tubuh sesuai irama",                nilai: "BSH" },
   { id: 2,  tanggal: "2024-10-03", aspek: "Motorik",           kegiatan: "Melipat Kertas",         indikator: "Melipat kertas menjadi bentuk sederhana",            nilai: "MB"  },
@@ -43,39 +55,14 @@ const riwayat = [
 ];
 
 const aspekNilai = [
-  {
-    aspek: "Perkembangan Motorik",          short: "FM",     nilai: "BSH", color: "#4DB6AC",
-    def: "Kemampuan anak mengontrol gerakan tubuh, baik motorik kasar (berlari, melompat, melempar) maupun motorik halus (menggunting, melipat, memegang pensil).",
-    tooltipUp: false,
-  },
-  {
-    aspek: "Perkembangan Kognitif",         short: "KOG",    nilai: "MB",  color: "#F48FB1",
-    def: "Kemampuan berpikir, memecahkan masalah, mengenal angka dan huruf, mengelompokkan benda, serta memahami sebab-akibat di lingkungan sekitar.",
-    tooltipUp: false,
-  },
-  {
-    aspek: "Perkembangan Bahasa",           short: "BHS",    nilai: "BSB", color: "#F9A825",
-    def: "Kemampuan memahami dan mengungkapkan pikiran melalui kata-kata, bercerita, menyimak, serta menunjukkan ketertarikan terhadap buku dan bacaan.",
-    tooltipUp: false,
-  },
-  {
-    aspek: "Perkembangan Sosial-Emosional", short: "SOS-EM", nilai: "BSH", color: "#CE93D8",
-    def: "Kemampuan mengelola emosi, bekerja sama, berbagi, menunggu giliran, serta menunjukkan rasa empati dan percaya diri dalam berinteraksi dengan teman.",
-    tooltipUp: true,
-  },
-  {
-    aspek: "Nilai Agama dan Moral",         short: "NAM",    nilai: "MB",  color: "#FFCC80",
-    def: "Pengenalan nilai-nilai agama seperti berdoa, bersyukur, serta perilaku moral seperti jujur, sopan, menyayangi sesama, dan mengenal ciptaan Tuhan.",
-    tooltipUp: true,
-  },
-  {
-    aspek: "Seni dan Kreativitas",          short: "SENI",   nilai: "BSH", color: "#80CBC4",
-    def: "Kemampuan mengekspresikan ide dan perasaan melalui kegiatan seni seperti menggambar, mewarnai, kolase, bernyanyi, dan membuat prakarya.",
-    tooltipUp: true,
-  },
+  { aspek: "Perkembangan Motorik",          short: "FM",     nilai: "BSH", color: "#4DB6AC", def: "Kemampuan anak mengontrol gerakan tubuh, baik motorik kasar (berlari, melompat, melempar) maupun motorik halus (menggunting, melipat, memegang pensil).", tooltipUp: false },
+  { aspek: "Perkembangan Kognitif",         short: "KOG",    nilai: "MB",  color: "#F48FB1", def: "Kemampuan berpikir, memecahkan masalah, mengenal angka dan huruf, mengelompokkan benda, serta memahami sebab-akibat di lingkungan sekitar.", tooltipUp: false },
+  { aspek: "Perkembangan Bahasa",           short: "BHS",    nilai: "BSB", color: "#F9A825", def: "Kemampuan memahami dan mengungkapkan pikiran melalui kata-kata, bercerita, menyimak, serta menunjukkan ketertarikan terhadap buku dan bacaan.", tooltipUp: false },
+  { aspek: "Perkembangan Sosial-Emosional", short: "SOS-EM", nilai: "BSH", color: "#CE93D8", def: "Kemampuan mengelola emosi, bekerja sama, berbagi, menunggu giliran, serta menunjukkan rasa empati dan percaya diri dalam berinteraksi dengan teman.", tooltipUp: true },
+  { aspek: "Nilai Agama dan Moral",         short: "NAM",    nilai: "MB",  color: "#FFCC80", def: "Pengenalan nilai-nilai agama seperti berdoa, bersyukur, serta perilaku moral seperti jujur, sopan, menyayangi sesama, dan mengenal ciptaan Tuhan.", tooltipUp: true },
+  { aspek: "Seni dan Kreativitas",          short: "SENI",   nilai: "BSH", color: "#80CBC4", def: "Kemampuan mengekspresikan ide dan perasaan melalui kegiatan seni seperti menggambar, mewarnai, kolase, bernyanyi, dan membuat prakarya.", tooltipUp: true },
 ];
 
-/* ─── Konstanta ─── */
 const nilaiNum: Record<string, number> = { BB: 1, MB: 2, BSH: 3, BSB: 4 };
 const nilaiLbl: Record<number, string> = { 1: "BB", 2: "MB", 3: "BSH", 4: "BSB" };
 const nilaiColorMap: Record<string, string> = {
@@ -87,12 +74,8 @@ const nilaiColorMap: Record<string, string> = {
 
 const semesterOptions    = ["Semester 1", "Semester 2"];
 const tahunOptions       = ["2023/2024", "2024/2025", "2025/2026"];
-const aspekFilterOptions = [
-  "Semua aspek", "Motorik", "Kognitif", "Bahasa",
-  "Sosial-Emosional", "Agama & Moral", "Seni & Kreativitas",
-];
+const aspekFilterOptions = ["Semua aspek","Motorik","Kognitif","Bahasa","Sosial-Emosional","Agama & Moral","Seni & Kreativitas"];
 
-/* ─── Sub-komponen ─── */
 const ChevronDown = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,13 +83,7 @@ const ChevronDown = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-  label?: string;
-}
-
-const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs shadow-lg">
@@ -118,49 +95,27 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   return null;
 };
 
-/* ─── Tooltip definisi aspek — arah dinamis ─── */
-const AspekTooltip = ({
-  aspek, def, color, tooltipUp,
-}: {
-  aspek: string; def: string; color: string; tooltipUp: boolean;
-}) => (
-  <div className={`
-    invisible opacity-0 group-hover:visible group-hover:opacity-100
-    absolute z-50 left-0 w-64 bg-white border border-gray-200 rounded-xl p-3 shadow-lg
-    transition-all duration-150 pointer-events-none
-    ${tooltipUp ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"}
-  `}>
-    <span className={`
-      absolute left-4 w-2.5 h-2.5 bg-white
-      ${tooltipUp
-        ? "bottom-[-5px] border-r border-b border-gray-200 rotate-45"
-        : "top-[-5px] border-l border-t border-gray-200 rotate-45"}
-    `} />
+const AspekTooltip = ({ aspek, def, color, tooltipUp }: { aspek: string; def: string; color: string; tooltipUp: boolean }) => (
+  <div className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 absolute z-50 left-0 w-64 bg-white border border-gray-200 rounded-xl p-3 shadow-lg transition-all duration-150 pointer-events-none ${tooltipUp ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"}`}>
+    <span className={`absolute left-4 w-2.5 h-2.5 bg-white ${tooltipUp ? "bottom-[-5px] border-r border-b border-gray-200 rotate-45" : "top-[-5px] border-l border-t border-gray-200 rotate-45"}`} />
     <p className="text-xs font-semibold mb-1" style={{ color }}>{aspek}</p>
     <p className="text-xs text-gray-500 leading-relaxed">{def}</p>
   </div>
 );
 
-/* ─── Halaman utama ─── */
 export default function LaporanPerkembanganOrangTua() {
   const [semester, setSemester]       = useState("Semester 1");
   const [tahunAjaran, setTahunAjaran] = useState("2024/2025");
   const [aspekFilter, setAspekFilter] = useState("Semua aspek");
   const [showData, setShowData]       = useState(false);
 
-  const riwayatFiltered =
-    aspekFilter === "Semua aspek"
-      ? riwayat
-      : riwayat.filter((r) => r.aspek === aspekFilter);
-
-  const chartData = aspekNilai.map((a) => ({
-    name: a.short, nilai: nilaiNum[a.nilai], color: a.color,
-  }));
+  const riwayatFiltered = aspekFilter === "Semua aspek" ? riwayat : riwayat.filter((r) => r.aspek === aspekFilter);
+  const chartData = aspekNilai.map((a) => ({ name: a.short, nilai: nilaiNum[a.nilai], color: a.color }));
 
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-4">
 
-      {/* ── Filter ── */}
+      {/* Filter */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="relative">
@@ -181,7 +136,7 @@ export default function LaporanPerkembanganOrangTua() {
         <div className="flex gap-2">
           <button onClick={() => setShowData(true)}
             className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm">
-            Tampilkan laporan
+            Tampilkan
           </button>
           <button className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -195,7 +150,7 @@ export default function LaporanPerkembanganOrangTua() {
         </div>
       </div>
 
-      {/* ── Profil ── */}
+      {/* Profil — nama anak tidak bisa diubah */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg flex-shrink-0">
@@ -208,14 +163,8 @@ export default function LaporanPerkembanganOrangTua() {
             </p>
           </div>
           <div className="flex gap-6 text-center">
-            <div>
-              <p className="text-2xl font-bold text-blue-500">{showData ? 6 : "-"}</p>
-              <p className="text-xs text-gray-500">Aspek</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-500">{showData ? 30 : "-"}</p>
-              <p className="text-xs text-gray-500">Penilaian</p>
-            </div>
+            <div><p className="text-2xl font-bold text-blue-500">{showData ? 6 : "-"}</p><p className="text-xs text-gray-500">Aspek</p></div>
+            <div><p className="text-2xl font-bold text-blue-500">{showData ? 30 : "-"}</p><p className="text-xs text-gray-500">Penilaian</p></div>
             <div>
               {showData
                 ? <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">BSH</span>
@@ -226,9 +175,8 @@ export default function LaporanPerkembanganOrangTua() {
         </div>
       </div>
 
-      {/* ── Grafik + Ringkasan ── */}
+      {/* Grafik + Ringkasan */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Grafik */}
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-800 mb-1">Grafik perkembangan</h3>
           <p className="text-xs text-gray-500 mb-4">Rekapitulasi aspek perkembangan</p>
@@ -262,7 +210,6 @@ export default function LaporanPerkembanganOrangTua() {
           )}
         </div>
 
-        {/* Ringkasan */}
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-800 mb-1">Ringkasan aspek</h3>
           <p className="text-xs text-gray-500 mb-4">Capaian setiap aspek perkembangan</p>
@@ -282,12 +229,10 @@ export default function LaporanPerkembanganOrangTua() {
         </div>
       </div>
 
-      {/* ── Tabel Nilai Aspek ── */}
+      {/* Tabel Nilai Aspek */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-0.5">Tabel nilai aspek perkembangan</h3>
         <p className="text-xs text-gray-500 mb-4">Arahkan kursor ke baris untuk melihat definisi aspek</p>
-
-        {/* tabel dibungkus div dengan rounded + border sendiri, margin kiri-kanan agar tidak nyentuh tepi card */}
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm border-collapse">
             <thead>
@@ -304,8 +249,7 @@ export default function LaporanPerkembanganOrangTua() {
                   <td className="px-5 py-3 border-r border-gray-200 text-gray-800 font-medium">
                     <div className="relative">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: a.color + "33" }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.color + "33" }}>
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: a.color }} />
                         </div>
                         {a.aspek}
@@ -325,7 +269,7 @@ export default function LaporanPerkembanganOrangTua() {
         </div>
       </div>
 
-      {/* ── Komentar Guru ── */}
+      {/* Komentar Guru */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-1">Komentar guru</h3>
         <p className="text-xs text-gray-500 mb-3">Catatan dan evaluasi dari wali kelas</p>
@@ -336,7 +280,7 @@ export default function LaporanPerkembanganOrangTua() {
         </p>
       </div>
 
-      {/* ── Riwayat Penilaian ── */}
+      {/* Riwayat Penilaian */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-gray-800">Riwayat penilaian</h3>
@@ -348,16 +292,12 @@ export default function LaporanPerkembanganOrangTua() {
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDown /></span>
           </div>
         </div>
-
-        {/* tabel riwayat juga dibungkus div rounded sendiri */}
-        <div className="rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm border-collapse">
+        <div className="rounded-xl border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm border-collapse" style={{ minWidth: "720px" }}>
             <thead>
               <tr className="bg-gray-100 border-b border-gray-200">
-                {["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai"].map((h, i) => (
-                  <th key={h} className={`px-3 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 ? "text-center" : ""}`}>
-                    {h}
-                  </th>
+                {["No","Tanggal","Aspek","Kegiatan","Indikator","Nilai","Dokumentasi"].map((h, i) => (
+                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i === 5 ? "text-center" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -366,20 +306,24 @@ export default function LaporanPerkembanganOrangTua() {
                 riwayatFiltered.map((item, index) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-3 py-3 text-gray-600 border-r border-gray-200">{index + 1}</td>
-                    <td className="px-3 py-3 text-gray-600 border-r border-gray-200">{item.tanggal}</td>
-                    <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.aspek}</td>
+                    <td className="px-3 py-3 text-gray-600 border-r border-gray-200 whitespace-nowrap">{item.tanggal}</td>
+                    <td className="px-3 py-3 text-gray-700 border-r border-gray-200 whitespace-nowrap">{item.aspek}</td>
                     <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.kegiatan}</td>
                     <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator}</td>
-                    <td className="px-3 py-3 text-center">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>
-                        {item.nilai}
-                      </span>
+                    <td className="px-3 py-3 text-center border-r border-gray-200">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
+                    </td>
+                    {/* Dokumentasi — nama file saja, read-only */}
+                    <td className="px-3 py-3">
+                      {dummyFoto[item.id]
+                        ? <span className="text-xs text-gray-600">{dummyFoto[item.id]}</span>
+                        : <span className="text-xs text-gray-300">—</span>}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-gray-300">
+                  <td colSpan={7} className="px-3 py-8 text-center text-gray-300">
                     {showData ? "Tidak ada data untuk aspek ini" : "Pilih semester dan tahun ajaran lalu klik Tampilkan"}
                   </td>
                 </tr>
