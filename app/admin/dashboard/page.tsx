@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, School, GraduationCap, ShieldCheck } from "lucide-react";
+import { Users, User, School, GraduationCap, ShieldCheck } from "lucide-react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 
@@ -8,11 +8,17 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 /* ── Stat cards ── */
 const stats = [
-  { label: "Jumlah Guru",       value: 12,  color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
-  { label: "Jumlah Kelas",      value: 8,   color: "from-rose-200 to-rose-100",       iconColor: "text-rose-600",    icon: School },
-  { label: "Total Anak",        value: 148, color: "from-blue-200 to-blue-100",       iconColor: "text-blue-600",    icon: GraduationCap },
-  { label: "Akun Perlu Verifikasi", value: 3, color: "from-yellow-200 to-yellow-100", iconColor: "text-yellow-600",  icon: ShieldCheck },
+  { label: "Jumlah Guru", value: 12, color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
+  { label: "Jumlah Kelas", value: 8, color: "from-rose-200 to-rose-100", iconColor: "text-rose-600", icon: School },
+
+  // ✅ ICON DIGANTI
+  { label: "Total Anak TK A", value: 72, color: "from-purple-200 to-purple-100", iconColor: "text-purple-600", icon: User },
+  { label: "Total Anak TK B", value: 76, color: "from-cyan-200 to-cyan-100", iconColor: "text-cyan-600", icon: Users },
+
+  { label: "Total Anak", value: 148, color: "from-blue-200 to-blue-100", iconColor: "text-blue-600", icon: GraduationCap },
+  { label: "Akun Perlu Verifikasi", value: 3, color: "from-yellow-200 to-yellow-100", iconColor: "text-yellow-600", icon: ShieldCheck },
 ];
+
 
 /* ── Distribusi tingkat perkembangan seluruh anak ── */
 const distribusiData = {
@@ -27,10 +33,10 @@ const distribusiData = {
 };
 
 const distribusiDetail = [
-  { label: "Belum Berkembang (BB)",           value: 8,  color: "bg-red-100 text-red-700" },
-  { label: "Mulai Berkembang (MB)",           value: 22, color: "bg-orange-100 text-orange-700" },
+  { label: "Belum Berkembang (BB)", value: 8, color: "bg-red-100 text-red-700" },
+  { label: "Mulai Berkembang (MB)", value: 22, color: "bg-orange-100 text-orange-700" },
   { label: "Berkembang Sesuai Harapan (BSH)", value: 75, color: "bg-blue-100 text-blue-700" },
-  { label: "Berkembang Sangat Baik (BSB)",    value: 43, color: "bg-green-100 text-green-700" },
+  { label: "Berkembang Sangat Baik (BSB)", value: 43, color: "bg-green-100 text-green-700" },
 ];
 
 /* ── Pengumuman ── */
@@ -88,7 +94,6 @@ export default function DashboardAdmin() {
       {/* DISTRIBUSI + LEGENDA */}
       <div className="grid grid-cols-3 gap-4">
 
-        {/* Legenda distribusi */}
         <div className="bg-white rounded-2xl p-6 shadow-md flex flex-col justify-center space-y-3">
           <p className="text-sm font-semibold text-gray-700 mb-1">Distribusi Perkembangan</p>
           {distribusiDetail.map((d) => (
@@ -99,7 +104,6 @@ export default function DashboardAdmin() {
           ))}
         </div>
 
-        {/* Pie chart */}
         <div className="col-span-2 bg-white rounded-2xl p-6 shadow-md">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">
             Grafik Perkembangan Seluruh Anak

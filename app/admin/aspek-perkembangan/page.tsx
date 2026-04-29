@@ -131,16 +131,16 @@ export default function AspekPage() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-[52px] border-r border-gray-200">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[52px] border-r border-gray-200">
                 No
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200">
+              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">
                 Nama Aspek
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200">
+              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">
                 Definisi
               </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-[140px]">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[140px]">
                 Aksi
               </th>
             </tr>

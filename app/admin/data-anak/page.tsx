@@ -200,35 +200,43 @@ export default function DataAnakAdminPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mt-0.5">
-            <Users size={20} className="text-blue-600" />
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-800 leading-tight">Data Anak</p>
-            <p className="text-sm text-gray-500">{data.length} anak terdaftar</p>
-          </div>
-        </div>
+<div className="flex flex-wrap items-center justify-between gap-3 mb-4">
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button onClick={handleTambah}
-            className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors">
-            <Plus size={15} /> Tambah Anak
-          </button>
-          <select value={kelasFilter} onChange={(e) => setKelasFilter(e.target.value)}
-            className="bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none text-gray-700">
-            <option value="Semua">Semua Kelas</option>
-            {kelasList.map((k) => <option key={k} value={k}>{k}</option>)}
-          </select>
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Cari anak..." value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-44" />
-          </div>
-        </div>
-      </div>
+  {/* KIRI */}
+  <div className="flex items-start gap-3">
+    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mt-0.5">
+      <Users size={20} className="text-blue-600" />
+    </div>
+    <div>
+      <p className="text-lg font-bold text-gray-800 leading-tight">Data Anak</p>
+      <p className="text-sm text-gray-500">{data.length} anak terdaftar</p>
+    </div>
+  </div>
+
+  {/* KANAN (filter + search + button tetap barengan) */}
+  <div className="flex flex-wrap items-center gap-2 ml-auto">
+
+    <select value={kelasFilter} onChange={(e) => setKelasFilter(e.target.value)}
+      className="bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none text-gray-700">
+      <option value="Semua">Semua Kelas</option>
+      {kelasList.map((k) => <option key={k} value={k}>{k}</option>)}
+    </select>
+
+    <div className="relative">
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <input type="text" placeholder="Cari anak..." value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-44" />
+    </div>
+
+    <button onClick={handleTambah}
+      className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors">
+      <Plus size={15} /> Tambah Anak
+    </button>
+
+  </div>
+
+</div>
 
       {/* Tabel */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -238,13 +246,13 @@ export default function DataAnakAdminPage() {
               <tr className="bg-gray-200">
                 <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-10 border-r border-b border-gray-300">No</th>
                 <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[150px] border-r border-b border-gray-300">Nama Anak</th>
+                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-16 border-r border-b border-gray-300">Kelas</th>
                 <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap min-w-[110px] border-r border-b border-gray-300">Jenis Kelamin</th>
                 <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-28 border-r border-b border-gray-300">Tanggal Lahir</th>
-                <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[130px] border-r border-b border-gray-300">Nama Orang Tua</th>
-                <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[120px] border-r border-b border-gray-300">Pekerjaan Orang Tua</th>
+                <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[130px] border-r border-b border-gray-300">Nama Orangtua</th>
+                <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[120px] border-r border-b border-gray-300">Pekerjaan Orangtua</th>
                 <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[140px] border-r border-b border-gray-300">Email</th>
                 <th className="px-3 py-3 text-left   font-bold text-black whitespace-nowrap min-w-[140px] border-r border-b border-gray-300">Alamat</th>
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-16 border-r border-b border-gray-300">Kelas</th>
                 <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-28 border-b border-gray-300">Aksi</th>
               </tr>
             </thead>
@@ -265,6 +273,7 @@ export default function DataAnakAdminPage() {
                         <span className="font-medium text-gray-800 whitespace-nowrap">{anak.namaAnak}</span>
                       </div>
                     </td>
+                    <td className="px-3 py-3 text-center text-gray-700 text-xs whitespace-nowrap border-r border-gray-200">{anak.kelas}</td>
                     <td className="px-3 py-3 text-center border-r border-gray-200">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${anak.jenisKelamin === "P" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600"}`}>
                         {anak.jenisKelamin === "P" ? "Perempuan" : "Laki-laki"}
@@ -275,7 +284,6 @@ export default function DataAnakAdminPage() {
                     <td className="px-3 py-3 text-gray-700 text-xs whitespace-nowrap border-r border-gray-200">{anak.pekerjaanOrangTua}</td>
                     <td className="px-3 py-3 text-gray-700 text-xs border-r border-gray-200">{anak.email}</td>
                     <td className="px-3 py-3 text-gray-700 text-xs border-r border-gray-200">{anak.alamat}</td>
-                    <td className="px-3 py-3 text-center text-gray-700 text-xs whitespace-nowrap border-r border-gray-200">{anak.kelas}</td>
                     <td className="px-3 py-3">
                       <div className="flex justify-center gap-1.5 whitespace-nowrap">
                         <button onClick={() => handleEdit(anak)}

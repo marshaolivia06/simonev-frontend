@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Upload, X, ChevronRight, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle, Upload, X, ChevronRight, CalendarDays, ChevronDown, ChevronUp, ImagePlus } from "lucide-react";
 
 // ─── DATA HIERARKI ───────────────────────────────────────────────
 interface Indikator { id: string; label: string; }
@@ -121,14 +121,36 @@ const anakOptions = ["Ahmad Fauzan", "Siti Rahayu", "Budi Santoso", "Dewi Lestar
 const semesterOptions = ["Semester 1", "Semester 2"];
 const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
 const NILAI_OPTIONS = ["BB", "MB", "BSH", "BSB"] as const;
-const NILAI_COLORS: Record<string, string> = {
-  BB: "text-red-600 border-red-300 bg-red-50 ring-red-300",
-  MB: "text-yellow-600 border-yellow-300 bg-yellow-50 ring-yellow-300",
-  BSH: "text-blue-600 border-blue-300 bg-blue-50 ring-blue-300",
-  BSB: "text-green-600 border-green-300 bg-green-50 ring-green-300",
+
+// ── Keterangan nilai lengkap ──
+const NILAI_INFO: Record<string, { label: string; desc: string; color: string; selectedColor: string }> = {
+  BB: {
+    label: "Belum Berkembang",
+    desc: "Anak belum menunjukkan kemampuan ini",
+    color: "text-red-500 border-red-200 bg-white hover:bg-red-50",
+    selectedColor: "text-red-700 border-red-400 bg-red-100 ring-2 ring-red-300 ring-offset-1",
+  },
+  MB: {
+    label: "Mulai Berkembang",
+    desc: "Anak sudah mulai menunjukkan kemampuan dengan bantuan",
+    color: "text-yellow-600 border-yellow-200 bg-white hover:bg-yellow-50",
+    selectedColor: "text-yellow-800 border-yellow-400 bg-yellow-100 ring-2 ring-yellow-300 ring-offset-1",
+  },
+  BSH: {
+    label: "Berkembang Sesuai Harapan",
+    desc: "Anak mampu melakukan secara mandiri",
+    color: "text-blue-500 border-blue-200 bg-white hover:bg-blue-50",
+    selectedColor: "text-blue-800 border-blue-400 bg-blue-100 ring-2 ring-blue-300 ring-offset-1",
+  },
+  BSB: {
+    label: "Berkembang Sangat Baik",
+    desc: "Anak mampu dan membantu teman lainnya",
+    color: "text-green-600 border-green-200 bg-white hover:bg-green-50",
+    selectedColor: "text-green-800 border-green-400 bg-green-100 ring-2 ring-green-300 ring-offset-1",
+  },
 };
 
-const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
+const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────
 export default function PenilaianPage() {
@@ -290,16 +312,19 @@ export default function PenilaianPage() {
       {/* ══ STEP 1: FILTER ══ */}
       {step === "filter" && (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-4">Pilih Data Anak</p>
-          <div className="grid grid-cols-2 gap-3 max-w-lg">
+          <p className="text-sm font-semibold text-gray-700 mb-1">Pilih Data Anak</p>
+          <p className="text-xs text-gray-400 mb-4">Lengkapi semua pilihan di bawah untuk melanjutkan penilaian.</p>
+
+          {/* ── 4 kolom lebar penuh ── */}
+          <div className="grid grid-cols-4 gap-3 w-full">
             {[
               { label: "Kelas", val: kelas, set: setKelas, opts: kelasOptions, ph: "Pilih kelas" },
-              { label: "Nama Anak", val: anak, set: setAnak, opts: anakOptions, ph: "Pilih anak" },
+              { label: "Nama Anak", val: anak, set: setAnak, opts: anakOptions, ph: "Pilih nama anak" },
               { label: "Semester", val: semester, set: setSemester, opts: semesterOptions, ph: "Pilih semester" },
-              { label: "Tahun Ajaran", val: tahunAjaran, set: setTahunAjaran, opts: tahunAjaranOptions, ph: "Pilih tahun" },
+              { label: "Tahun Ajaran", val: tahunAjaran, set: setTahunAjaran, opts: tahunAjaranOptions, ph: "Pilih tahun ajaran" },
             ].map(({ label, val, set, opts, ph }) => (
               <div key={label}>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">{label}</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{label}</label>
                 <div className="relative">
                   <select value={val} onChange={(e) => set(e.target.value)} className={selectClass}>
                     <option value="">{ph}</option>
@@ -310,8 +335,9 @@ export default function PenilaianPage() {
               </div>
             ))}
           </div>
+
           <button onClick={handleTampilkan}
-            className="mt-4 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors">
+            className="mt-5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-8 py-2.5 rounded-lg transition-colors">
             Tampilkan
           </button>
         </div>
@@ -371,6 +397,22 @@ export default function PenilaianPage() {
             <input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
             <span className="text-xs text-gray-400">Berlaku untuk semua indikator di bawah</span>
+          </div>
+
+          {/* Legenda nilai */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-gray-500 mb-2">Keterangan Nilai Perkembangan</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {NILAI_OPTIONS.map((val) => {
+                const info = NILAI_INFO[val];
+                return (
+                  <div key={val} className={`rounded-lg border px-3 py-2 ${info.selectedColor}`}>
+                    <p className="text-xs font-bold">{val} — {info.label}</p>
+                    <p className="text-[11px] mt-0.5 opacity-80">{info.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Progress bar */}
@@ -450,48 +492,58 @@ export default function PenilaianPage() {
 
                             return (
                               <div key={ind.id}
-                                className={`flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 last:border-0 transition-colors pl-12 ${
+                                className={`px-4 py-3 border-b border-gray-100 last:border-0 transition-colors pl-12 ${
                                   disabled ? "opacity-40" : isIndSelected ? "bg-white" : "hover:bg-white"
                                 }`}>
-                                {/* Checkbox indikator */}
-                                <button onClick={() => !disabled && toggleIndikator(ind, kegiatan, aspek)}
-                                  disabled={disabled}
-                                  className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                    isIndSelected ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-green-400"
-                                  } ${disabled ? "cursor-default" : "cursor-pointer"}`}>
-                                  {isIndSelected && <span className="text-white text-[9px] font-bold">✓</span>}
-                                </button>
+                                {/* Baris atas: checkbox + label */}
+                                <div className="flex items-start gap-3">
+                                  <button onClick={() => !disabled && toggleIndikator(ind, kegiatan, aspek)}
+                                    disabled={disabled}
+                                    className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                      isIndSelected ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-green-400"
+                                    } ${disabled ? "cursor-default" : "cursor-pointer"}`}>
+                                    {isIndSelected && <span className="text-white text-[9px] font-bold">✓</span>}
+                                  </button>
+                                  <p className="flex-1 text-xs text-gray-600 leading-relaxed">{ind.label}</p>
+                                </div>
 
-                                {/* Label */}
-                                <p className="flex-1 text-xs text-gray-600 leading-relaxed min-w-0">{ind.label}</p>
-
-                                {/* Nilai — hanya jika dipilih */}
+                                {/* Baris bawah: tombol nilai + upload — hanya jika indikator dipilih */}
                                 {isIndSelected && (
-                                  <div className="flex items-center gap-1.5 shrink-0">
+                                  <div className="mt-2.5 ml-7 flex flex-wrap items-center gap-2">
+                                    {/* Tombol nilai */}
                                     {NILAI_OPTIONS.map((val) => {
                                       const selected = entry?.nilai === val;
+                                      const info = NILAI_INFO[val];
                                       return (
-                                        <button key={val} onClick={() => handleNilai(ind.id, val)}
-                                          className={`px-2 py-0.5 rounded-md border text-xs font-bold transition-all ${
-                                            selected
-                                              ? `${NILAI_COLORS[val]} ring-2 ring-offset-1`
-                                              : "text-gray-400 border-gray-200 bg-white hover:border-gray-300"
-                                          }`}>
+                                        <button
+                                          key={val}
+                                          onClick={() => handleNilai(ind.id, val)}
+                                          title={`${info.label} — ${info.desc}`}
+                                          className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${
+                                            selected ? info.selectedColor : info.color
+                                          }`}
+                                        >
                                           {val}
                                         </button>
                                       );
                                     })}
-                                    {/* Upload */}
+
+                                    {/* Pemisah */}
+                                    <span className="text-gray-300 text-xs">|</span>
+
+                                    {/* Upload foto bukti */}
                                     {entry?.dokumentasi ? (
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-[10px] text-gray-500 max-w-[56px] truncate">{entry.dokumentasi}</span>
-                                        <button onClick={() => removeFile(ind.id)}>
+                                      <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
+                                        <ImagePlus size={12} className="text-blue-400 shrink-0" />
+                                        <span className="text-[11px] text-blue-600 max-w-[80px] truncate">{entry.dokumentasi}</span>
+                                        <button onClick={() => removeFile(ind.id)} title="Hapus foto">
                                           <X size={11} className="text-red-400 hover:text-red-600" />
                                         </button>
                                       </div>
                                     ) : (
-                                      <label className="cursor-pointer text-blue-400 hover:text-blue-600">
-                                        <Upload size={13} />
+                                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-500 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-400 rounded-lg px-2.5 py-1 transition-colors">
+                                        <ImagePlus size={12} />
+                                        <span>Tambah Foto Bukti</span>
                                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(ind.id, e)} />
                                       </label>
                                     )}
