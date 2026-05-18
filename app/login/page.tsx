@@ -12,29 +12,50 @@ export default function LoginPage() {
   const [showPopup, setShowPopup] = useState(false)
   const [roleText, setRoleText] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
-    const roleMap: Record<string, string> = {
-      admin: 'admin',
-      guru: 'guru',
-      orangtua: 'orangtua',
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ username, password })
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.message || 'Username atau password salah.')
+        setLoading(false)
+        return
+      }
+
+      // Simpan token & user ke localStorage
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('role', data.user.role)
+
+      setRoleText(data.user.role)
+      setShowPopup(true)
+
+      setTimeout(() => {
+        setShowPopup(false)
+        if (data.user.role === 'admin') router.push('/admin/dashboard')
+        else if (data.user.role === 'guru') router.push('/guru/dashboard')
+        else router.push('/OrangTua/dashboard')
+      }, 2000)
+
+    } catch {
+      setError('Gagal terhubung ke server.')
+      setLoading(false)
     }
-
-    const role = roleMap[username]
-    if (!role) return setError('Username atau password salah.')
-
-    setRoleText(role)
-    setShowPopup(true)
-
-    setTimeout(() => {
-      setShowPopup(false)
-      if (role === 'admin') router.push('/admin/dashboard')
-      else if (role === 'guru') router.push('/guru/dashboard')
-      else router.push('/OrangTua/dashboard')
-    }, 2000)
   }
 
   return (
@@ -96,13 +117,13 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full py-2.5 text-white font-semibold text-sm rounded-xl mt-1 paud-btn"
+            disabled={loading}
+            className="w-full py-2.5 text-white font-semibold text-sm rounded-xl mt-1 paud-btn disabled:opacity-60"
           >
-            LOGIN
+            {loading ? 'Memproses...' : 'LOGIN'}
           </button>
         </form>
 
-        {/* Link registrasi */}
         <p className="text-xs text-center text-gray-500 mt-4">
           Belum punya akun?{' '}
           <Link href="/register" className="text-blue-600 font-medium hover:underline">
