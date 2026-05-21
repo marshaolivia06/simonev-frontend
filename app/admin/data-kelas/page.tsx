@@ -1,92 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil, Trash2, Plus, Search, X, Users } from "lucide-react";
 
 interface Kelas {
-  id: number;
-  namaKelas: string;
-  waliKelas: string;
-  tahunAjaran: string;
+  id_kelas: number;
+  nama_kelas: string;
+  wali_kelas: string;
+  tahun_ajaran: string;
 }
 
-const dummyDataGuru = [
-  "Siti Rahayu, S.Pd",
-  "Budi Santoso, M.Pd",
-  "Rina Marlina, S.Pd",
-  "Agus Wijaya, S.Pd",
-  "Dewi Kusuma, M.Pd",
-  "Hendra Gunawan, S.Pd",
-  "Yuliana Putri, S.Pd",
-  "Rudi Hermawan, M.Pd",
-  "Fitri Handayani, S.Pd",
-  "Eko Prasetyo, M.Pd",
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
-const dummyData: Kelas[] = [
-  { id: 1, namaKelas: "TK A1", waliKelas: "Siti Rahayu, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 2, namaKelas: "TK A2", waliKelas: "Dewi Kusuma, M.Pd", tahunAjaran: "2024/2025" },
-  { id: 3, namaKelas: "TK B1", waliKelas: "Budi Santoso, M.Pd", tahunAjaran: "2024/2025" },
-  { id: 4, namaKelas: "TK B2", waliKelas: "Rina Marlina, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 5, namaKelas: "Playgroup A", waliKelas: "Agus Wijaya, S.Pd", tahunAjaran: "2024/2025" },
-  { id: 6, namaKelas: "TK A3", waliKelas: "Hendra Gunawan, S.Pd", tahunAjaran: "2025/2026" },
-  { id: 7, namaKelas: "TK A4", waliKelas: "Agus Wijaya, S.Pd", tahunAjaran: "2025/2026" },
-  { id: 8, namaKelas: "Playgroup B", waliKelas: "Fitri Handayani, S.Pd", tahunAjaran: "2025/2026" },
-];
+const getToken = () =>
+  typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
+
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${getToken()}`,
+});
 
 const namaKelasOptions = [
-  "TK A1", "TK A2", "TK A3", "TK A4",
-  "TK B1", "TK B2", "TK B3", "TK B4",
-  "Playgroup A", "Playgroup B",
+  "TK A1","TK A2","TK A3","TK A4",
+  "TK B1","TK B2","TK B3","TK B4",
+  "Playgroup A","Playgroup B",
 ];
 const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
 
 export default function DataKelasPage() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState<Kelas[]>(dummyData);
+  const [data, setData] = useState<Kelas[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Kelas | null>(null);
-  const [form, setForm] = useState({ namaKelas: "", waliKelas: "", tahunAjaran: "" });
+  const [form, setForm] = useState({ nama_kelas: "", wali_kelas: "", tahun_ajaran: "" });
+  const [saving, setSaving] = useState(false);
+
+  const fetchKelas = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/kelas`, { headers: authHeaders() });
+      const json = await res.json();
+      setData(json.data ?? []);
+    } catch {
+      alert("Gagal memuat data kelas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchKelas();
+  }, []);
 
   const filtered = data
-    .filter(
-      (k) =>
-        k.namaKelas.toLowerCase().includes(search.toLowerCase()) ||
-        k.waliKelas.toLowerCase().includes(search.toLowerCase()) ||
-        k.tahunAjaran.includes(search)
+    .filter((k) =>
+      k.nama_kelas.toLowerCase().includes(search.toLowerCase()) ||
+      k.wali_kelas.toLowerCase().includes(search.toLowerCase()) ||
+      k.tahun_ajaran.includes(search)
     )
-    .sort((a, b) => a.namaKelas.localeCompare(b.namaKelas));
+    .sort((a, b) => a.nama_kelas.localeCompare(b.nama_kelas));
 
   const handleTambah = () => {
     setEditData(null);
-    setForm({ namaKelas: "", waliKelas: "", tahunAjaran: "" });
+    setForm({ nama_kelas: "", wali_kelas: "", tahun_ajaran: "" });
     setShowModal(true);
   };
 
   const handleEdit = (kelas: Kelas) => {
     setEditData(kelas);
-    setForm(kelas);
+    setForm({
+      nama_kelas: kelas.nama_kelas,
+      wali_kelas: kelas.wali_kelas,
+      tahun_ajaran: kelas.tahun_ajaran,
+    });
     setShowModal(true);
   };
 
-  const handleHapus = (id: number) => {
-    if (confirm("Yakin ingin hapus data ini?")) {
-      setData(data.filter((k) => k.id !== id));
+  const handleHapus = async (id: number) => {
+    if (!confirm("Yakin ingin hapus data ini?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/kelas/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error();
+      setData((prev) => prev.filter((k) => k.id_kelas !== id));
+    } catch {
+      alert("Gagal menghapus data.");
     }
   };
 
-  const handleSimpan = () => {
-    if (!form.namaKelas || !form.waliKelas || !form.tahunAjaran) {
+  const handleSimpan = async () => {
+    if (!form.nama_kelas || !form.wali_kelas || !form.tahun_ajaran) {
       alert("Semua field wajib diisi!");
       return;
     }
-    if (editData) {
-      setData(data.map((k) => (k.id === editData.id ? { ...k, ...form } : k)));
-    } else {
-      const newId = data.length ? Math.max(...data.map((k) => k.id)) + 1 : 1;
-      setData([...data, { id: newId, ...form }]);
+    setSaving(true);
+    try {
+      if (editData) {
+        const res = await fetch(`${API_BASE}/kelas/${editData.id_kelas}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error();
+      } else {
+        const res = await fetch(`${API_BASE}/kelas`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error();
+      }
+      setShowModal(false);
+      await fetchKelas();
+    } catch {
+      alert("Gagal menyimpan data.");
+    } finally {
+      setSaving(false);
     }
-    setShowModal(false);
   };
 
   const getInitials = (name: string) =>
@@ -148,24 +181,28 @@ export default function DataKelasPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-10 text-gray-400">Memuat data...</td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-10 text-gray-400">Tidak ada data</td>
               </tr>
             ) : (
               filtered.map((k, i) => (
-                <tr key={k.id} className="hover:bg-gray-50">
+                <tr key={k.id_kelas} className="hover:bg-gray-50">
                   <td className="text-center px-4 py-3 text-gray-500 border-r border-gray-200">{i + 1}</td>
                   <td className="px-5 py-3 border-r border-gray-200 font-medium text-gray-800">
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${avatarColors[i % avatarColors.length]}`}>
-                        {getInitials(k.namaKelas)}
+                        {getInitials(k.nama_kelas)}
                       </div>
-                      {k.namaKelas}
+                      {k.nama_kelas}
                     </div>
                   </td>
-                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">{k.waliKelas}</td>
-                  <td className="px-5 py-3 border-r border-gray-200 text-gray-600">{k.tahunAjaran}</td>
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">{k.wali_kelas}</td>
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-600">{k.tahun_ajaran}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center gap-2">
                       <button
@@ -175,7 +212,7 @@ export default function DataKelasPage() {
                         <Pencil size={12} /> Edit
                       </button>
                       <button
-                        onClick={() => handleHapus(k.id)}
+                        onClick={() => handleHapus(k.id_kelas)}
                         className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
                       >
                         <Trash2 size={12} /> Hapus
@@ -194,7 +231,6 @@ export default function DataKelasPage() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
 
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">
@@ -212,13 +248,14 @@ export default function DataKelasPage() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="px-6 py-5 space-y-4">
+
+              {/* Nama Kelas */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Nama Kelas</label>
                 <select
-                  value={form.namaKelas}
-                  onChange={(e) => setForm({ ...form, namaKelas: e.target.value })}
+                  value={form.nama_kelas}
+                  onChange={(e) => setForm({ ...form, nama_kelas: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 >
                   <option value="">Pilih nama kelas</option>
@@ -228,26 +265,24 @@ export default function DataKelasPage() {
                 </select>
               </div>
 
-              {/* DIUBAH: input text → dropdown guru */}
+              {/* Wali Kelas — input manual */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Wali Kelas</label>
-                <select
-                  value={form.waliKelas}
-                  onChange={(e) => setForm({ ...form, waliKelas: e.target.value })}
+                <input
+                  type="text"
+                  value={form.wali_kelas}
+                  onChange={(e) => setForm({ ...form, wali_kelas: e.target.value })}
+                  placeholder="Masukkan nama wali kelas"
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                >
-                  <option value="">Pilih wali kelas</option>
-                  {dummyDataGuru.map((guru) => (
-                    <option key={guru} value={guru}>{guru}</option>
-                  ))}
-                </select>
+                />
               </div>
 
+              {/* Tahun Ajaran */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Tahun Ajaran</label>
                 <select
-                  value={form.tahunAjaran}
-                  onChange={(e) => setForm({ ...form, tahunAjaran: e.target.value })}
+                  value={form.tahun_ajaran}
+                  onChange={(e) => setForm({ ...form, tahun_ajaran: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 >
                   <option value="">Pilih tahun ajaran</option>
@@ -256,9 +291,9 @@ export default function DataKelasPage() {
                   ))}
                 </select>
               </div>
+
             </div>
 
-            {/* Footer */}
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={() => setShowModal(false)}
@@ -268,9 +303,10 @@ export default function DataKelasPage() {
               </button>
               <button
                 onClick={handleSimpan}
-                className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
+                disabled={saving}
+                className="bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
               >
-                {editData ? "Simpan Perubahan" : "Tambah Data"}
+                {saving ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>
             </div>
 

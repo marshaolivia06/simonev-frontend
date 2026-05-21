@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle, XCircle, Eye, Search, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle, XCircle, Eye, Search, ShieldCheck, Loader2 } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+// Status dari backend: pending | approved | rejected
+// Status di frontend:  pending | disetujui | ditolak
+type StatusBackend = "pending" | "approved" | "rejected";
 type Status = "pending" | "disetujui" | "ditolak";
 type Role = "guru" | "ortu";
 type TabFilter = "semua" | Status;
 
 interface Pendaftar {
   id: number;
+  username: string;
   nama: string;
   email: string;
   noHp: string;
@@ -16,86 +22,67 @@ interface Pendaftar {
   nik: string;
   tanggalDaftar: string;
   status: Status;
+  // Guru
   nipNoPegawai?: string;
   namaLembaga?: string;
   jabatan?: string;
   suratTugas?: string;
+  // Ortu
   hubungan?: string;
   namaAnak?: string;
   kelasAnak?: string;
   alamat?: string;
   fotoKtp?: string;
+
   catatanReject?: string;
 }
 
-const dummyPendaftar: Pendaftar[] = [
-  {
-    id: 1, nama: "Dewi Rahmawati, S.Pd", email: "dewi.rahmawati@gmail.com", noHp: "0812-3456-7890",
-    role: "guru", nik: "3171012345678901", tanggalDaftar: "2024-11-01", status: "pending",
-    nipNoPegawai: "198801012015042001", namaLembaga: "TK Permata Bangsa", jabatan: "Guru Kelas",
-    suratTugas: "surat_tugas_dewi.pdf",
-  },
-  {
-    id: 2, nama: "Rudi Hartono", email: "rudi.hartono@gmail.com", noHp: "0856-7890-1234",
-    role: "ortu", nik: "3171056789012345", tanggalDaftar: "2024-11-02", status: "pending",
-    hubungan: "Ayah", namaAnak: "Daffa Ramadhan", kelasAnak: "TK B2",
-    alamat: "Jl. Teuku Umar No. 22, Batu Aji, Batam", fotoKtp: "ktp_rudi.jpg",
-  },
-  {
-    id: 3, nama: "Sri Wahyuni", email: "sri.wahyuni@gmail.com", noHp: "0878-2345-6789",
-    role: "ortu", nik: "3171078901234567", tanggalDaftar: "2024-11-03", status: "pending",
-    hubungan: "Ibu", namaAnak: "Intan Permata", kelasAnak: "TK A2",
-    alamat: "Jl. Kartini No. 3, Sagulung, Batam",
-  },
-  {
-    id: 4, nama: "Muhamad Fajar, S.Pd", email: "fajar.guru@gmail.com", noHp: "0819-1122-3344",
-    role: "guru", nik: "3172019988776655", tanggalDaftar: "2024-11-04", status: "pending",
-    nipNoPegawai: "", namaLembaga: "TK Permata Bangsa", jabatan: "Wali Kelas",
-    suratTugas: "surat_tugas_fajar.pdf",
-  },
-  {
-    id: 5, nama: "Lina Marlina", email: "lina.marlina@gmail.com", noHp: "0821-5566-7788",
-    role: "ortu", nik: "3171034455667788", tanggalDaftar: "2024-11-04", status: "pending",
-    hubungan: "Ibu", namaAnak: "Citra Anindya", kelasAnak: "TK B1",
-    alamat: "Jl. Imam Bonjol No. 8, Lubuk Baja", fotoKtp: "ktp_lina.jpg",
-  },
-  {
-    id: 6, nama: "Budi Santoso, S.Pd", email: "budi.santoso@gmail.com", noHp: "0813-9012-3456",
-    role: "guru", nik: "3171034567890123", tanggalDaftar: "2024-10-28", status: "disetujui",
-    namaLembaga: "TK Permata Bangsa", jabatan: "Guru Kelas",
-  },
-  {
-    id: 7, nama: "Siti Rahmawati", email: "siti.rahmawati@gmail.com", noHp: "0812-1111-2222",
-    role: "ortu", nik: "3171011122334455", tanggalDaftar: "2024-10-25", status: "disetujui",
-    hubungan: "Ibu", namaAnak: "Aisyah Putri Lestari", kelasAnak: "TK A1",
-    alamat: "Jl. Hang Tuah No. 12, Batam Kota", fotoKtp: "ktp_siti.jpg",
-  },
-  {
-    id: 8, nama: "Andi Pratama", email: "andi.pratama@gmail.com", noHp: "0822-3333-4444",
-    role: "ortu", nik: "3171033344556677", tanggalDaftar: "2024-10-26", status: "disetujui",
-    hubungan: "Ayah", namaAnak: "Bima Alfarizi", kelasAnak: "TK A2",
-    alamat: "Jl. Sudirman No. 45, Nagoya",
-  },
-  {
-    id: 9, nama: "Rina Wulandari, S.Pd", email: "rina.wulandari@gmail.com", noHp: "0831-2233-4455",
-    role: "guru", nik: "3172034422113399", tanggalDaftar: "2024-10-20", status: "disetujui",
-    nipNoPegawai: "197905152005012002", namaLembaga: "TK Permata Bangsa", jabatan: "Guru Kelas",
-    suratTugas: "surat_tugas_rina.pdf",
-  },
-  {
-    id: 10, nama: "Sumber Tidak Jelas", email: "random123@yopmail.com", noHp: "0800-0000-0000",
-    role: "guru", nik: "0000000000000000", tanggalDaftar: "2024-10-30", status: "ditolak",
-    namaLembaga: "Sekolah ABC", jabatan: "Guru Kelas",
-    catatanReject: "NIK tidak valid dan nama lembaga tidak ditemukan dalam database.",
-  },
-  {
-    id: 11, nama: "Akun Palsu", email: "fake.ortu@tempmail.com", noHp: "0899-0000-1111",
-    role: "ortu", nik: "1234567890000000", tanggalDaftar: "2024-10-31", status: "ditolak",
-    hubungan: "Ayah", namaAnak: "Anak Tidak Ada", kelasAnak: "TK A1",
-    alamat: "Alamat tidak lengkap",
-    catatanReject: "Nama anak tidak ditemukan dalam data siswa terdaftar.",
-  },
-];
+// Map status backend → frontend
+const mapStatus = (status: StatusBackend): Status => {
+  if (status === "approved") return "disetujui";
+  if (status === "rejected") return "ditolak";
+  return "pending";
+};
+
+// Map role backend → frontend
+const mapRole = (role: string): Role => {
+  return role === "guru" ? "guru" : "ortu";
+};
+
+// Map response API → Pendaftar
+const mapUser = (user: any): Pendaftar => {
+  const detail = user.detail || {};
+  const isGuru = mapRole(user.role) === "guru";
+
+  return {
+    id: user.id,
+    username: user.username,
+   nama: isGuru
+  ? (detail.nama_guru || user.username)
+  : (detail.nama_orangtua || user.username),
+    email: user.email,
+    noHp: detail.no_telp || "-",
+    role: mapRole(user.role),
+    nik: detail.nik || "-",
+    tanggalDaftar: user.created_at
+      ? new Date(user.created_at).toLocaleDateString("id-ID")
+      : "-",
+    status: mapStatus(user.status),
+    // Guru
+    nipNoPegawai: detail.nip || detail.no_pegawai || "",
+    namaLembaga: detail.nama_lembaga || "",
+    jabatan: detail.jabatan || "",
+    suratTugas: detail.surat_tugas || "",
+    // Ortu
+    hubungan: detail.hubungan || "",
+    namaAnak: detail.nama_anak || "",
+    kelasAnak: detail.kelas_anak || "",
+    alamat: detail.alamat || "",
+    fotoKtp: detail.foto_ktp || "",
+  };
+};
+
+const getToken = () => localStorage.getItem("token") || "";
 
 const statusLabel: Record<Status, string> = {
   pending: "Menunggu",
@@ -109,11 +96,7 @@ const statusColor: Record<Status, string> = {
   ditolak: "bg-red-100 text-red-700",
 };
 
-const roleLabel: Record<Role, string> = {
-  guru: "Guru",
-  ortu: "Ortu",
-};
-
+const roleLabel: Record<Role, string> = { guru: "Guru", ortu: "Ortu" };
 const roleColor: Record<Role, string> = {
   guru: "bg-blue-100 text-blue-700",
   ortu: "bg-purple-100 text-purple-700",
@@ -127,7 +110,11 @@ const tabs: { key: TabFilter; label: string }[] = [
 ];
 
 export default function VerifikasiAkunPage() {
-  const [data, setData] = useState<Pendaftar[]>(dummyPendaftar);
+  const [data, setData] = useState<Pendaftar[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
+
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TabFilter>("semua");
   const [filterRole, setFilterRole] = useState<Role | "">("");
@@ -136,6 +123,110 @@ export default function VerifikasiAkunPage() {
   const [catatanReject, setCatatanReject] = useState("");
   const [rejectTargetId, setRejectTargetId] = useState<number | null>(null);
 
+  // ── FETCH DATA ──────────────────────────────────────────────
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // ✅ Diperbaiki: hapus /api/ (sudah ada di NEXT_PUBLIC_API_URL)
+      const res = await fetch(`${API_BASE}/verifikasi`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) throw new Error("Gagal mengambil data verifikasi.");
+
+      const json = await res.json();
+      setData((json.data || []).map(mapUser));
+    } catch (err: any) {
+      setError(err.message || "Terjadi kesalahan.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // ── SETUJUI ─────────────────────────────────────────────────
+  const handleSetujui = async (id: number) => {
+    try {
+      setActionLoading(id);
+
+      // ✅ Diperbaiki: hapus /api/
+      const res = await fetch(`${API_BASE}/verifikasi/${id}/accept`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) throw new Error("Gagal menyetujui akun.");
+
+      setData((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status: "disetujui" } : d))
+      );
+      if (selectedUser?.id === id) {
+        setSelectedUser({ ...selectedUser, status: "disetujui" });
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // ── TOLAK ───────────────────────────────────────────────────
+  const handleTolakConfirm = async () => {
+    if (!rejectTargetId) return;
+    try {
+      setActionLoading(rejectTargetId);
+
+      // ✅ Diperbaiki: hapus /api/
+      const res = await fetch(`${API_BASE}/verifikasi/${rejectTargetId}/reject`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ alasan: catatanReject }),
+      });
+
+      if (!res.ok) throw new Error("Gagal menolak akun.");
+
+      setData((prev) =>
+        prev.map((d) =>
+          d.id === rejectTargetId
+            ? { ...d, status: "ditolak", catatanReject }
+            : d
+        )
+      );
+      if (selectedUser?.id === rejectTargetId) {
+        setSelectedUser({ ...selectedUser, status: "ditolak", catatanReject });
+      }
+
+      setShowRejectModal(false);
+      setCatatanReject("");
+      setRejectTargetId(null);
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openRejectModal = (id: number) => {
+    setRejectTargetId(id);
+    setCatatanReject("");
+    setShowRejectModal(true);
+  };
+
+  // ── FILTER ──────────────────────────────────────────────────
   const counts = {
     semua: data.length,
     pending: data.filter((d) => d.status === "pending").length,
@@ -153,36 +244,35 @@ export default function VerifikasiAkunPage() {
       const matchRole = filterRole ? d.role === filterRole : true;
       return matchSearch && matchTab && matchRole;
     })
-    // pending selalu di atas di tab "semua"
     .sort((a, b) => {
       if (activeTab !== "semua") return 0;
       const order = { pending: 0, disetujui: 1, ditolak: 2 };
       return order[a.status] - order[b.status];
     });
 
-  const handleSetujui = (id: number) => {
-    setData(data.map((d) => d.id === id ? { ...d, status: "disetujui" } : d));
-    if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, status: "disetujui" });
-  };
+  // ── RENDER ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 gap-2 text-gray-400">
+        <Loader2 size={20} className="animate-spin" />
+        <span className="text-sm">Memuat data...</span>
+      </div>
+    );
+  }
 
-  const handleTolakConfirm = () => {
-    if (!rejectTargetId) return;
-    setData(data.map((d) =>
-      d.id === rejectTargetId ? { ...d, status: "ditolak", catatanReject } : d
-    ));
-    if (selectedUser?.id === rejectTargetId) {
-      setSelectedUser({ ...selectedUser, status: "ditolak", catatanReject });
-    }
-    setShowRejectModal(false);
-    setCatatanReject("");
-    setRejectTargetId(null);
-  };
-
-  const openRejectModal = (id: number) => {
-    setRejectTargetId(id);
-    setCatatanReject("");
-    setShowRejectModal(true);
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
+        <p className="text-sm text-red-500">{error}</p>
+        <button
+          onClick={fetchData}
+          className="text-xs px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full font-sans">
@@ -266,7 +356,9 @@ export default function VerifikasiAkunPage() {
           <tbody className="divide-y divide-gray-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-10 text-gray-400 text-xs">Tidak ada data</td>
+                <td colSpan={7} className="text-center py-10 text-gray-400 text-xs">
+                  Tidak ada data
+                </td>
               </tr>
             ) : filtered.map((d, i) => (
               <tr key={d.id} className="hover:bg-gray-50">
@@ -280,12 +372,8 @@ export default function VerifikasiAkunPage() {
                     {roleLabel[d.role]}
                   </span>
                 </td>
-                <td className="px-5 py-3 border-r border-gray-200 text-gray-600 text-xs font-mono">
-                  {d.nik}
-                </td>
-                <td className="px-5 py-3 border-r border-gray-200 text-gray-600 text-xs">
-                  {d.tanggalDaftar}
-                </td>
+                <td className="px-5 py-3 border-r border-gray-200 text-gray-600 text-xs font-mono">{d.nik}</td>
+                <td className="px-5 py-3 border-r border-gray-200 text-gray-600 text-xs">{d.tanggalDaftar}</td>
                 <td className="px-4 py-3 border-r border-gray-200 text-center">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[d.status]}`}>
                     {statusLabel[d.status]}
@@ -303,13 +391,18 @@ export default function VerifikasiAkunPage() {
                       <>
                         <button
                           onClick={() => handleSetujui(d.id)}
-                          className="bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
+                          disabled={actionLoading === d.id}
+                          className="bg-green-500 hover:bg-green-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1 disabled:opacity-60"
                         >
-                          <CheckCircle size={12} /> Setujui
+                          {actionLoading === d.id
+                            ? <Loader2 size={12} className="animate-spin" />
+                            : <CheckCircle size={12} />}
+                          Setujui
                         </button>
                         <button
                           onClick={() => openRejectModal(d.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1"
+                          disabled={actionLoading === d.id}
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1 disabled:opacity-60"
                         >
                           <XCircle size={12} /> Tolak
                         </button>
@@ -344,6 +437,7 @@ export default function VerifikasiAkunPage() {
 
             <div className="px-6 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
               <Section title="Informasi Akun">
+                <Row label="Username" value={selectedUser.username} />
                 <Row label="Email" value={selectedUser.email} />
                 <Row label="No. HP" value={selectedUser.noHp} />
                 <Row label="Tgl. Daftar" value={selectedUser.tanggalDaftar} />
@@ -384,7 +478,8 @@ export default function VerifikasiAkunPage() {
               <div className="flex gap-2 px-6 py-4 border-t border-gray-200">
                 <button
                   onClick={() => { handleSetujui(selectedUser.id); setSelectedUser(null); }}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 rounded-lg flex items-center justify-center gap-1.5"
+                  disabled={actionLoading === selectedUser.id}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
                   <CheckCircle size={15} /> Setujui
                 </button>
@@ -410,7 +505,7 @@ export default function VerifikasiAkunPage() {
               </div>
               <div>
                 <h2 className="font-bold text-gray-800">Tolak Pendaftaran</h2>
-                <p className="text-xs text-gray-400">Berikan alasan penolakan</p>
+                <p className="text-xs text-gray-400">Berikan alasan penolakan (opsional)</p>
               </div>
             </div>
             <textarea
@@ -421,12 +516,20 @@ export default function VerifikasiAkunPage() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-50 resize-none"
             />
             <div className="flex gap-2">
-              <button onClick={() => setShowRejectModal(false)}
-                className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50">
+              <button
+                onClick={() => setShowRejectModal(false)}
+                className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50"
+              >
                 Batal
               </button>
-              <button onClick={handleTolakConfirm}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2 rounded-lg">
+              <button
+                onClick={handleTolakConfirm}
+                disabled={actionLoading !== null}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-60"
+              >
+                {actionLoading !== null
+                  ? <Loader2 size={14} className="animate-spin" />
+                  : null}
                 Konfirmasi Tolak
               </button>
             </div>
