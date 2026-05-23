@@ -1,74 +1,129 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil, Trash2, Plus, Search, X, ClipboardList } from "lucide-react";
 
-interface Indikator {
-  id: number;
-  indikator: string;
-  kegiatan: string;
-  aspek: string;
+interface Aspek {
+  id_aspek: number;
+  nama_aspek: string;
 }
 
-const aspekOptions = [
-  "Nilai Agama dan Moral",
-  "Motorik",
-  "Kognitif",
-  "Bahasa",
-  "Sosial-Emosional",
-  "Kreativitas/Seni",
-];
-
-const dummyData: Indikator[] = [
-  { id: 1, indikator: "Anak dapat memegang pensil dengan benar", kegiatan: "Menulis dan Menggambar", aspek: "Motorik" },
-  { id: 2, indikator: "Anak dapat menyebutkan warna dasar", kegiatan: "Mengenal Warna", aspek: "Kognitif" },
-  { id: 3, indikator: "Anak dapat mengucapkan kalimat sederhana", kegiatan: "Bercerita", aspek: "Bahasa" },
-];
+interface Indikator {
+  id_indikator: number;
+  nama_indikator: string;
+  nama_kegiatan: string;
+  id_aspek: number;
+  aspek?: Aspek;
+}
 
 export default function IndikatorPenilaianPage() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState<Indikator[]>(dummyData);
+  const [data, setData] = useState<Indikator[]>([]);
+  const [aspekList, setAspekList] = useState<Aspek[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Indikator | null>(null);
-  const [form, setForm] = useState({ indikator: "", kegiatan: "", aspek: "" });
+  const [form, setForm] = useState({ nama_indikator: "", nama_kegiatan: "", id_aspek: "" });
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const headers = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [resIndikator, resAspek] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/indikator`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/aspek`, { headers }),
+      ]);
+      const jsonIndikator = await resIndikator.json();
+      const jsonAspek = await resAspek.json();
+      if (jsonIndikator.success) setData(jsonIndikator.data);
+      if (jsonAspek.success) setAspekList(jsonAspek.data);
+    } catch {
+      alert("Gagal memuat data.");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filtered = data.filter(
     (d) =>
-      d.indikator.toLowerCase().includes(search.toLowerCase()) ||
-      d.kegiatan.toLowerCase().includes(search.toLowerCase()) ||
-      d.aspek.toLowerCase().includes(search.toLowerCase())
+      d.nama_indikator.toLowerCase().includes(search.toLowerCase()) ||
+      (d.nama_kegiatan ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (d.aspek?.nama_aspek ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleTambah = () => {
     setEditData(null);
-    setForm({ indikator: "", kegiatan: "", aspek: "" });
+    setForm({ nama_indikator: "", nama_kegiatan: "", id_aspek: "" });
     setShowModal(true);
   };
 
   const handleEdit = (item: Indikator) => {
     setEditData(item);
-    setForm({ indikator: item.indikator, kegiatan: item.kegiatan, aspek: item.aspek });
+    setForm({
+      nama_indikator: item.nama_indikator,
+      nama_kegiatan: item.nama_kegiatan ?? "",
+      id_aspek: String(item.id_aspek),
+    });
     setShowModal(true);
   };
 
-  const handleHapus = (id: number) => {
-    if (confirm("Yakin ingin menghapus data ini?")) {
-      setData(data.filter((d) => d.id !== id));
+  const handleHapus = async (id: number) => {
+    if (!confirm("Yakin ingin menghapus data ini?")) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indikator/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+      const json = await res.json();
+      if (json.success) fetchData();
+      else alert(json.message || "Gagal menghapus data.");
+    } catch {
+      alert("Gagal terhubung ke server.");
     }
   };
 
-  const handleSimpan = () => {
-    if (!form.indikator.trim() || !form.kegiatan.trim() || !form.aspek.trim()) {
+  const handleSimpan = async () => {
+    if (!form.nama_indikator.trim() || !form.nama_kegiatan.trim() || !form.id_aspek) {
       alert("Semua field wajib diisi!");
       return;
     }
-    if (editData) {
-      setData(data.map((d) => d.id === editData.id ? { ...d, ...form } : d));
-    } else {
-      const newId = data.length > 0 ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-      setData([...data, { id: newId, ...form }]);
+    setLoadingSubmit(true);
+    try {
+      const url = editData
+        ? `${process.env.NEXT_PUBLIC_API_URL}/indikator/${editData.id_indikator}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/indikator`;
+
+      const res = await fetch(url, {
+        method: editData ? "PUT" : "POST",
+        headers,
+        body: JSON.stringify({
+          nama_indikator: form.nama_indikator,
+          nama_kegiatan: form.nama_kegiatan,
+          id_aspek: Number(form.id_aspek),
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setShowModal(false);
+        fetchData();
+      } else {
+        alert(json.message || "Gagal menyimpan data.");
+      }
+    } catch {
+      alert("Gagal terhubung ke server.");
     }
-    setShowModal(false);
+    setLoadingSubmit(false);
   };
 
   return (
@@ -120,19 +175,23 @@ export default function IndikatorPenilaianPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-16 text-gray-400 text-sm">Memuat data...</td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-16 text-gray-400 text-sm">Belum ada data indikator penilaian</td>
               </tr>
             ) : (
               filtered.map((item, index) => (
-                <tr key={item.id} className="hover:bg-blue-50/40 transition-colors">
+                <tr key={item.id_indikator} className="hover:bg-blue-50/40 transition-colors">
                   <td className="px-4 py-3.5 text-center text-xs text-gray-400 font-medium border-r border-gray-100">{index + 1}</td>
                   <td className="px-5 py-3.5 border-r border-gray-100">
-                    <span className="font-medium text-gray-800 text-sm">{item.indikator}</span>
+                    <span className="font-medium text-gray-800 text-sm">{item.nama_indikator}</span>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.kegiatan}</td>
-                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.aspek}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.nama_kegiatan}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.aspek?.nama_aspek ?? "-"}</td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
@@ -142,7 +201,7 @@ export default function IndikatorPenilaianPage() {
                         <Pencil size={11} /> Edit
                       </button>
                       <button
-                        onClick={() => handleHapus(item.id)}
+                        onClick={() => handleHapus(item.id_indikator)}
                         className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-md transition-all"
                       >
                         <Trash2 size={11} /> Hapus
@@ -169,7 +228,6 @@ export default function IndikatorPenilaianPage() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
 
-            {/* Header Modal */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">
@@ -184,14 +242,13 @@ export default function IndikatorPenilaianPage() {
               </button>
             </div>
 
-            {/* Body Modal */}
             <div className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Indikator</label>
                 <input
                   type="text"
-                  value={form.indikator}
-                  onChange={(e) => setForm({ ...form, indikator: e.target.value })}
+                  value={form.nama_indikator}
+                  onChange={(e) => setForm({ ...form, nama_indikator: e.target.value })}
                   placeholder="Masukkan indikator penilaian"
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                 />
@@ -201,8 +258,8 @@ export default function IndikatorPenilaianPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Kegiatan</label>
                 <input
                   type="text"
-                  value={form.kegiatan}
-                  onChange={(e) => setForm({ ...form, kegiatan: e.target.value })}
+                  value={form.nama_kegiatan}
+                  onChange={(e) => setForm({ ...form, nama_kegiatan: e.target.value })}
                   placeholder="Masukkan nama kegiatan"
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                 />
@@ -211,19 +268,18 @@ export default function IndikatorPenilaianPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Aspek</label>
                 <select
-                  value={form.aspek}
-                  onChange={(e) => setForm({ ...form, aspek: e.target.value })}
+                  value={form.id_aspek}
+                  onChange={(e) => setForm({ ...form, id_aspek: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                 >
                   <option value="">Pilih Aspek</option>
-                  {aspekOptions.map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                  {aspekList.map((a) => (
+                    <option key={a.id_aspek} value={a.id_aspek}>{a.nama_aspek}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Footer Modal */}
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={() => setShowModal(false)}
@@ -233,9 +289,10 @@ export default function IndikatorPenilaianPage() {
               </button>
               <button
                 onClick={handleSimpan}
-                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200 transition-colors"
+                disabled={loadingSubmit}
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200 transition-colors disabled:opacity-60"
               >
-                {editData ? "Simpan Perubahan" : "Tambah Data"}
+                {loadingSubmit ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>
             </div>
 

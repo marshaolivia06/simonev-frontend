@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Safelist warna dinamis pengumuman */
+@source inline("{bg,text,border}-{green,blue,yellow,purple}-{50,100,200,400,500,600,700}");
+@source inline("via-{green,blue,yellow,purple}-50");
+@source inline("to-{green,blue,yellow,purple}-100");
+@source inline("group-hover\:{bg}-{green,blue,yellow,purple}-{500,600}");
+@source inline("group-hover\:{text}-{green,blue,yellow,purple}-{600,700}");
+@source inline("hover\:border-{green,blue,yellow,purple}-400");
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

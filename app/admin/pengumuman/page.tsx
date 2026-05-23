@@ -1,59 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Calendar, Megaphone, Pencil, Trash2, Plus, X, Eye, Tag } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+
+function getToken() { return typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : ""; }
+function authHeaders(): HeadersInit {
+  return { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` };
+}
+
+function formatTanggalID(dateStr: string): string {
+  if (!dateStr) return "";
+  const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const d = new Date(dateStr);
+  return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 type Kategori = "Kegiatan" | "Libur" | "Penting" | "Info";
 
 interface Pengumuman {
-  id: number;
-  judul: string;
-  kategori: Kategori;
-  tanggal: string;
-  posting: string;
-  isi: string;
+  id: number; judul: string; kategori: Kategori;
+  tanggal: string; posting: string; isi: string;
 }
 
-const dummyData: Pengumuman[] = [
-  {
-    id: 1,
-    judul: "Libur Hari Raya",
-    kategori: "Libur",
-    tanggal: "16 - 30 Maret 2026",
-    posting: "Diposting: 10 Maret 2026",
-    isi: "Sekolah akan diliburkan selama dua minggu menjelang Hari Raya Idul Fitri.",
-  },
-  {
-    id: 2,
-    judul: "Kegiatan Outing Class",
-    kategori: "Kegiatan",
-    tanggal: "5 April 2026",
-    posting: "Diposting: 28 Maret 2026",
-    isi: "Siswa akan mengikuti kegiatan outing class ke taman edukasi sebagai sarana pembelajaran di luar kelas.",
-  },
-  {
-    id: 3,
-    judul: "Pembagian Raport",
-    kategori: "Penting",
-    tanggal: "20 Juni 2026",
-    posting: "Diposting: 10 Juni 2026",
-    isi: "Pembagian raport semester genap akan dilaksanakan di sekolah bersama wali murid.",
-  },
-  {
-    id: 4,
-    judul: "Pendaftaran Siswa Baru",
-    kategori: "Info",
-    tanggal: "1 - 15 Juli 2026",
-    posting: "Diposting: 20 Juni 2026",
-    isi: "Pendaftaran siswa baru tahun ajaran 2026/2027 telah dibuka secara online.",
-  },
-];
+interface FormState {
+  judul: string; kategori: Kategori; tanggal: string; isi: string;
+}
+
+function fromApi(item: Record<string, unknown>): Pengumuman {
+  const createdAt = item.created_at as string | undefined;
+  const posting = createdAt
+    ? "Diposting: " + new Date(createdAt).toLocaleDateString("id-ID", { day:"numeric", month:"long", year:"numeric" })
+    : "";
+  return {
+    id:       item.id_pengumuman as number,
+    judul:    item.judul_pengumuman as string,
+    kategori: (item.kategori as Kategori) ?? "Info",
+    tanggal:  item.tanggal as string,
+    posting,
+    isi:      item.isi_pengumuman as string,
+  };
+}
+
+function toApiPayload(form: FormState) {
+  return {
+    judul_pengumuman: form.judul,
+    isi_pengumuman:   form.isi,
+    tanggal:          formatTanggalID(form.tanggal),
+    kategori:         form.kategori,
+  };
+}
 
 const badgeStyle: Record<Kategori, { badge: string; icon: string; glow: string; hover: string }> = {
-  Libur:    { badge: "bg-green-100 text-green-700",   icon: "bg-green-100 group-hover:bg-green-600",    glow: "from-white via-green-50 to-green-100 border-green-100",    hover: "group-hover:text-green-700"  },
-  Kegiatan: { badge: "bg-blue-100 text-blue-700",     icon: "bg-blue-100 group-hover:bg-blue-600",      glow: "from-white via-blue-50 to-blue-100 border-blue-100",      hover: "group-hover:text-blue-700"   },
-  Penting:  { badge: "bg-yellow-100 text-yellow-700", icon: "bg-yellow-100 group-hover:bg-yellow-500",  glow: "from-white via-yellow-50 to-yellow-100 border-yellow-100", hover: "group-hover:text-yellow-600" },
-  Info:     { badge: "bg-purple-100 text-purple-700", icon: "bg-purple-100 group-hover:bg-purple-600",  glow: "from-white via-purple-50 to-purple-100 border-purple-100", hover: "group-hover:text-purple-700" },
+  Libur:    { badge: "bg-green-100 text-green-700",   icon: "bg-green-100 group-hover:bg-green-600",   glow: "from-white via-green-50 to-green-100 border-green-100",    hover: "group-hover:text-green-700"  },
+  Kegiatan: { badge: "bg-blue-100 text-blue-700",     icon: "bg-blue-100 group-hover:bg-blue-600",     glow: "from-white via-blue-50 to-blue-100 border-blue-100",        hover: "group-hover:text-blue-700"   },
+  Penting:  { badge: "bg-yellow-100 text-yellow-700", icon: "bg-yellow-100 group-hover:bg-yellow-500", glow: "from-white via-yellow-50 to-yellow-100 border-yellow-100",  hover: "group-hover:text-yellow-600" },
+  Info:     { badge: "bg-purple-100 text-purple-700", icon: "bg-purple-100 group-hover:bg-purple-600", glow: "from-white via-purple-50 to-purple-100 border-purple-100",  hover: "group-hover:text-purple-700" },
 };
 
 const postingBadge: Record<Kategori, string> = {
@@ -63,38 +66,75 @@ const postingBadge: Record<Kategori, string> = {
   Info:     "text-purple-600 bg-purple-50 border-purple-100 group-hover:bg-purple-600 group-hover:text-white",
 };
 
-const KATEGORI_LIST: Kategori[] = ["Kegiatan", "Libur", "Penting", "Info"];
+// Warna filter button per kategori
+const filterStyle: Record<Kategori, { active: string; inactive: string }> = {
+  Kegiatan: { active: "bg-blue-600 text-white border-blue-600",   inactive: "bg-white text-blue-600 border-blue-200 hover:border-blue-400"   },
+  Libur:    { active: "bg-green-600 text-white border-green-600", inactive: "bg-white text-green-600 border-green-200 hover:border-green-400" },
+  Penting:  { active: "bg-yellow-500 text-white border-yellow-500", inactive: "bg-white text-yellow-600 border-yellow-200 hover:border-yellow-400" },
+  Info:     { active: "bg-purple-600 text-white border-purple-600", inactive: "bg-white text-purple-600 border-purple-200 hover:border-purple-400" },
+};
 
-const emptyForm = { judul: "", kategori: "Kegiatan" as Kategori, tanggal: "", posting: "", isi: "" };
+const KATEGORI_LIST: Kategori[] = ["Kegiatan", "Libur", "Penting", "Info"];
+const emptyForm: FormState = { judul: "", kategori: "Kegiatan", tanggal: "", isi: "" };
 
 export default function PengumumanPage() {
-  const [data, setData]           = useState<Pengumuman[]>(dummyData);
+  const [data, setData]           = useState<Pengumuman[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
   const [filterKat, setFilterKat] = useState<"Semua" | Kategori>("Semua");
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData]   = useState<Pengumuman | null>(null);
   const [viewData, setViewData]   = useState<Pengumuman | null>(null);
-  const [form, setForm]           = useState(emptyForm);
+  const [form, setForm]           = useState<FormState>(emptyForm);
+  const [saving, setSaving]       = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res  = await fetch(`${API_BASE}/pengumuman`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message ?? "Gagal memuat data");
+      setData((json.data as Record<string, unknown>[]).map(fromApi));
+    } catch (err) { setError((err as Error).message); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = data.filter((p) => filterKat === "Semua" || p.kategori === filterKat);
 
   const handleTambah = () => { setEditData(null); setForm(emptyForm); setShowModal(true); };
-  const handleEdit   = (item: Pengumuman) => {
+
+  const handleEdit = (item: Pengumuman) => {
     setEditData(item);
-    setForm({ judul: item.judul, kategori: item.kategori, tanggal: item.tanggal, posting: item.posting, isi: item.isi });
+    setForm({ judul: item.judul, kategori: item.kategori, tanggal: "", isi: item.isi });
     setShowModal(true);
   };
-  const handleHapus  = (id: number) => {
-    if (confirm("Yakin ingin menghapus pengumuman ini?")) setData(data.filter((p) => p.id !== id));
+
+  const handleHapus = async (id: number) => {
+    if (!confirm("Yakin ingin menghapus pengumuman ini?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/pengumuman/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error("Gagal menghapus");
+      setData((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) { alert((err as Error).message); }
   };
-  const handleSimpan = () => {
-    if (!form.judul.trim() || !form.tanggal.trim()) { alert("Judul dan Tanggal wajib diisi!"); return; }
-    if (editData) {
-      setData(data.map((p) => p.id === editData.id ? { ...p, ...form } : p));
-    } else {
-      const newId = data.length > 0 ? Math.max(...data.map((p) => p.id)) + 1 : 1;
-      setData([...data, { id: newId, ...form }]);
-    }
-    setShowModal(false);
+
+  const handleSimpan = async () => {
+    if (!form.judul.trim() || !form.tanggal) { alert("Judul dan Tanggal wajib diisi!"); return; }
+    setSaving(true);
+    try {
+      const url    = editData ? `${API_BASE}/pengumuman/${editData.id}` : `${API_BASE}/pengumuman`;
+      const method = editData ? "PUT" : "POST";
+      const res    = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(toApiPayload(form)) });
+      const json   = await res.json();
+      if (!res.ok) throw new Error(json.message ?? "Gagal menyimpan");
+      const saved = fromApi(json.data as Record<string, unknown>);
+      if (editData) setData((prev) => prev.map((p) => p.id === editData.id ? saved : p));
+      else          setData((prev) => [saved, ...prev]);
+      setShowModal(false);
+    } catch (err) { alert((err as Error).message); }
+    finally { setSaving(false); }
   };
 
   const inputCls = "w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all bg-white";
@@ -116,34 +156,52 @@ export default function PengumumanPage() {
 
       {/* FILTER */}
       <div className="flex gap-2 flex-wrap">
-        {(["Semua", ...KATEGORI_LIST] as Array<"Semua" | Kategori>).map((k) => (
-          <button key={k} onClick={() => setFilterKat(k)}
-            className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ${
-              filterKat === k ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-            }`}>
-            {k}
-          </button>
-        ))}
+        {/* Tombol Semua — tetap abu */}
+        <button onClick={() => setFilterKat("Semua")}
+          className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ${
+            filterKat === "Semua" ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+          }`}>
+          Semua
+        </button>
+
+        {/* Tombol per kategori — warna sesuai kategori */}
+        {KATEGORI_LIST.map((k) => {
+          const s = filterStyle[k];
+          return (
+            <button key={k} onClick={() => setFilterKat(k)}
+              className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ${
+                filterKat === k ? s.active : s.inactive
+              }`}>
+              {k}
+            </button>
+          );
+        })}
       </div>
 
-      {/* LIST */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-gray-300">
-          <Megaphone size={44} className="mb-3" />
-          <p className="text-sm">Belum ada pengumuman</p>
+      {/* STATE */}
+      {loading && <div className="flex justify-center py-24 text-gray-400 text-sm animate-pulse">Memuat pengumuman...</div>}
+      {!loading && error && (
+        <div className="flex flex-col items-center py-16 gap-3">
+          <p className="text-sm text-red-500">{error}</p>
+          <button onClick={fetchData} className="text-xs px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">Coba lagi</button>
         </div>
-      ) : (
+      )}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 text-gray-300">
+          <Megaphone size={44} className="mb-3" /><p className="text-sm">Belum ada pengumuman</p>
+        </div>
+      )}
+
+      {/* LIST */}
+      {!loading && !error && filtered.length > 0 && (
         <div className="grid gap-3">
           {filtered.map((item) => {
             const s = badgeStyle[item.kategori];
             return (
               <div key={item.id}
                 className={`group relative overflow-hidden bg-gradient-to-br ${s.glow} border rounded-2xl p-4 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01]`}>
-
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-white/10 via-white/5 to-white/10 transition duration-500" />
-
                 <div className="relative z-10">
-                  {/* Top row */}
                   <div className="flex justify-between items-start gap-4 mb-2">
                     <div className="flex gap-3">
                       <div className={`w-11 h-11 flex items-center justify-center rounded-xl shrink-0 transition ${s.icon}`}>
@@ -161,11 +219,7 @@ export default function PengumumanPage() {
                       {item.posting}
                     </span>
                   </div>
-
-                  {/* Isi */}
                   <p className="text-sm text-gray-700 leading-relaxed mb-2">{item.isi}</p>
-
-                  {/* Actions */}
                   <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                     <button onClick={() => setViewData(item)}
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors">
@@ -204,11 +258,14 @@ export default function PengumumanPage() {
             </div>
 
             <div className="px-6 py-5 space-y-4">
+              {/* Judul */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Judul Pengumuman</label>
                 <input type="text" placeholder="Masukkan judul" value={form.judul}
                   onChange={(e) => setForm({ ...form, judul: e.target.value })} className={inputCls} />
               </div>
+
+              {/* Kategori + Tanggal */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -220,17 +277,15 @@ export default function PengumumanPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    <Calendar size={11} className="inline mr-1" />Tanggal Kegiatan
+                    <Calendar size={11} className="inline mr-1" />Tanggal
                   </label>
-                  <input type="text" placeholder="cth: 5 April 2026" value={form.tanggal}
-                    onChange={(e) => setForm({ ...form, tanggal: e.target.value })} className={inputCls} />
+                  <input type="date" value={form.tanggal}
+                    onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
+                    className={inputCls + " cursor-pointer"} />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tanggal Posting</label>
-                <input type="text" placeholder="cth: Diposting: 28 Maret 2026" value={form.posting}
-                  onChange={(e) => setForm({ ...form, posting: e.target.value })} className={inputCls} />
-              </div>
+
+              {/* Isi */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Isi Pengumuman</label>
                 <textarea placeholder="Tulis isi pengumuman..." value={form.isi}
@@ -240,13 +295,13 @@ export default function PengumumanPage() {
             </div>
 
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
-              <button onClick={() => setShowModal(false)}
+              <button onClick={() => setShowModal(false)} disabled={saving}
                 className="border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-xl transition-colors">
                 Batal
               </button>
-              <button onClick={handleSimpan}
-                className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors">
-                {editData ? "Simpan Perubahan" : "Tambah"}
+              <button onClick={handleSimpan} disabled={saving}
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors">
+                {saving ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah"}
               </button>
             </div>
           </div>

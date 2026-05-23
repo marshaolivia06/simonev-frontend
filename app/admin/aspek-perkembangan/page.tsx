@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil, Trash2, Plus, Search, X, BookOpen } from "lucide-react";
 
 interface Aspek {
-  id: number;
-  nama: string;
-  definisi: string;
+  id_aspek: number;
+  nama_aspek: string;
+  definisi_aspek: string;
 }
 
 const aspekOptions = [
@@ -18,69 +18,102 @@ const aspekOptions = [
   "Kreativitas/Seni",
 ];
 
-const dummyData: Aspek[] = [
-  {
-    id: 1,
-    nama: "Motorik",
-    definisi: "Kemampuan anak dalam mengontrol gerakan tubuh.",
-  },
-  {
-    id: 2,
-    nama: "Kognitif",
-    definisi: "Kemampuan berpikir dan memecahkan masalah.",
-  },
-];
-
 export default function AspekPage() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState<Aspek[]>(dummyData);
+  const [data, setData] = useState<Aspek[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState<Aspek | null>(null);
+  const [form, setForm] = useState({ nama_aspek: "", definisi_aspek: "" });
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-  const [form, setForm] = useState({
-    nama: "",
-    definisi: "",
-  });
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const headers = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`,
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/aspek`, { headers });
+      const json = await res.json();
+      if (json.success) setData(json.data);
+    } catch {
+      alert("Gagal memuat data aspek.");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filtered = data.filter(
     (a) =>
-      a.nama.toLowerCase().includes(search.toLowerCase()) ||
-      a.definisi.toLowerCase().includes(search.toLowerCase())
+      a.nama_aspek.toLowerCase().includes(search.toLowerCase()) ||
+      (a.definisi_aspek ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleTambah = () => {
     setEditData(null);
-    setForm({ nama: "", definisi: "" });
+    setForm({ nama_aspek: "", definisi_aspek: "" });
     setShowModal(true);
   };
 
   const handleEdit = (item: Aspek) => {
     setEditData(item);
-    setForm({ nama: item.nama, definisi: item.definisi });
+    setForm({ nama_aspek: item.nama_aspek, definisi_aspek: item.definisi_aspek ?? "" });
     setShowModal(true);
   };
 
-  const handleHapus = (id: number) => {
-    if (confirm("Yakin ingin hapus data ini?")) {
-      setData(data.filter((a) => a.id !== id));
+  const handleHapus = async (id: number) => {
+    if (!confirm("Yakin ingin hapus data ini?")) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/aspek/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+      const json = await res.json();
+      if (json.success) fetchData();
+      else alert(json.message || "Gagal menghapus data.");
+    } catch {
+      alert("Gagal terhubung ke server.");
     }
   };
 
-  const handleSimpan = () => {
-    if (!form.nama.trim()) {
+  const handleSimpan = async () => {
+    if (!form.nama_aspek.trim()) {
       alert("Aspek wajib dipilih!");
       return;
     }
+    setLoadingSubmit(true);
+    try {
+      const url = editData
+        ? `${process.env.NEXT_PUBLIC_API_URL}/aspek/${editData.id_aspek}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/aspek`;
 
-    if (editData) {
-      setData(data.map((a) => (a.id === editData.id ? { ...a, ...form } : a)));
-    } else {
-      const newId =
-        data.length > 0 ? Math.max(...data.map((a) => a.id)) + 1 : 1;
-      setData([...data, { id: newId, ...form }]);
+      const res = await fetch(url, {
+        method: editData ? "PUT" : "POST",
+        headers,
+        body: JSON.stringify({
+          nama_aspek: form.nama_aspek,
+          definisi_aspek: form.definisi_aspek,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setShowModal(false);
+        fetchData();
+      } else {
+        alert(json.message || "Gagal menyimpan data.");
+      }
+    } catch {
+      alert("Gagal terhubung ke server.");
     }
-
-    setShowModal(false);
+    setLoadingSubmit(false);
   };
 
   return (
@@ -147,37 +180,37 @@ export default function AspekPage() {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            {filtered.length === 0 ? (
+            {loading ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="text-center py-16 text-gray-400 text-sm"
-                >
+                <td colSpan={4} className="text-center py-16 text-gray-400 text-sm">
+                  Memuat data...
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-16 text-gray-400 text-sm">
                   Tidak ada data aspek
                 </td>
               </tr>
             ) : (
               filtered.map((item, index) => (
                 <tr
-                  key={item.id}
+                  key={item.id_aspek}
                   className="hover:bg-blue-50/40 transition-colors"
                 >
                   <td className="px-4 py-3.5 text-center text-xs text-gray-400 font-medium border-r border-gray-100">
                     {index + 1}
                   </td>
-
                   <td className="px-5 py-3.5 border-r border-gray-100">
                     <span className="font-medium text-gray-800 text-sm">
-                      {item.nama}
+                      {item.nama_aspek}
                     </span>
                   </td>
-
                   <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">
                     <span className="truncate block max-w-[280px]">
-                      {item.definisi}
+                      {item.definisi_aspek}
                     </span>
                   </td>
-
                   <td className="px-4 py-3.5">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
@@ -186,9 +219,8 @@ export default function AspekPage() {
                       >
                         <Pencil size={11} /> Edit
                       </button>
-
                       <button
-                        onClick={() => handleHapus(item.id)}
+                        onClick={() => handleHapus(item.id_aspek)}
                         className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-md transition-all"
                       >
                         <Trash2 size={11} /> Hapus
@@ -205,13 +237,9 @@ export default function AspekPage() {
           <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
             <span className="text-xs text-gray-400">
               Menampilkan{" "}
-              <span className="font-medium text-gray-600">
-                {filtered.length}
-              </span>{" "}
+              <span className="font-medium text-gray-600">{filtered.length}</span>{" "}
               dari{" "}
-              <span className="font-medium text-gray-600">
-                {data.length}
-              </span>{" "}
+              <span className="font-medium text-gray-600">{data.length}</span>{" "}
               data
             </span>
           </div>
@@ -245,8 +273,8 @@ export default function AspekPage() {
                   Nama Aspek
                 </label>
                 <select
-                  value={form.nama}
-                  onChange={(e) => setForm({ ...form, nama: e.target.value })}
+                  value={form.nama_aspek}
+                  onChange={(e) => setForm({ ...form, nama_aspek: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Pilih Aspek</option>
@@ -262,8 +290,8 @@ export default function AspekPage() {
                 </label>
                 <input
                   type="text"
-                  value={form.definisi}
-                  onChange={(e) => setForm({ ...form, definisi: e.target.value })}
+                  value={form.definisi_aspek}
+                  onChange={(e) => setForm({ ...form, definisi_aspek: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -278,9 +306,10 @@ export default function AspekPage() {
               </button>
               <button
                 onClick={handleSimpan}
-                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200"
+                disabled={loadingSubmit}
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200 disabled:opacity-60"
               >
-                {editData ? "Simpan Perubahan" : "Tambah Data"}
+                {loadingSubmit ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah Data"}
               </button>
             </div>
           </div>

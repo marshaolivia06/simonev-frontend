@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, CheckCircle, BookOpen, User } from "lucide-react";
 
@@ -12,7 +12,6 @@ const labelClass = "block text-xs font-semibold text-gray-600 mb-1";
 
 const jabatanOptions = ["Guru Kelas", "Guru Mata Pelajaran", "Wali Kelas", "Kepala Sekolah", "Staf Pengajar"];
 const hubunganOptions = ["Ayah", "Ibu", "Wali"];
-const kelasOptions = ["TK A1", "TK A2", "TK A3", "TK B1", "TK B2", "TK B3", "Playgroup A", "Playgroup B"];
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -25,17 +24,39 @@ export default function RegisterPage() {
   const [nikError, setNikError] = useState("")
   const [nipError, setNipError] = useState("")
 
+  // ← PERUBAHAN: state kelas dinamis dari API
+  const [kelasOptions, setKelasOptions] = useState<string[]>([])
+  const [loadingKelas, setLoadingKelas] = useState(false)
+
   const [formGuru, setFormGuru] = useState({
     namaLengkap: "", username: "", email: "", password: "",
     konfirmasiPassword: "", noHp: "", nik: "", nip: "",
-    namaLembaga: "", jabatan: "", suratTugas: null as File | null,
+    alamat: "", jabatan: "", tanggalLahir: "", suratTugas: null as File | null,
   })
 
   const [formOrtu, setFormOrtu] = useState({
     namaLengkap: "", username: "", email: "", password: "",
     konfirmasiPassword: "", noHp: "", nik: "", hubungan: "",
-    namaAnak: "", kelasAnak: "", alamat: "", fotoKtp: null as File | null,
+    namaAnak: "", tanggalLahirAnak: "", kelasAnak: "", alamat: "",
+    fotoKtp: null as File | null,
   })
+
+  // ← PERUBAHAN: fetch kelas dari API saat role "ortu" dipilih
+  useEffect(() => {
+    if (role !== "ortu") return
+    setLoadingKelas(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas`, {
+      headers: { "Accept": "application/json" },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const list = data.data ?? data
+        const names = list.map((k: { nama_kelas: string }) => k.nama_kelas)
+        setKelasOptions(names)
+      })
+      .catch(() => setKelasOptions([]))
+      .finally(() => setLoadingKelas(false))
+  }, [role])
 
   const handleSubmit = async () => {
     setError("")
@@ -68,14 +89,16 @@ export default function RegisterPage() {
 
       if (role === "guru") {
         formData.append("nip", formGuru.nip)
-        formData.append("nama_lembaga", formGuru.namaLembaga)
+        formData.append("alamat", formGuru.alamat)
         formData.append("jabatan", formGuru.jabatan)
+        if (formGuru.tanggalLahir) formData.append("tanggal_lahir", formGuru.tanggalLahir)
         if (formGuru.suratTugas) formData.append("surat_tugas", formGuru.suratTugas)
       } else {
         formData.append("hubungan", formOrtu.hubungan)
         formData.append("nama_anak", formOrtu.namaAnak)
         formData.append("kelas_anak", formOrtu.kelasAnak)
         formData.append("alamat", formOrtu.alamat)
+        if (formOrtu.tanggalLahirAnak) formData.append("tanggal_lahir_anak", formOrtu.tanggalLahirAnak)
         if (formOrtu.fotoKtp) formData.append("foto_ktp", formOrtu.fotoKtp)
       }
 
@@ -198,7 +221,6 @@ export default function RegisterPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 space-y-3">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</p>
 
-                {/* Nama Lengkap dulu */}
                 <div>
                   <label className={labelClass}>Nama Lengkap <span className="text-red-500">*</span></label>
                   <input type="text" placeholder="Sesuai KTP" className={inputClass}
@@ -208,7 +230,6 @@ export default function RegisterPage() {
                       : setFormOrtu({ ...formOrtu, namaLengkap: e.target.value })} />
                 </div>
 
-                {/* Username setelah nama */}
                 <div>
                   <label className={labelClass}>Username <span className="text-red-500">*</span></label>
                   <input type="text" placeholder="Buat username unik" className={inputClass}
@@ -328,12 +349,22 @@ export default function RegisterPage() {
                         </div>
                       </div>
                     </div>
+
                     <div>
-                      <label className={labelClass}>Nama Lembaga <span className="text-red-500">*</span></label>
-                      <input type="text" placeholder="Contoh: TK Permata Bangsa" className={inputClass}
-                        value={formGuru.namaLembaga}
-                        onChange={(e) => setFormGuru({ ...formGuru, namaLembaga: e.target.value })} />
+                      <label className={labelClass}>Tanggal Lahir <span className="text-gray-400 font-normal">(opsional)</span></label>
+                      <input type="date" className={inputClass}
+                        value={formGuru.tanggalLahir}
+                        onChange={(e) => setFormGuru({ ...formGuru, tanggalLahir: e.target.value })} />
                     </div>
+
+                    <div>
+                      <label className={labelClass}>Alamat <span className="text-red-500">*</span></label>
+                      <textarea rows={2} placeholder="Alamat lengkap sesuai KTP"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm outline-none focus:border-[#1a7bbf] focus:ring-2 focus:ring-blue-100 transition-all resize-none placeholder-gray-400"
+                        value={formGuru.alamat}
+                        onChange={(e) => setFormGuru({ ...formGuru, alamat: e.target.value })} />
+                    </div>
+
                     <div>
                       <label className={labelClass}>Upload Surat Tugas <span className="text-gray-400 font-normal">(opsional)</span></label>
                       <input type="file" accept=".pdf,.jpg,.jpeg,.png"
@@ -359,23 +390,40 @@ export default function RegisterPage() {
                         </div>
                       </div>
                       <div>
+                        {/* ← PERUBAHAN: dropdown kelas dari API */}
                         <label className={labelClass}>Kelas Anak <span className="text-red-500">*</span></label>
                         <div className="relative">
-                          <select className={selectClass} value={formOrtu.kelasAnak}
-                            onChange={(e) => setFormOrtu({ ...formOrtu, kelasAnak: e.target.value })}>
-                            <option value="">Pilih kelas</option>
+                          <select
+                            className={selectClass}
+                            value={formOrtu.kelasAnak}
+                            disabled={loadingKelas}
+                            onChange={(e) => setFormOrtu({ ...formOrtu, kelasAnak: e.target.value })}
+                          >
+                            <option value="">
+                              {loadingKelas ? "Memuat kelas..." : "Pilih kelas"}
+                            </option>
                             {kelasOptions.map((k) => <option key={k}>{k}</option>)}
                           </select>
                           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▾</span>
                         </div>
                       </div>
                     </div>
+
                     <div>
                       <label className={labelClass}>Nama Anak <span className="text-red-500">*</span></label>
                       <input type="text" placeholder="Nama lengkap anak" className={inputClass}
                         value={formOrtu.namaAnak}
                         onChange={(e) => setFormOrtu({ ...formOrtu, namaAnak: e.target.value })} />
                     </div>
+
+                    {/* ← TAMBAHAN: Tanggal Lahir Anak */}
+                    <div>
+                      <label className={labelClass}>Tanggal Lahir Anak <span className="text-gray-400 font-normal">(opsional)</span></label>
+                      <input type="date" className={inputClass}
+                        value={formOrtu.tanggalLahirAnak}
+                        onChange={(e) => setFormOrtu({ ...formOrtu, tanggalLahirAnak: e.target.value })} />
+                    </div>
+
                     <div>
                       <label className={labelClass}>Alamat Rumah <span className="text-red-500">*</span></label>
                       <textarea rows={2} placeholder="Alamat lengkap sesuai KTP"
@@ -383,6 +431,7 @@ export default function RegisterPage() {
                         value={formOrtu.alamat}
                         onChange={(e) => setFormOrtu({ ...formOrtu, alamat: e.target.value })} />
                     </div>
+
                     <div>
                       <label className={labelClass}>Upload Foto KTP <span className="text-gray-400 font-normal">(opsional)</span></label>
                       <input type="file" accept=".jpg,.jpeg,.png"
