@@ -7,31 +7,11 @@ import {
 } from "lucide-react";
 import Sidebar, { NavItem } from "@/components/Sidebar";
 
-const navItems: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
-  {
-    label: "Data",
-    icon: Database,
-    href: "/admin/data-guru",
-    children: [
-      { label: "Data Guru",        href: "/admin/data-guru"        },
-      { label: "Data Kelas",       href: "/admin/data-kelas"       },
-      { label: "Data Anak",        href: "/admin/data-anak"        },
-      { label: "Verifikasi Akun",  href: "/admin/verifikasi-akun"  },
-    ],
-  },
-  {
-    label: "Penilaian",
-    icon: ClipboardList,
-    href: "/admin/penilaian-input",
-    children: [
-      { label: "Aspek Perkembangan",  href: "/admin/aspek-perkembangan"  },
-      { label: "Indikator Penilaian", href: "/admin/indikator-penilaian" },
-    ],
-  },
-  { label: "Laporan Perkembangan", icon: FileText,  href: "/admin/laporan-perkembangan" },
-  { label: "Pengumuman",           icon: Megaphone, href: "/admin/pengumuman"           },
-];
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+
+function getToken() {
+  return typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
+}
 
 const pageTitles: Record<string, string> = {
   "/admin/dashboard":             "Dashboard Admin",
@@ -46,7 +26,6 @@ const pageTitles: Record<string, string> = {
   "/admin/profile":               "Profil Admin",
 };
 
-/* Ganti dengan nama dari session / auth */
 const NAMA_ADMIN = "Siti Rahayu";
 
 function getInitials(nama: string): string {
@@ -64,10 +43,66 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router      = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [showDropdown,   setShowDropdown]   = useState(false);
+  const [showDropdown,    setShowDropdown]    = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [pendingCount,    setPendingCount]    = useState(0);
 
   const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
+
+  // Fetch jumlah akun pending
+  useEffect(() => {
+    const fetchPending = () => {
+      fetch(`${API}/verifikasi`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          Accept: "application/json",
+        },
+      })
+        .then(r => r.json())
+        .then(json => {
+          if (json.success) {
+            const count = (json.data as any[]).filter((u: any) => u.status === "pending").length;
+            setPendingCount(count);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchPending();
+    // refresh setiap 30 detik
+    const interval = setInterval(fetchPending, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const navItems: NavItem[] = [
+    { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
+    {
+      label: "Data",
+      icon: Database,
+      href: "/admin/data-guru",
+      children: [
+        { label: "Data Guru",       href: "/admin/data-guru"       },
+        { label: "Data Kelas",      href: "/admin/data-kelas"      },
+        { label: "Data Anak",       href: "/admin/data-anak"       },
+        {
+          label: "Verifikasi Akun",
+          href: "/admin/verifikasi-akun",
+          badge: pendingCount > 0 ? pendingCount : undefined,
+        },
+      ],
+    },
+    {
+      label: "Penilaian",
+      icon: ClipboardList,
+      href: "/admin/penilaian-input",
+      children: [
+        { label: "Aspek Perkembangan",  href: "/admin/aspek-perkembangan"  },
+        { label: "Indikator Penilaian", href: "/admin/indikator-penilaian" },
+      ],
+    },
+    { label: "Laporan Perkembangan", icon: FileText,  href: "/admin/laporan-perkembangan" },
+    { label: "Pengumuman",           icon: Megaphone, href: "/admin/pengumuman"           },
+  ];
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -89,7 +124,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">{pageTitle}</h1>
 
-          {/* Tombol Admin — dengan lingkaran inisial */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
@@ -125,7 +159,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
 
-      {/* Modal Konfirmasi Logout */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-80 shadow-xl text-center">

@@ -1,36 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 
-const INITIAL_DATA = {
-  username: "budi.santoso",
-  password: "",
-  namaLengkap: "Budi Santoso",
-  email: "budi.santoso@gmail.com",
-  telepon: "+62 812-3456-7890",
-  hubungan: "Ayah",
-  pekerjaan: "Wiraswasta", // ✅ TAMBAHAN
-  alamat: "Jl. Melati No. 12, RT 03/RW 07, Batam Kota, Kota Batam, Kepulauan Riau 29461",
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
-  namaAnak: "Aisyah Putri Lestari",
-  kelas: "TK A1",
-  jenisKelamin: "Perempuan", // ✅ TAMBAHAN
-  tanggalLahir: "2019-03-12", // ✅ TAMBAHAN
-};
+function getToken() {
+  return typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
+}
+function authHeaders() {
+  return { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` };
+}
 
 export default function ProfilePage() {
-  const [form, setForm]               = useState(INITIAL_DATA);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError]             = useState("");
 
-  const handle = (field: keyof typeof INITIAL_DATA) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  // user
+  const [userId, setUserId]       = useState<number | null>(null);
+  const [username, setUsername]   = useState("");
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // orang tua
+  const [orangTuaId, setOrangTuaId]   = useState<number | null>(null);
+  const [namaLengkap, setNamaLengkap] = useState("");
+  const [hubungan, setHubungan]       = useState("Ayah");
+  const [pekerjaan, setPekerjaan]     = useState("");
+  const [telepon, setTelepon]         = useState("");
+  const [alamat, setAlamat]           = useState("");
+
+  // anak (read only)
+  const [namaAnak, setNamaAnak]           = useState("-");
+  const [kelas, setKelas]                 = useState("-");
+  const [jenisKelamin, setJenisKelamin]   = useState("-");
+  const [tanggalLahir, setTanggalLahir]   = useState("-");
+
+  useEffect(() => {
+    fetch(`${API}/profil`, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(json => {
+        if (!json.success) { setError("Gagal memuat profil."); return; }
+        const user = json.data;
+        setUserId(user.id);
+        setUsername(user.username);
+        setEmail(user.email);
+
+        const ot = user.orang_tua ?? user.orangTua;
+        if (ot) {
+          setOrangTuaId(ot.id_orangtua);
+          setNamaLengkap(ot.nama_orangtua ?? "");
+          setHubungan(ot.hubungan ?? "Ayah");
+          setPekerjaan(ot.pekerjaan ?? "");
+          setTelepon(ot.no_telp ?? "");
+          setAlamat(ot.alamat ?? "");
+
+          // ambil data anak pertama
+          const anak = ot.anak?.[0];
+          if (anak) {
+            setNamaAnak(anak.nama_anak ?? "-");
+            setKelas(anak.kelas?.nama_kelas ?? "-");
+            setJenisKelamin(anak.jenis_kelamin === "P" ? "Perempuan" : anak.jenis_kelamin === "L" ? "Laki-laki" : "-");
+            setTanggalLahir(anak.tanggal_lahir ?? "-");
+          }
+        }
+      })
+      .catch(() => setError("Gagal terhubung ke server."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccess(true);
+    setSaving(true);
+    setError("");
+    try {
+      // 1. Update user (username, email, password)
+      const userPayload: Record<string, string> = { username, email };
+      if (password) userPayload.password = password;
+
+      const resUser = await fetch(`${API}/profil`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify(userPayload),
+      });
+      const jsonUser = await resUser.json();
+      if (!jsonUser.success) { setError(jsonUser.message || "Gagal update akun."); return; }
+
+      // 2. Update data orang tua
+      if (orangTuaId) {
+        const resOt = await fetch(`${API}/orang-tua/${orangTuaId}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            nama_orangtua: namaLengkap,
+            hubungan,
+            pekerjaan,
+            no_telp: telepon,
+            alamat,
+            email,
+          }),
+        });
+        const jsonOt = await resOt.json();
+        if (!jsonOt.success) { setError(jsonOt.message || "Gagal update data orang tua."); return; }
+      }
+
+      setPassword("");
+      setShowSuccess(true);
+    } catch {
+      setError("Gagal terhubung ke server.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      Memuat profil...
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -58,6 +147,12 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-600">
+          ⚠ {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
 
         {/* SECTION 1: AKUN */}
@@ -70,8 +165,8 @@ export default function ProfilePage() {
               <label className="text-sm text-gray-600">Username</label>
               <input
                 type="text"
-                value={form.username}
-                onChange={handle("username")}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
@@ -80,8 +175,8 @@ export default function ProfilePage() {
               <label className="text-sm text-gray-600">Password baru</label>
               <input
                 type="password"
-                value={form.password}
-                onChange={handle("password")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Kosongkan jika tidak ingin mengubah"
                 className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
@@ -111,8 +206,8 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-600">Nama Lengkap</label>
                 <input
                   type="text"
-                  value={form.namaLengkap}
-                  onChange={handle("namaLengkap")}
+                  value={namaLengkap}
+                  onChange={(e) => setNamaLengkap(e.target.value)}
                   required
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
@@ -120,8 +215,8 @@ export default function ProfilePage() {
               <div>
                 <label className="text-sm text-gray-600">Hubungan dengan Anak</label>
                 <select
-                  value={form.hubungan}
-                  onChange={handle("hubungan")}
+                  value={hubungan}
+                  onChange={(e) => setHubungan(e.target.value)}
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white"
                 >
                   <option value="Ayah">Ayah</option>
@@ -131,13 +226,12 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ✅ TAMBAHAN PEKERJAAN */}
             <div>
               <label className="text-sm text-gray-600">Pekerjaan</label>
               <input
                 type="text"
-                value={form.pekerjaan}
-                onChange={handle("pekerjaan")}
+                value={pekerjaan}
+                onChange={(e) => setPekerjaan(e.target.value)}
                 className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
@@ -147,8 +241,8 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-600">Email</label>
                 <input
                   type="email"
-                  value={form.email}
-                  onChange={handle("email")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
@@ -157,8 +251,8 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-600">Nomor Telepon</label>
                 <input
                   type="text"
-                  value={form.telepon}
-                  onChange={handle("telepon")}
+                  value={telepon}
+                  onChange={(e) => setTelepon(e.target.value)}
                   required
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
@@ -168,8 +262,8 @@ export default function ProfilePage() {
             <div>
               <label className="text-sm text-gray-600">Alamat</label>
               <textarea
-                value={form.alamat}
-                onChange={handle("alamat")}
+                value={alamat}
+                onChange={(e) => setAlamat(e.target.value)}
                 rows={3}
                 required
                 className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
@@ -199,27 +293,24 @@ export default function ProfilePage() {
               <tbody className="divide-y divide-gray-100">
                 <tr>
                   <td className="px-4 py-3 text-gray-500 w-2/5">Nama Anak</td>
-                  <td className="px-4 py-3 text-gray-800 font-medium">{form.namaAnak}</td>
+                  <td className="px-4 py-3 text-gray-800 font-medium">{namaAnak}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-3 text-gray-500">Kelas</td>
                   <td className="px-4 py-3">
                     <span className="inline-block px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                      {form.kelas}
+                      {kelas}
                     </span>
                   </td>
                 </tr>
-
-                {/* ✅ TAMBAHAN */}
                 <tr>
                   <td className="px-4 py-3 text-gray-500">Jenis Kelamin</td>
-                  <td className="px-4 py-3 text-gray-800">{form.jenisKelamin}</td>
+                  <td className="px-4 py-3 text-gray-800">{jenisKelamin}</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-3 text-gray-500">Tanggal Lahir</td>
-                  <td className="px-4 py-3 text-gray-800">{form.tanggalLahir}</td>
+                  <td className="px-4 py-3 text-gray-800">{tanggalLahir}</td>
                 </tr>
-
               </tbody>
             </table>
           </div>
@@ -228,9 +319,10 @@ export default function ProfilePage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-2.5 rounded-lg text-sm font-medium transition active:scale-95"
+            disabled={saving}
+            className="bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white px-8 py-2.5 rounded-lg text-sm font-medium transition active:scale-95"
           >
-            Simpan Perubahan
+            {saving ? "Menyimpan..." : "Simpan Perubahan"}
           </button>
         </div>
 

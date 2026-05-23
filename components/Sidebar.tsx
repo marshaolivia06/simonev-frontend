@@ -10,7 +10,7 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   href: string;
-  children?: { label: string; href: string }[];
+  children?: { label: string; href: string; badge?: number }[];
 }
 
 interface SidebarProps {
@@ -43,18 +43,20 @@ export default function Sidebar({ navItems }: SidebarProps) {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
 
-          // ✅ FIX: parent ikut aktif kalau child aktif
           const isActive =
             pathname === item.href ||
             pathname.startsWith(item.href) ||
             (item.children &&
               item.children.some((child) => pathname === child.href));
 
-          // ✅ FIX: dropdown otomatis kebuka kalau child aktif
           const isExpanded =
             expandedMenu === item.label ||
             (item.children &&
               item.children.some((child) => pathname === child.href));
+
+          // total badge dari semua children
+          const totalBadge = item.children
+            ?.reduce((sum, c) => sum + (c.badge ?? 0), 0) ?? 0;
 
           return (
             <div key={item.label}>
@@ -73,12 +75,18 @@ export default function Sidebar({ navItems }: SidebarProps) {
                     <item.icon size={16} />
                     <span>{item.label}</span>
                   </div>
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform ${
-                      isExpanded ? "rotate-180" : ""
-                    }`}
-                  />
+                  <div className="flex items-center gap-1.5">
+                    {/* ← badge merah di parent kalau ada pending */}
+                    {totalBadge > 0 && !isExpanded && (
+                      <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                        {totalBadge}
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                    />
+                  </div>
                 </button>
               ) : (
                 <Link
@@ -100,13 +108,19 @@ export default function Sidebar({ navItems }: SidebarProps) {
                     <Link
                       key={child.label}
                       href={child.href}
-                      className={`block px-3 py-2 text-xs rounded-lg transition-colors ${
+                      className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors ${
                         pathname === child.href
                           ? "text-white bg-[#1565C0]"
                           : "text-[#BBDEFB] hover:text-white hover:bg-[#1565C0]"
                       }`}
                     >
-                      {child.label}
+                      <span>{child.label}</span>
+                      {/* ← badge merah di child */}
+                      {child.badge && child.badge > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                          {child.badge}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>
