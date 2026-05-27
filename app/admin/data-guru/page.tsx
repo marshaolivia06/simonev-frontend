@@ -300,11 +300,15 @@ export default function DataGuruPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Email</label>
-                <input type="email" value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                  placeholder="email@sekolah.sch.id" />
+                <input
+  type="text"
+  inputMode="email"
+  autoComplete="off"
+  value={form.email}
+  onChange={(e) => setForm({ ...form, email: e.target.value })}
+  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+  placeholder="email@sekolah.sch.id"
+/>
               </div>
 
               <div>

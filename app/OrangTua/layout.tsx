@@ -18,7 +18,6 @@ const pageTitles: Record<string, string> = {
   "/OrangTua/profile": "Profil Orangtua",
 };
 
-/* ── Helper inisial ── */
 function getInitials(nama: string): string {
   return nama
     .split(" ")
@@ -28,17 +27,51 @@ function getInitials(nama: string): string {
     .toUpperCase();
 }
 
-/* Ganti dengan nama dari session / auth */
-const NAMA_ORTU = "Budi Santoso";
-
 export default function OrangtuaLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [namaOrtu, setNamaOrtu] = useState("Orangtua");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
+
+  // Ambil nama ortu dari localStorage
+  useEffect(() => {
+    try {
+      const namaFromStorage = localStorage.getItem("nama_ortu")
+      const userStr = localStorage.getItem("user")
+
+      if (namaFromStorage) {
+        const duaKata = namaFromStorage.split(" ").slice(0, 2).join(" ")
+        setNamaOrtu(duaKata)
+      } else if (userStr) {
+        const user = JSON.parse(userStr)
+        setNamaOrtu(user.username || "Orangtua")
+      }
+    } catch {
+      setNamaOrtu("Orangtua")
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json",
+        }
+      })
+    } catch {
+      // tetap logout meski error
+    } finally {
+      localStorage.clear()
+      router.push("/login")
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -62,38 +95,30 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
             {pageTitle}
           </h1>
 
-          {/* ── Tombol Orangtua: kotak biru + buletan inisial di kiri ── */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center gap-2 bg-[#1976D2] text-white pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#1565C0] transition-colors"
             >
-              {/* Buletan inisial */}
               <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
                 <span className="text-[10px] font-bold text-white leading-none">
-                  {getInitials(NAMA_ORTU)}
+                  {getInitials(namaOrtu)}
                 </span>
               </div>
-              Orangtua
+              {namaOrtu}
             </button>
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
                 <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    router.push("/OrangTua/profile");
-                  }}
+                  onClick={() => { setShowDropdown(false); router.push("/OrangTua/profile"); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   <User size={14} />
                   Profil
                 </button>
                 <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    setShowLogoutModal(true);
-                  }}
+                  onClick={() => { setShowDropdown(false); setShowLogoutModal(true); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-100"
                 >
                   <LogOut size={14} />
@@ -109,7 +134,6 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
         </main>
       </div>
 
-      {/* Modal Konfirmasi Logout */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-80 shadow-xl text-center">
@@ -130,10 +154,7 @@ export default function OrangtuaLayout({ children }: { children: React.ReactNode
                 Batal
               </button>
               <button
-                onClick={() => {
-                  setShowLogoutModal(false);
-                  router.push("/");
-                }}
+                onClick={handleLogout}
                 className="flex-1 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
               >
                 Logout

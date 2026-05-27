@@ -26,8 +26,6 @@ const pageTitles: Record<string, string> = {
   "/admin/profile":               "Profil Admin",
 };
 
-const NAMA_ADMIN = "Siti Rahayu";
-
 function getInitials(nama: string): string {
   return nama
     .replace(/,.*/, "")
@@ -43,11 +41,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router      = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [namaAdmin,       setNamaAdmin]       = useState("Admin");
   const [showDropdown,    setShowDropdown]    = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [pendingCount,    setPendingCount]    = useState(0);
 
   const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
+
+  // Ambil nama admin dari localStorage
+  useEffect(() => {
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        setNamaAdmin(parsed.username || "Admin");
+      }
+    } catch {
+      setNamaAdmin("Admin");
+    }
+  }, []);
 
   // Fetch jumlah akun pending
   useEffect(() => {
@@ -69,7 +81,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     fetchPending();
-    // refresh setiap 30 detik
     const interval = setInterval(fetchPending, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -131,10 +142,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
                 <span className="text-[10px] font-bold text-white leading-none">
-                  {getInitials(NAMA_ADMIN)}
+                  {getInitials(namaAdmin)}
                 </span>
               </div>
-              Admin
+              {namaAdmin}
             </button>
 
             {showDropdown && (
@@ -177,7 +188,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 Batal
               </button>
               <button
-                onClick={() => { setShowLogoutModal(false); router.push("/"); }}
+                onClick={() => {
+                  localStorage.clear();
+                  setShowLogoutModal(false);
+                  router.push("/");
+                }}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
               >
                 Logout

@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, Users } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+
+function getToken() { return typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : ""; }
+function authHeaders(): HeadersInit {
+  return { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` };
+}
 
 interface Anak {
   id: number;
@@ -15,30 +22,24 @@ interface Anak {
   tanggalLahir: string;
 }
 
-const dataAwal: Anak[] = [
-  { id: 1,  namaAnak: "Aisyah Azizah",   orangTua: "Sari Sri Hastuti", pekerjaanOrangTua: "Guru",          email: "sari@email.com",   alamat: "Jl. Melati No. 1",      kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-03-12" },
-  { id: 2,  namaAnak: "Bima Sakti",       orangTua: "Andi Saputra",     pekerjaanOrangTua: "Wiraswasta",    email: "andi@email.com",   alamat: "Jl. Mawar No. 5",       kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-07-24" },
-  { id: 3,  namaAnak: "Citra Lestari",    orangTua: "Lina Wijaya",      pekerjaanOrangTua: "Ibu Rumah Tangga", email: "lina@email.com", alamat: "Jl. Kenanga No. 3",   kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-01-05" },
-  { id: 4,  namaAnak: "Dafa Ramadhan",    orangTua: "Budi Santoso",     pekerjaanOrangTua: "PNS",           email: "budi@email.com",   alamat: "Jl. Anggrek No. 7",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-11-30" },
-  { id: 5,  namaAnak: "Elsa Nabila",      orangTua: "Dewi Rahayu",      pekerjaanOrangTua: "Dokter",        email: "dewi@email.com",   alamat: "Jl. Dahlia No. 2",      kelas: "B", jenisKelamin: "Perempuan", tanggalLahir: "2018-05-17" },
-  { id: 6,  namaAnak: "Farhan Maulana",   orangTua: "Hendra Kusuma",    pekerjaanOrangTua: "Karyawan Swasta", email: "hendra@email.com", alamat: "Jl. Flamboyan No. 9", kelas: "A", jenisKelamin: "Laki-laki", tanggalLahir: "2019-08-09" },
-  { id: 7,  namaAnak: "Ghina Aulia",      orangTua: "Rina Marlina",     pekerjaanOrangTua: "Pedagang",      email: "rina@email.com",   alamat: "Jl. Tulip No. 4",       kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2017-04-22" },
-  { id: 8,  namaAnak: "Hafiz Pratama",    orangTua: "Yusuf Hakim",      pekerjaanOrangTua: "TNI",           email: "yusuf@email.com",  alamat: "Jl. Bougenville No. 6", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-12-01" },
-  { id: 9,  namaAnak: "Indira Putri",     orangTua: "Nita Sari",        pekerjaanOrangTua: "Bidan",         email: "nita@email.com",   alamat: "Jl. Cempaka No. 8",     kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-06-14" },
-  { id: 10, namaAnak: "Jaka Tarub",       orangTua: "Agus Priyono",     pekerjaanOrangTua: "Petani",        email: "agus@email.com",   alamat: "Jl. Seroja No. 10",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-09-03" },
-  { id: 11, namaAnak: "Kirana Sari",      orangTua: "Maya Dewi",        pekerjaanOrangTua: "Guru",          email: "maya@email.com",   alamat: "Jl. Akasia No. 11",     kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-02-18" },
-  { id: 12, namaAnak: "Lutfi Hakim",      orangTua: "Rudi Hartono",     pekerjaanOrangTua: "Wiraswasta",    email: "rudi@email.com",   alamat: "Jl. Bamboo No. 12",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-10-25" },
-  { id: 13, namaAnak: "Mila Anggraini",   orangTua: "Siti Aminah",      pekerjaanOrangTua: "Ibu Rumah Tangga", email: "siti@email.com", alamat: "Jl. Cemara No. 13",  kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-04-07" },
-  { id: 14, namaAnak: "Naufal Rizki",     orangTua: "Fajar Nugroho",    pekerjaanOrangTua: "Polisi",        email: "fajar@email.com",  alamat: "Jl. Durian No. 14",     kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-08-13" },
-  { id: 15, namaAnak: "Olivia Rahmawati", orangTua: "Wulan Sari",       pekerjaanOrangTua: "Apoteker",      email: "wulan@email.com",  alamat: "Jl. Eucalyptus No. 15", kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2018-11-29" },
-  { id: 16, namaAnak: "Pandu Wijaya",     orangTua: "Teguh Santoso",    pekerjaanOrangTua: "Karyawan Swasta", email: "teguh@email.com", alamat: "Jl. Flamboyan No. 16", kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2019-07-04" },
-  { id: 17, namaAnak: "Qonita Azzahra",   orangTua: "Hana Pertiwi",     pekerjaanOrangTua: "Bidan",         email: "hana@email.com",   alamat: "Jl. Gerbera No. 17",    kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2017-12-20" },
-  { id: 18, namaAnak: "Rafi Ananda",      orangTua: "Doni Setiawan",    pekerjaanOrangTua: "Pedagang",      email: "doni@email.com",   alamat: "Jl. Hyacinth No. 18",   kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2018-03-16" },
-  { id: 19, namaAnak: "Salma Nuraini",    orangTua: "Fitri Yanti",      pekerjaanOrangTua: "PNS",           email: "fitri@email.com",  alamat: "Jl. Iris No. 19",       kelas: "A", jenisKelamin: "Perempuan", tanggalLahir: "2019-09-11" },
-  { id: 20, namaAnak: "Taufik Hidayat",   orangTua: "Eko Prasetyo",     pekerjaanOrangTua: "TNI",           email: "eko@email.com",    alamat: "Jl. Jasmine No. 20",    kelas: "B", jenisKelamin: "Laki-laki", tanggalLahir: "2017-06-08" },
-];
-
-const ROWS = 10;
+function fromApi(item: Record<string, unknown>): Anak {
+  const ortu = item.orang_tua as Record<string, unknown> | null;
+  const kelas = item.kelas as Record<string, unknown> | null;
+  const jk = item.jenis_kelamin as string | null;
+  return {
+    id: item.id_anak as number,
+    namaAnak: item.nama_anak as string,
+    orangTua: ortu ? (ortu.nama_orangtua as string) ?? "-" : "-",
+    pekerjaanOrangTua: ortu ? (ortu.pekerjaan as string) ?? "-" : "-",
+    email: ortu
+      ? ((ortu.user as Record<string, unknown> | null)?.email as string) ?? "-"
+      : "-",
+    alamat: ortu ? (ortu.alamat as string) ?? "-" : "-",
+    kelas: kelas ? (kelas.nama_kelas as string) ?? "-" : "-",
+    jenisKelamin: jk === "L" ? "Laki-laki" : jk === "P" ? "Perempuan" : "-",
+    tanggalLahir: (item.tanggal_lahir as string) ?? "-",
+  };
+}
 
 const avatarColors = [
   "bg-blue-100 text-blue-600",
@@ -52,39 +53,66 @@ const avatarColors = [
 ];
 
 function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
-function formatTanggal(tgl: string) {
-  return tgl;
-}
-
-function getSubtitleKelas(filter: string, count: number) {
-  if (filter === "Semua") return `${count} anak terdaftar`;
-  return `${count} anak terdaftar di kelas ${filter}`;
-}
+const ROWS = 10;
 
 export default function DataAnakPage() {
+  const [data, setData] = useState<Anak[]>([]);
+  const [namaKelas, setNamaKelas] = useState("");
   const [search, setSearch] = useState("");
-  const [kelasFilter, setKelasFilter] = useState("Semua");
-  const [data] = useState<Anak[]>(dataAwal);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = data.filter((a) => {
-    const matchSearch =
-      a.namaAnak.toLowerCase().includes(search.toLowerCase()) ||
-      a.orangTua.toLowerCase().includes(search.toLowerCase());
-    const matchKelas = kelasFilter === "Semua" || a.kelas === kelasFilter;
-    return matchSearch && matchKelas;
-  });
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Ambil profil guru
+      const profilRes = await fetch(`${API_BASE}/profil`, { headers: authHeaders() });
+const profilJson = await profilRes.json();
+if (!profilJson.success) throw new Error("Gagal memuat profil guru");
 
-  const totalKelas = data.filter((a) =>
-    kelasFilter === "Semua" ? true : a.kelas === kelasFilter
-  ).length;
+const namaGuru = profilJson.data.guru?.nama_guru as string; // ← fix di sini
+console.log("FULL DATA:", JSON.stringify(profilJson.data)); // ← ini
+
+      const kelasRes = await fetch(`${API_BASE}/kelas`, { headers: authHeaders() });
+const kelasJson = await kelasRes.json();
+const kelasList = kelasJson.data as Record<string, unknown>[];
+
+// Langsung ambil kelas pertama (sudah difilter by guru di backend)
+const kelasSaya = kelasList[0] ?? null;
+
+      if (!kelasSaya) {
+        setData([]);
+        setNamaKelas("");
+        return;
+      }
+
+      setNamaKelas(kelasSaya.nama_kelas as string);
+
+      // Ambil semua anak, filter by nama kelas
+      const anakRes = await fetch(`${API_BASE}/anak`, { headers: authHeaders() });
+      const anakJson = await anakRes.json();
+      const semua = (anakJson.data as Record<string, unknown>[]).map(fromApi);
+      const filtered = semua.filter(
+        (a) => a.kelas === (kelasSaya.nama_kelas as string)
+      );
+      setData(filtered);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const filtered = data.filter((a) =>
+    a.namaAnak.toLowerCase().includes(search.toLowerCase()) ||
+    a.orangTua.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -97,93 +125,115 @@ export default function DataAnakPage() {
           </div>
           <div>
             <p className="text-lg font-bold text-gray-800 leading-tight">Data Anak</p>
-            <p className="text-sm text-gray-500">{getSubtitleKelas(kelasFilter, totalKelas)}</p>
+            <p className="text-sm text-gray-500">
+  {loading
+    ? "Memuat data..."
+    : namaKelas
+      ? `Anda mengampu Kelas ${namaKelas} · ${filtered.length} anak terdaftar`
+      : "Anda belum terdaftar sebagai wali kelas manapun"
+  }
+</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={kelasFilter}
-            onChange={(e) => setKelasFilter(e.target.value)}
-            className="bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none text-gray-700"
-          >
-            <option value="Semua">Semua Kelas</option>
-            <option value="A">Kelas A</option>
-            <option value="B">Kelas B</option>
-            <option value="C">Kelas C</option>
-          </select>
-
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari anak..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-48"
-            />
-          </div>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari anak / orang tua..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-52"
+          />
         </div>
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-600 mb-4">
+          ⚠ {error}
+        </div>
+      )}
+
       {/* Tabel */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm table-fixed border-collapse">
-          <thead>
-            <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center font-bold text-black w-[48px]">No</th>
-              <th className="px-4 py-3 text-left font-bold text-black">Nama Anak</th>
-              <th className="px-4 py-3 text-center font-bold text-black w-[80px]">Kelas</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Jenis Kelamin</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Tanggal Lahir</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Nama Orangtua</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Pekerjaan Orangtua</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Email Orangtua</th>
-              <th className="px-4 py-3 text-center font-bold text-black">Alamat</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-100">
-            {filtered.map((anak, index) => (
-              <tr key={anak.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 text-center text-gray-700">{index + 1}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColors[index % avatarColors.length]}`}>
-                      {getInitials(anak.namaAnak)}
-                    </div>
-                    <span className="font-medium text-gray-800">{anak.namaAnak}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.kelas}</td>
-                <td className="px-4 py-3 text-center text-gray-700">
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${anak.jenisKelamin === "Perempuan" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600"}`}>
-                    {anak.jenisKelamin}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center text-gray-700">{formatTanggal(anak.tanggalLahir)}</td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.orangTua}</td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.pekerjaanOrangTua}</td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.email}</td>
-                <td className="px-4 py-3 text-center text-gray-700">{anak.alamat}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse" style={{ minWidth: "900px" }}>
+            <thead>
+              <tr className="bg-gray-200 border-b border-gray-300">
+                {["No","Nama Anak","Kelas","Jenis Kelamin","Tanggal Lahir","Nama Orangtua","Pekerjaan Orangtua","Email Orangtua","Alamat"].map((h, i, arr) => (
+                  <th key={h}
+                    className={`px-3 py-3 text-xs font-bold text-black whitespace-nowrap border-b border-gray-300 ${i < arr.length - 1 ? "border-r border-gray-300" : ""} ${["No","Kelas","Jenis Kelamin","Tanggal Lahir"].includes(h) ? "text-center" : "text-left"}`}>
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
+            </thead>
 
-            {Array.from({ length: Math.max(0, ROWS - filtered.length) }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-                <td className="px-4 py-3">&nbsp;</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                Array.from({ length: ROWS }).map((_, i) => (
+                  <tr key={`loading-${i}`}>
+                    {Array.from({ length: 9 }).map((_, j) => (
+                      <td key={j} className="px-3 py-3">
+                        <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-12 text-gray-400 text-sm">
+                    {namaKelas
+                      ? "Belum ada anak di kelas ini"
+                      : "Kamu belum terdaftar sebagai wali kelas manapun"}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {filtered.map((anak, index) => (
+                    <tr key={anak.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-3 py-3 text-center text-gray-700 border-r border-gray-100">{index + 1}</td>
+                      <td className="px-3 py-3 border-r border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColors[index % avatarColors.length]}`}>
+                            {getInitials(anak.namaAnak)}
+                          </div>
+                          <span className="font-medium text-gray-800 whitespace-nowrap">{anak.namaAnak}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-700 text-xs border-r border-gray-100">{anak.kelas}</td>
+                      <td className="px-3 py-3 text-center border-r border-gray-100">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          anak.jenisKelamin === "Perempuan"
+                            ? "bg-pink-100 text-pink-600"
+                            : anak.jenisKelamin === "Laki-laki"
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-gray-100 text-gray-400"
+                        }`}>
+                          {anak.jenisKelamin}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-700 text-xs whitespace-nowrap border-r border-gray-100">{anak.tanggalLahir}</td>
+                      <td className="px-3 py-3 text-gray-700 text-xs whitespace-nowrap border-r border-gray-100">{anak.orangTua}</td>
+                      <td className="px-3 py-3 text-gray-700 text-xs whitespace-nowrap border-r border-gray-100">{anak.pekerjaanOrangTua}</td>
+                      <td className="px-3 py-3 text-gray-700 text-xs border-r border-gray-100">{anak.email}</td>
+                      <td className="px-3 py-3 text-gray-700 text-xs">{anak.alamat}</td>
+                    </tr>
+                  ))}
+
+                  {Array.from({ length: Math.max(0, ROWS - filtered.length) }).map((_, i) => (
+                    <tr key={`empty-${i}`}>
+                      {Array.from({ length: 9 }).map((_, j) => (
+                        <td key={j} className="px-3 py-3 border-r border-gray-100 last:border-r-0">&nbsp;</td>
+                      ))}
+                    </tr>
+                  ))}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

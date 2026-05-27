@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Eye, Search, ShieldCheck, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Search, ShieldCheck, Loader2, Trash2 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-// Status dari backend: pending | approved | rejected
-// Status di frontend:  pending | disetujui | ditolak
 type StatusBackend = "pending" | "approved" | "rejected";
 type Status = "pending" | "disetujui" | "ditolak";
 type Role = "guru" | "ortu";
@@ -22,44 +20,35 @@ interface Pendaftar {
   nik: string;
   tanggalDaftar: string;
   status: Status;
-  // Guru
   nipNoPegawai?: string;
   namaLembaga?: string;
   jabatan?: string;
   suratTugas?: string;
-  // Ortu
   hubungan?: string;
   namaAnak?: string;
   kelasAnak?: string;
   alamat?: string;
   fotoKtp?: string;
-
   catatanReject?: string;
 }
 
-// Map status backend → frontend
 const mapStatus = (status: StatusBackend): Status => {
   if (status === "approved") return "disetujui";
   if (status === "rejected") return "ditolak";
   return "pending";
 };
 
-// Map role backend → frontend
-const mapRole = (role: string): Role => {
-  return role === "guru" ? "guru" : "ortu";
-};
+const mapRole = (role: string): Role => role === "guru" ? "guru" : "ortu";
 
-// Map response API → Pendaftar
 const mapUser = (user: any): Pendaftar => {
   const detail = user.detail || {};
   const isGuru = mapRole(user.role) === "guru";
-
   return {
     id: user.id,
     username: user.username,
-   nama: isGuru
-  ? (detail.nama_guru || user.username)
-  : (detail.nama_orangtua || user.username),
+    nama: isGuru
+      ? (detail.nama_guru || user.username)
+      : (detail.nama_orangtua || user.username),
     email: user.email,
     noHp: detail.no_telp || "-",
     role: mapRole(user.role),
@@ -68,12 +57,10 @@ const mapUser = (user: any): Pendaftar => {
       ? new Date(user.created_at).toLocaleDateString("id-ID")
       : "-",
     status: mapStatus(user.status),
-    // Guru
     nipNoPegawai: detail.nip || detail.no_pegawai || "",
     namaLembaga: detail.nama_lembaga || "",
     jabatan: detail.jabatan || "",
     suratTugas: detail.surat_tugas || "",
-    // Ortu
     hubungan: detail.hubungan || "",
     namaAnak: detail.nama_anak || "",
     kelasAnak: detail.kelas_anak || "",
@@ -114,7 +101,6 @@ export default function VerifikasiAkunPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
-
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TabFilter>("semua");
   const [filterRole, setFilterRole] = useState<Role | "">("");
@@ -122,23 +108,26 @@ export default function VerifikasiAkunPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [catatanReject, setCatatanReject] = useState("");
   const [rejectTargetId, setRejectTargetId] = useState<number | null>(null);
+  const [showHapusModal, setShowHapusModal] = useState(false);
+  const [hapusTarget, setHapusTarget] = useState<Pendaftar | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // ── FETCH DATA ──────────────────────────────────────────────
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // ✅ Diperbaiki: hapus /api/ (sudah ada di NEXT_PUBLIC_API_URL)
       const res = await fetch(`${API_BASE}/verifikasi`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json",
         },
       });
-
       if (!res.ok) throw new Error("Gagal mengambil data verifikasi.");
-
       const json = await res.json();
       setData((json.data || []).map(mapUser));
     } catch (err: any) {
@@ -148,16 +137,11 @@ export default function VerifikasiAkunPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  // ── SETUJUI ─────────────────────────────────────────────────
   const handleSetujui = async (id: number) => {
     try {
       setActionLoading(id);
-
-      // ✅ Diperbaiki: hapus /api/
       const res = await fetch(`${API_BASE}/verifikasi/${id}/accept`, {
         method: "POST",
         headers: {
@@ -165,15 +149,9 @@ export default function VerifikasiAkunPage() {
           "Content-Type": "application/json",
         },
       });
-
       if (!res.ok) throw new Error("Gagal menyetujui akun.");
-
-      setData((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, status: "disetujui" } : d))
-      );
-      if (selectedUser?.id === id) {
-        setSelectedUser({ ...selectedUser, status: "disetujui" });
-      }
+      setData((prev) => prev.map((d) => d.id === id ? { ...d, status: "disetujui" } : d));
+      if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, status: "disetujui" });
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan.");
     } finally {
@@ -181,13 +159,10 @@ export default function VerifikasiAkunPage() {
     }
   };
 
-  // ── TOLAK ───────────────────────────────────────────────────
   const handleTolakConfirm = async () => {
     if (!rejectTargetId) return;
     try {
       setActionLoading(rejectTargetId);
-
-      // ✅ Diperbaiki: hapus /api/
       const res = await fetch(`${API_BASE}/verifikasi/${rejectTargetId}/reject`, {
         method: "POST",
         headers: {
@@ -196,23 +171,39 @@ export default function VerifikasiAkunPage() {
         },
         body: JSON.stringify({ alasan: catatanReject }),
       });
-
       if (!res.ok) throw new Error("Gagal menolak akun.");
-
       setData((prev) =>
-        prev.map((d) =>
-          d.id === rejectTargetId
-            ? { ...d, status: "ditolak", catatanReject }
-            : d
-        )
+        prev.map((d) => d.id === rejectTargetId ? { ...d, status: "ditolak", catatanReject } : d)
       );
       if (selectedUser?.id === rejectTargetId) {
         setSelectedUser({ ...selectedUser, status: "ditolak", catatanReject });
       }
-
       setShowRejectModal(false);
       setCatatanReject("");
       setRejectTargetId(null);
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleHapusKonfirm = async () => {
+    if (!hapusTarget) return;
+    try {
+      setActionLoading(hapusTarget.id);
+      const res = await fetch(`${API_BASE}/verifikasi/${hapusTarget.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) throw new Error("Gagal menghapus akun.");
+      setData((prev) => prev.filter((d) => d.id !== hapusTarget.id));
+      showToast(`Akun ${hapusTarget.nama} berhasil dihapus.`);
+      setShowHapusModal(false);
+      setHapusTarget(null);
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan.");
     } finally {
@@ -226,7 +217,11 @@ export default function VerifikasiAkunPage() {
     setShowRejectModal(true);
   };
 
-  // ── FILTER ──────────────────────────────────────────────────
+  const openHapusModal = (d: Pendaftar) => {
+    setHapusTarget(d);
+    setShowHapusModal(true);
+  };
+
   const counts = {
     semua: data.length,
     pending: data.filter((d) => d.status === "pending").length,
@@ -250,7 +245,6 @@ export default function VerifikasiAkunPage() {
       return order[a.status] - order[b.status];
     });
 
-  // ── RENDER ──────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 gap-2 text-gray-400">
@@ -264,10 +258,7 @@ export default function VerifikasiAkunPage() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
         <p className="text-sm text-red-500">{error}</p>
-        <button
-          onClick={fetchData}
-          className="text-xs px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
+        <button onClick={fetchData} className="text-xs px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
           Coba Lagi
         </button>
       </div>
@@ -288,7 +279,6 @@ export default function VerifikasiAkunPage() {
             <p className="text-xs text-gray-400">{counts.pending} pendaftar menunggu verifikasi</p>
           </div>
         </div>
-
         <div className="flex items-center gap-3">
           <select
             value={filterRole}
@@ -299,7 +289,6 @@ export default function VerifikasiAkunPage() {
             <option value="guru">Guru</option>
             <option value="ortu">Orang Tua</option>
           </select>
-
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -350,7 +339,7 @@ export default function VerifikasiAkunPage() {
               <th className="px-5 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-300">NIK</th>
               <th className="px-5 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-300">Tgl. Daftar</th>
               <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[90px] border-r border-gray-300">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[170px]">Aksi</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-[200px]">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -407,6 +396,18 @@ export default function VerifikasiAkunPage() {
                           <XCircle size={12} /> Tolak
                         </button>
                       </>
+                    )}
+                    {(d.status === "disetujui" || d.status === "ditolak") && (
+                      <button
+                        onClick={() => openHapusModal(d)}
+                        disabled={actionLoading === d.id}
+                        className="bg-red-100 hover:bg-red-200 text-red-600 text-xs px-2.5 py-1 rounded-md flex items-center gap-1 disabled:opacity-60"
+                      >
+                        {actionLoading === d.id
+                          ? <Loader2 size={12} className="animate-spin" />
+                          : <Trash2 size={12} />}
+                        Hapus
+                      </button>
                     )}
                   </div>
                 </td>
@@ -527,15 +528,57 @@ export default function VerifikasiAkunPage() {
                 disabled={actionLoading !== null}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-60"
               >
-                {actionLoading !== null
-                  ? <Loader2 size={14} className="animate-spin" />
-                  : null}
+                {actionLoading !== null ? <Loader2 size={14} className="animate-spin" /> : null}
                 Konfirmasi Tolak
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* MODAL HAPUS */}
+      {showHapusModal && hapusTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center space-y-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+              <Trash2 size={20} className="text-red-500" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-800 text-base">Hapus Akun?</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Kamu akan menghapus akun{" "}
+                <span className="font-semibold text-gray-700">{hapusTarget.nama}</span>.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Data yang dihapus tidak dapat dikembalikan.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowHapusModal(false); setHapusTarget(null); }}
+                className="flex-1 border border-gray-300 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleHapusKonfirm}
+                disabled={actionLoading !== null}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-60"
+              >
+                {actionLoading !== null ? <Loader2 size={14} className="animate-spin" /> : null}
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST — dipindah ke sini, di dalam VerifikasiAkunPage */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[99] bg-gray-800 text-white text-sm px-5 py-3 rounded-xl shadow-lg flex items-center gap-2">
+          <CheckCircle size={16} className="text-green-400" />
+          {toast}
+        </div>
+      )}
+
     </div>
   );
 }

@@ -23,14 +23,18 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token")
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profil`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json",
-          }
-        })
+        const headers = {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json",
+        }
 
-        const data = await res.json()
+        const [resProfile, resKelas] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/profil`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas`, { headers }),
+        ])
+
+        const data = await resProfile.json()
+        const dataKelas = await resKelas.json()
 
         if (data.success) {
           const user = data.data
@@ -45,8 +49,19 @@ export default function ProfilePage() {
             setNik(guru.nik || "")
             setAlamat(guru.alamat || "")
             setTelepon(guru.no_telp || "")
-            setJenisKelamin(guru.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan")
+            setJenisKelamin(
+              guru.jenis_kelamin === "L" ? "Laki-laki" :
+              guru.jenis_kelamin === "P" ? "Perempuan" : ""
+            )
             setTanggalLahir(guru.tanggal_lahir || "")
+
+            // Cocokkan kelas berdasarkan nama guru
+            if (dataKelas.success) {
+              const kelasGuru = (dataKelas.data as any[])
+                .filter((k: any) => k.wali_kelas?.toLowerCase() === guru.nama_guru?.toLowerCase())
+                .map((k: any) => k.nama_kelas)
+              setKelas(kelasGuru)
+            }
           }
         }
       } catch {
@@ -62,6 +77,11 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    if (!jenisKelamin) {
+      setError("Jenis kelamin harus dipilih.")
+      return
+    }
 
     try {
       const token = localStorage.getItem("token")
@@ -153,9 +173,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* KELAS YANG DIAMPU */}
         {kelas.length > 0 && (
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center justify-between">
-            <span className="text-sm text-gray-600 font-medium">Mengajar Kelas</span>
+            <span className="text-sm text-gray-600 font-medium">
+              Mengajar/Mengampu Kelas
+            </span>
             <div className="flex gap-2">
               {kelas.map((k) => (
                 <span key={k} className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
@@ -191,6 +214,7 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-600">Jenis Kelamin</label>
                 <select value={jenisKelamin} onChange={(e) => setJenisKelamin(e.target.value)}
                   className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+                  <option value="" disabled>-- Pilih Jenis Kelamin --</option>
                   <option value="Laki-laki">Laki-laki</option>
                   <option value="Perempuan">Perempuan</option>
                 </select>

@@ -1,180 +1,211 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle, Upload, X, ChevronRight, CalendarDays, ChevronDown, ChevronUp, ImagePlus } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  CheckCircle, X, ChevronRight, CalendarDays,
+  ChevronDown, ChevronUp, ImagePlus, Loader2,
+} from "lucide-react";
 
-// ─── DATA HIERARKI ───────────────────────────────────────────────
-interface Indikator { id: string; label: string; }
-interface Kegiatan { id: string; label: string; indikator: Indikator[]; }
-interface Aspek { id: string; label: string; kegiatan: Kegiatan[]; }
+// ─── ENV ─────────────────────────────────────────────────────────
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-const dataAspek: Aspek[] = [
-  {
-    id: "motorik", label: "Motorik",
-    kegiatan: [
-      { id: "motorik-berlari", label: "Berlari", indikator: [
-        { id: "motorik-berlari-1", label: "Mampu berlari lurus tanpa jatuh" },
-        { id: "motorik-berlari-2", label: "Mampu berlari mengikuti arah" },
-        { id: "motorik-berlari-3", label: "Mampu berlari dan berhenti saat aba-aba" },
-      ]},
-      { id: "motorik-melompat", label: "Melompat", indikator: [
-        { id: "motorik-melompat-1", label: "Mampu melompat dengan dua kaki" },
-        { id: "motorik-melompat-2", label: "Mampu melompat melewati rintangan kecil" },
-      ]},
-      { id: "motorik-menulis", label: "Menulis / Memegang Pensil", indikator: [
-        { id: "motorik-menulis-1", label: "Mampu memegang pensil dengan benar" },
-        { id: "motorik-menulis-2", label: "Mampu membuat garis lurus dan lengkung" },
-      ]},
-    ],
-  },
-  {
-    id: "kognitif", label: "Kognitif",
-    kegiatan: [
-      { id: "kognitif-angka", label: "Mengenal Angka", indikator: [
-        { id: "kognitif-angka-1", label: "Mampu menyebutkan angka 1–10" },
-        { id: "kognitif-angka-2", label: "Mampu mengurutkan angka 1–10" },
-        { id: "kognitif-angka-3", label: "Mampu mencocokkan jumlah benda dengan angka" },
-      ]},
-      { id: "kognitif-warna", label: "Mengenal Warna", indikator: [
-        { id: "kognitif-warna-1", label: "Mampu menyebutkan warna dasar" },
-        { id: "kognitif-warna-2", label: "Mampu mengelompokkan benda berdasarkan warna" },
-      ]},
-      { id: "kognitif-bentuk", label: "Mengenal Bentuk", indikator: [
-        { id: "kognitif-bentuk-1", label: "Mampu menyebutkan bentuk lingkaran, segitiga, persegi" },
-        { id: "kognitif-bentuk-2", label: "Mampu mengelompokkan benda berdasarkan bentuk" },
-      ]},
-    ],
-  },
-  {
-    id: "bahasa", label: "Bahasa",
-    kegiatan: [
-      { id: "bahasa-bicara", label: "Berbicara", indikator: [
-        { id: "bahasa-bicara-1", label: "Mampu menyebutkan nama benda di sekitarnya" },
-        { id: "bahasa-bicara-2", label: "Mampu berbicara dalam kalimat sederhana" },
-      ]},
-      { id: "bahasa-cerita", label: "Bercerita", indikator: [
-        { id: "bahasa-cerita-1", label: "Mampu menceritakan pengalaman sehari-hari" },
-        { id: "bahasa-cerita-2", label: "Mampu menjawab pertanyaan dari cerita" },
-      ]},
-      { id: "bahasa-huruf", label: "Mengenal Huruf", indikator: [
-        { id: "bahasa-huruf-1", label: "Mampu menyebutkan huruf vokal" },
-        { id: "bahasa-huruf-2", label: "Mampu mengenali beberapa huruf konsonan" },
-      ]},
-    ],
-  },
-  {
-    id: "sosem", label: "Sosial-Emosional",
-    kegiatan: [
-      { id: "sosem-bermain", label: "Bermain Bersama", indikator: [
-        { id: "sosem-bermain-1", label: "Mampu bermain bersama teman sebaya" },
-        { id: "sosem-bermain-2", label: "Mampu berbagi mainan" },
-        { id: "sosem-bermain-3", label: "Mampu menunggu giliran" },
-      ]},
-      { id: "sosem-mandiri", label: "Kemandirian", indikator: [
-        { id: "sosem-mandiri-1", label: "Mampu memakai sepatu sendiri" },
-        { id: "sosem-mandiri-2", label: "Mampu merapikan mainan setelah digunakan" },
-      ]},
-    ],
-  },
-  {
-    id: "agama", label: "Agama & Moral",
-    kegiatan: [
-      { id: "agama-doa", label: "Berdoa", indikator: [
-        { id: "agama-doa-1", label: "Mampu berdoa sebelum dan sesudah makan" },
-        { id: "agama-doa-2", label: "Mampu berdoa sebelum belajar" },
-      ]},
-      { id: "agama-adab", label: "Adab & Sopan Santun", indikator: [
-        { id: "agama-adab-1", label: "Mampu mengucapkan salam" },
-        { id: "agama-adab-2", label: "Mampu berterima kasih dan meminta maaf" },
-      ]},
-    ],
-  },
-  {
-    id: "seni", label: "Kreativitas / Seni",
-    kegiatan: [
-      { id: "seni-menggambar", label: "Menggambar", indikator: [
-        { id: "seni-menggambar-1", label: "Mampu menggambar objek sederhana (rumah, pohon)" },
-        { id: "seni-menggambar-2", label: "Mampu mewarnai gambar dengan rapi" },
-        { id: "seni-menggambar-3", label: "Mampu memberi nama pada gambarnya" },
-      ]},
-      { id: "seni-kolase", label: "Kolase & Prakarya", indikator: [
-        { id: "seni-kolase-1", label: "Mampu menempel potongan kertas membentuk pola" },
-        { id: "seni-kolase-2", label: "Mampu membuat karya dari bahan bekas" },
-      ]},
-      { id: "seni-musik", label: "Musik & Gerak", indikator: [
-        { id: "seni-musik-1", label: "Mampu mengikuti irama lagu sederhana" },
-        { id: "seni-musik-2", label: "Mampu bergerak sesuai irama musik" },
-      ]},
-    ],
-  },
-];
+// ─── TYPES dari DB ───────────────────────────────────────────────
+interface Indikator {
+  id_indikator: number;
+  id_aspek: number;
+  nama_indikator: string;
+  nama_kegiatan: string | null;
+}
+interface Aspek {
+  id_aspek: number;
+  nama_aspek: string;
+  indikator: Indikator[];
+}
+interface Kelas {
+  id_kelas: number;
+  nama_kelas: string;
+  tahun_ajaran: string;
+}
+interface Anak {
+  id_anak: number;
+  nama_anak: string;
+}
 
-// ─── TYPES ───────────────────────────────────────────────────────
+// ─── TYPES internal ──────────────────────────────────────────────
 interface NilaiEntry {
-  indikatorId: string; aspekLabel: string; kegiatanLabel: string;
-  indikatorLabel: string; nilai: string; dokumentasi: string;
+  id_indikator: number;
+  aspekLabel: string;
+  kegiatanLabel: string;
+  indikatorLabel: string;
+  nilai: string;
+  foto: string; // nama file
+  fotoFile: File | null;
 }
 type Step = "filter" | "pilih-aspek" | "isi-nilai";
 
-const kelasOptions = ["TK A1", "TK A2", "TK A3", "TK B1", "TK B2", "TK B3"];
-const anakOptions = ["Ahmad Fauzan", "Siti Rahayu", "Budi Santoso", "Dewi Lestari"];
-const semesterOptions = ["Semester 1", "Semester 2"];
-const tahunAjaranOptions = ["2023/2024", "2024/2025", "2025/2026"];
-const NILAI_OPTIONS = ["BB", "MB", "BSH", "BSB"] as const;
+// ─── GROUPING helper ─────────────────────────────────────────────
+// Karena kegiatan hanya field string di indikator, kita group manual
+interface KegiatanGroup {
+  nama_kegiatan: string;
+  indikator: Indikator[];
+}
+function groupByKegiatan(indikator: Indikator[]): KegiatanGroup[] {
+  const map = new Map<string, Indikator[]>();
+  for (const ind of indikator) {
+    const key = ind.nama_kegiatan ?? "Umum";
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(ind);
+  }
+  return Array.from(map.entries()).map(([nama_kegiatan, indikator]) => ({
+    nama_kegiatan,
+    indikator,
+  }));
+}
 
-// ── Keterangan nilai lengkap ──
+// ─── NILAI config ────────────────────────────────────────────────
+const NILAI_OPTIONS = ["BB", "MB", "BSH", "BSB"] as const;
 const NILAI_INFO: Record<string, { label: string; desc: string; color: string; selectedColor: string }> = {
-  BB: {
-    label: "Belum Berkembang",
-    desc: "Anak belum menunjukkan kemampuan ini",
-    color: "text-red-500 border-red-200 bg-white hover:bg-red-50",
-    selectedColor: "text-red-700 border-red-400 bg-red-100 ring-2 ring-red-300 ring-offset-1",
-  },
-  MB: {
-    label: "Mulai Berkembang",
-    desc: "Anak sudah mulai menunjukkan kemampuan dengan bantuan",
-    color: "text-yellow-600 border-yellow-200 bg-white hover:bg-yellow-50",
-    selectedColor: "text-yellow-800 border-yellow-400 bg-yellow-100 ring-2 ring-yellow-300 ring-offset-1",
-  },
-  BSH: {
-    label: "Berkembang Sesuai Harapan",
-    desc: "Anak mampu melakukan secara mandiri",
-    color: "text-blue-500 border-blue-200 bg-white hover:bg-blue-50",
-    selectedColor: "text-blue-800 border-blue-400 bg-blue-100 ring-2 ring-blue-300 ring-offset-1",
-  },
-  BSB: {
-    label: "Berkembang Sangat Baik",
-    desc: "Anak mampu dan membantu teman lainnya",
-    color: "text-green-600 border-green-200 bg-white hover:bg-green-50",
-    selectedColor: "text-green-800 border-green-400 bg-green-100 ring-2 ring-green-300 ring-offset-1",
-  },
+  BB: { label: "Belum Berkembang",          desc: "Anak belum menunjukkan kemampuan ini",             color: "text-red-500 border-red-200 bg-white hover:bg-red-50",       selectedColor: "text-red-700 border-red-400 bg-red-100 ring-2 ring-red-300 ring-offset-1" },
+  MB: { label: "Mulai Berkembang",           desc: "Anak sudah mulai menunjukkan kemampuan dengan bantuan", color: "text-yellow-600 border-yellow-200 bg-white hover:bg-yellow-50", selectedColor: "text-yellow-800 border-yellow-400 bg-yellow-100 ring-2 ring-yellow-300 ring-offset-1" },
+  BSH:{ label: "Berkembang Sesuai Harapan", desc: "Anak mampu melakukan secara mandiri",              color: "text-blue-500 border-blue-200 bg-white hover:bg-blue-50",     selectedColor: "text-blue-800 border-blue-400 bg-blue-100 ring-2 ring-blue-300 ring-offset-1" },
+  BSB:{ label: "Berkembang Sangat Baik",    desc: "Anak mampu dan membantu teman lainnya",            color: "text-green-600 border-green-200 bg-white hover:bg-green-50",  selectedColor: "text-green-800 border-green-400 bg-green-100 ring-2 ring-green-300 ring-offset-1" },
 };
 
-const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer";
+const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
+
+// ─── API helper ──────────────────────────────────────────────────
+async function apiFetch<T>(path: string): Promise<T> {
+  const token = typeof window !== "undefined" 
+    ? localStorage.getItem("token") 
+    : null;
+    
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: {
+      Authorization: `Bearer ${token ?? ""}`,
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  const json = await res.json();
+  return json.data as T;
+}
+
+// ─── Helper default ──────────────────────────────────────────────
+function getDefaultSemester(): string {
+  return new Date().getMonth() + 1 >= 7 ? "Semester 1" : "Semester 2";
+}
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────
 export default function PenilaianPage() {
   const [step, setStep] = useState<Step>("filter");
-  const [kelas, setKelas] = useState("");
-  const [anak, setAnak] = useState("");
-  const [semester, setSemester] = useState("");
-  const [tahunAjaran, setTahunAjaran] = useState("");
-  const [tanggal, setTanggal] = useState(() => new Date().toISOString().split("T")[0]);
 
-  const [aspekDipilih, setAspekDipilih] = useState<string[]>([]);
-  const [kegiatanDipilih, setKegiatanDipilih] = useState<string[]>([]);
-  const [indikatorDipilih, setIndikatorDipilih] = useState<string[]>([]);
-  const [expandedKegiatan, setExpandedKegiatan] = useState<string[]>([]);
-  const [nilaiMap, setNilaiMap] = useState<Record<string, NilaiEntry>>({});
+  // ── Filter state ──
+  const [tahunAjaran, setTahunAjaran] = useState("");
+  const [semester, setSemester] = useState(getDefaultSemester());
+  const [selectedKelas, setSelectedKelas] = useState<Kelas | null>(null);
+  const [selectedAnak, setSelectedAnak] = useState<Anak | null>(null);
+
+  // ── Data dari API ──
+  const [kelasList, setKelasList]   = useState<Kelas[]>([]);
+  const [anakList, setAnakList]     = useState<Anak[]>([]);
+  const [aspekList, setAspekList]   = useState<Aspek[]>([]);
+
+  // ── Loading state ──
+  const [loadingKelas, setLoadingKelas] = useState(false);
+  const [loadingAnak, setLoadingAnak]   = useState(false);
+  const [loadingAspek, setLoadingAspek] = useState(false);
+  const [loadingSimpan, setLoadingSimpan] = useState(false);
+
+  // ── Pilih aspek/kegiatan/indikator ──
+  const [aspekDipilih, setAspekDipilih]           = useState<number[]>([]);
+  const [kegiatanDipilih, setKegiatanDipilih]     = useState<string[]>([]); // "id_aspek::nama_kegiatan"
+  const [indikatorDipilih, setIndikatorDipilih]   = useState<number[]>([]);
+  const [expandedKegiatan, setExpandedKegiatan]   = useState<string[]>([]);
+  const [nilaiMap, setNilaiMap]                   = useState<Record<number, NilaiEntry>>({});
+
+  // ── Lainnya ──
+  const [tanggal, setTanggal]   = useState(() => new Date().toISOString().split("T")[0]);
   const [komentar, setKomentar] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [showError, setShowError]     = useState(false);
   const [errorFields, setErrorFields] = useState<string[]>([]);
 
-  // ── Step 1 ──
+  // ── tahun ajaran unik dari kelas list ──
+  const tahunAjaranList = useMemo(
+    () => [...new Set(kelasList.map((k) => k.tahun_ajaran))].sort().reverse(),
+    [kelasList]
+  );
+
+  // ── kelas yang sesuai tahun ajaran dipilih ──
+  const kelasFiltered = useMemo(
+    () => kelasList.filter((k) => k.tahun_ajaran === tahunAjaran),
+    [kelasList, tahunAjaran]
+  );
+
+  // ── 1. Fetch kelas guru saat mount ──
+  useEffect(() => {
+    setLoadingKelas(true);
+    apiFetch<Kelas[]>("/api/kelas")
+      .then((data) => {
+        setKelasList(data);
+        console.log("DATA KELAS:", data); 
+        // default tahun ajaran = tahun ajaran terbaru
+        if (data.length > 0) {
+          const latest = [...data].sort((a, b) =>
+            b.tahun_ajaran.localeCompare(a.tahun_ajaran)
+          )[0].tahun_ajaran;
+          setTahunAjaran(latest);
+        }
+      })
+      .catch(() => setErrorFields(["Gagal memuat data kelas."]))
+      .finally(() => setLoadingKelas(false));
+  }, []);
+
+  // ── 2. Fetch anak saat kelas dipilih ──
+  useEffect(() => {
+    if (!selectedKelas) { setAnakList([]); setSelectedAnak(null); return; }
+    setLoadingAnak(true);
+    setSelectedAnak(null);
+    apiFetch<Anak[]>(`/api/anak?id_kelas=${selectedKelas.id_kelas}`)
+      .then(setAnakList)
+      .catch(() => setErrorFields(["Gagal memuat data anak."]))
+      .finally(() => setLoadingAnak(false));
+  }, [selectedKelas]);
+
+  // ── 3. Fetch aspek saat masuk step isi-nilai ──
+  useEffect(() => {
+    if (step !== "isi-nilai" || aspekList.length > 0) return;
+    setLoadingAspek(true);
+    apiFetch<Aspek[]>("/api/aspek")
+      .then(setAspekList)
+      .catch(() => setErrorFields(["Gagal memuat data aspek."]))
+      .finally(() => setLoadingAspek(false));
+  }, [step]);
+
+  // ── Handler cascade ──
+  const handleTahunAjaranChange = (val: string) => {
+    setTahunAjaran(val);
+    setSelectedKelas(null);
+    setSelectedAnak(null);
+  };
+  const handleSemesterChange = (val: string) => {
+    setSemester(val);
+    setSelectedKelas(null);
+    setSelectedAnak(null);
+  };
+  const handleKelasChange = (id: string) => {
+    const kelas = kelasList.find((k) => k.id_kelas === Number(id)) ?? null;
+    setSelectedKelas(kelas);
+  };
+  const handleAnakChange = (id: string) => {
+    const anak = anakList.find((a) => a.id_anak === Number(id)) ?? null;
+    setSelectedAnak(anak);
+  };
+
+  // ── Step 1 → 2 ──
   const handleTampilkan = () => {
-    if (!kelas || !anak || !semester || !tahunAjaran) {
-      setErrorFields(["Harap lengkapi semua filter: Kelas, Nama Anak, Semester, dan Tahun Ajaran."]);
+    if (!tahunAjaran || !semester || !selectedKelas || !selectedAnak) {
+      setErrorFields(["Harap lengkapi semua filter: Tahun Ajaran, Semester, Kelas, dan Nama Anak."]);
       setShowError(true); return;
     }
     setAspekDipilih([]); setKegiatanDipilih([]);
@@ -183,7 +214,7 @@ export default function PenilaianPage() {
   };
 
   // ── Step 2 ──
-  const toggleAspek = (id: string) =>
+  const toggleAspek = (id: number) =>
     setAspekDipilih((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
 
   const handleLanjutNilai = () => {
@@ -195,51 +226,60 @@ export default function PenilaianPage() {
   };
 
   // ── Step 3: kegiatan ──
-  const toggleExpandKegiatan = (id: string) =>
-    setExpandedKegiatan((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const kegiatanKey = (aspekId: number, namaKegiatan: string) => `${aspekId}::${namaKegiatan}`;
 
-  const toggleKegiatan = (kegiatan: Kegiatan) => {
-    const isSelected = kegiatanDipilih.includes(kegiatan.id);
+  const toggleExpandKegiatan = (key: string) =>
+    setExpandedKegiatan((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
+
+  const toggleKegiatan = (aspekId: number, kg: KegiatanGroup) => {
+    const key = kegiatanKey(aspekId, kg.nama_kegiatan);
+    const isSelected = kegiatanDipilih.includes(key);
     if (isSelected) {
-      setKegiatanDipilih((prev) => prev.filter((x) => x !== kegiatan.id));
-      const indIds = kegiatan.indikator.map((i) => i.id);
-      setIndikatorDipilih((prev) => prev.filter((x) => !indIds.includes(x)));
-      setNilaiMap((prev) => { const n = { ...prev }; indIds.forEach((id) => delete n[id]); return n; });
+      setKegiatanDipilih((prev) => prev.filter((x) => x !== key));
+      const ids = kg.indikator.map((i) => i.id_indikator);
+      setIndikatorDipilih((prev) => prev.filter((x) => !ids.includes(x)));
+      setNilaiMap((prev) => { const n = { ...prev }; ids.forEach((id) => delete n[id]); return n; });
     } else {
-      setKegiatanDipilih((prev) => [...prev, kegiatan.id]);
-      if (!expandedKegiatan.includes(kegiatan.id))
-        setExpandedKegiatan((prev) => [...prev, kegiatan.id]);
+      setKegiatanDipilih((prev) => [...prev, key]);
+      if (!expandedKegiatan.includes(key))
+        setExpandedKegiatan((prev) => [...prev, key]);
     }
   };
 
   // ── Step 3: indikator ──
-  const toggleIndikator = (ind: Indikator, kegiatan: Kegiatan, aspek: Aspek) => {
-    const isSelected = indikatorDipilih.includes(ind.id);
+  const toggleIndikator = (ind: Indikator, aspek: Aspek) => {
+    const isSelected = indikatorDipilih.includes(ind.id_indikator);
     if (isSelected) {
-      setIndikatorDipilih((prev) => prev.filter((x) => x !== ind.id));
-      setNilaiMap((prev) => { const n = { ...prev }; delete n[ind.id]; return n; });
+      setIndikatorDipilih((prev) => prev.filter((x) => x !== ind.id_indikator));
+      setNilaiMap((prev) => { const n = { ...prev }; delete n[ind.id_indikator]; return n; });
     } else {
-      setIndikatorDipilih((prev) => [...prev, ind.id]);
+      setIndikatorDipilih((prev) => [...prev, ind.id_indikator]);
       setNilaiMap((prev) => ({
         ...prev,
-        [ind.id]: { indikatorId: ind.id, aspekLabel: aspek.label, kegiatanLabel: kegiatan.label, indikatorLabel: ind.label, nilai: "", dokumentasi: "" },
+        [ind.id_indikator]: {
+          id_indikator: ind.id_indikator,
+          aspekLabel: aspek.nama_aspek,
+          kegiatanLabel: ind.nama_kegiatan ?? "Umum",
+          indikatorLabel: ind.nama_indikator,
+          nilai: "", foto: "", fotoFile: null,
+        },
       }));
     }
   };
 
-  const handleNilai = (id: string, val: string) =>
+  const handleNilai = (id: number, val: string) =>
     setNilaiMap((prev) => ({ ...prev, [id]: { ...prev[id], nilai: val } }));
 
-  const handleFile = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setNilaiMap((prev) => ({ ...prev, [id]: { ...prev[id], dokumentasi: file.name } }));
+    if (file) setNilaiMap((prev) => ({ ...prev, [id]: { ...prev[id], foto: file.name, fotoFile: file } }));
   };
 
-  const removeFile = (id: string) =>
-    setNilaiMap((prev) => ({ ...prev, [id]: { ...prev[id], dokumentasi: "" } }));
+  const removeFile = (id: number) =>
+    setNilaiMap((prev) => ({ ...prev, [id]: { ...prev[id], foto: "", fotoFile: null } }));
 
-  // ── Simpan ──
-  const handleSimpan = () => {
+  // ── Simpan ke API ──
+  const handleSimpan = async () => {
     const errors: string[] = [];
     if (!tanggal) errors.push("Tanggal penilaian belum diisi.");
     if (indikatorDipilih.length === 0) errors.push("Pilih minimal satu indikator yang akan dinilai.");
@@ -247,17 +287,79 @@ export default function PenilaianPage() {
     if (belumNilai.length > 0)
       errors.push(`Nilai belum diisi untuk: ${belumNilai.map((id) => nilaiMap[id]?.indikatorLabel || id).join(", ")}`);
     if (errors.length > 0) { setErrorFields(errors); setShowError(true); return; }
-    setShowSuccess(true);
+
+    setLoadingSimpan(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      // Upload foto dulu kalau ada, satu per satu
+      const penilaian = await Promise.all(
+        indikatorDipilih.map(async (id) => {
+          const entry = nilaiMap[id];
+          let fotoPath = "";
+          if (entry.fotoFile) {
+            const fd = new FormData();
+            fd.append("foto", entry.fotoFile);
+            fd.append("id_anak", String(selectedAnak!.id_anak));
+            fd.append("id_indikator", String(id));
+            fd.append("semester", semester);
+            fd.append("tanggal", tanggal);
+            fd.append("nilai", entry.nilai);
+            fd.append("komentar", komentar);
+            // Upload via endpoint single (yang sudah ada) untuk dapat path foto
+            const res = await fetch(`${API_URL}/api/observasi`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+              body: fd,
+            });
+            const json = await res.json();
+            fotoPath = json.data?.foto ?? "";
+            return null; // sudah tersimpan via single endpoint
+          }
+          return { id_indikator: id, nilai: entry.nilai, foto: fotoPath };
+        })
+      );
+
+      // Batch insert untuk yang tidak punya foto
+      const batchItems = penilaian.filter(Boolean);
+      if (batchItems.length > 0) {
+        const res = await fetch(`${API_URL}/api/observasi/batch`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_anak: selectedAnak!.id_anak,
+            semester,
+            tanggal,
+            komentar,
+            penilaian: batchItems,
+          }),
+        });
+        if (!res.ok) throw new Error("Gagal menyimpan penilaian.");
+      }
+
+      setShowSuccess(true);
+    } catch (err) {
+      setErrorFields(["Terjadi kesalahan saat menyimpan. Coba lagi."]);
+      setShowError(true);
+    } finally {
+      setLoadingSimpan(false);
+    }
   };
 
   const handleReset = () => {
-    setStep("filter"); setKelas(""); setAnak(""); setSemester(""); setTahunAjaran("");
+    setStep("filter");
+    setSelectedKelas(null); setSelectedAnak(null);
+    setSemester(getDefaultSemester());
     setAspekDipilih([]); setKegiatanDipilih([]); setIndikatorDipilih([]);
     setNilaiMap({}); setKomentar(""); setExpandedKegiatan([]);
     setTanggal(new Date().toISOString().split("T")[0]);
   };
 
-  const aspekTerpilih = dataAspek.filter((a) => aspekDipilih.includes(a.id));
+  const aspekTerpilih = aspekList.filter((a) => aspekDipilih.includes(a.id_aspek));
   const totalInd = indikatorDipilih.length;
   const sudahNilaiCount = indikatorDipilih.filter((id) => nilaiMap[id]?.nilai).length;
 
@@ -270,7 +372,7 @@ export default function PenilaianPage() {
           <div className="bg-white rounded-2xl p-6 w-80 shadow-xl text-center">
             <CheckCircle size={48} className="text-green-500 mx-auto mb-3" />
             <h3 className="text-base font-semibold text-gray-800 mb-1">Berhasil Disimpan</h3>
-            <p className="text-sm text-gray-500 mb-1"><strong>{anak}</strong> · {tanggal}</p>
+            <p className="text-sm text-gray-500 mb-1"><strong>{selectedAnak?.nama_anak}</strong> · {tanggal}</p>
             <p className="text-xs text-gray-400 mb-5">{totalInd} indikator dari {aspekDipilih.length} aspek berhasil disimpan.</p>
             <button onClick={() => { setShowSuccess(false); handleReset(); }}
               className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm font-medium">Selesai</button>
@@ -315,29 +417,103 @@ export default function PenilaianPage() {
           <p className="text-sm font-semibold text-gray-700 mb-1">Pilih Data Anak</p>
           <p className="text-xs text-gray-400 mb-4">Lengkapi semua pilihan di bawah untuk melanjutkan penilaian.</p>
 
-          {/* ── 4 kolom lebar penuh ── */}
-          <div className="grid grid-cols-4 gap-3 w-full">
-            {[
-              { label: "Kelas", val: kelas, set: setKelas, opts: kelasOptions, ph: "Pilih kelas" },
-              { label: "Nama Anak", val: anak, set: setAnak, opts: anakOptions, ph: "Pilih nama anak" },
-              { label: "Semester", val: semester, set: setSemester, opts: semesterOptions, ph: "Pilih semester" },
-              { label: "Tahun Ajaran", val: tahunAjaran, set: setTahunAjaran, opts: tahunAjaranOptions, ph: "Pilih tahun ajaran" },
-            ].map(({ label, val, set, opts, ph }) => (
-              <div key={label}>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{label}</label>
+          {loadingKelas ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+              <Loader2 size={16} className="animate-spin" /> Memuat data kelas...
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-3 w-full">
+
+              {/* 1. Tahun Ajaran */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Tahun Ajaran</label>
                 <div className="relative">
-                  <select value={val} onChange={(e) => set(e.target.value)} className={selectClass}>
-                    <option value="">{ph}</option>
-                    {opts.map((o) => <option key={o}>{o}</option>)}
+                  <select value={tahunAjaran} onChange={(e) => handleTahunAjaranChange(e.target.value)} className={selectClass}>
+                    <option value="">Pilih tahun ajaran</option>
+                    {tahunAjaranList.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
                 </div>
               </div>
-            ))}
-          </div>
 
-          <button onClick={handleTampilkan}
-            className="mt-5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-8 py-2.5 rounded-lg transition-colors">
+              {/* 2. Semester */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Semester</label>
+                <div className="relative">
+                  <select value={semester} onChange={(e) => handleSemesterChange(e.target.value)} disabled={!tahunAjaran} className={selectClass}>
+                    <option value="">Pilih semester</option>
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+                </div>
+              </div>
+
+              {/* 3. Kelas */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                  Kelas
+                  {semester && kelasFiltered.length > 0 && (
+                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                      {kelasFiltered.length} kelas
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedKelas?.id_kelas ?? ""}
+                    onChange={(e) => handleKelasChange(e.target.value)}
+                    disabled={!semester}
+                    className={selectClass}
+                  >
+                    <option value="">Pilih kelas</option>
+                    {kelasFiltered.map((k) => (
+                      <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+                </div>
+              </div>
+
+              {/* 4. Nama Anak */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                  Nama Anak
+                  {selectedKelas && anakList.length > 0 && (
+                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                      {anakList.length} siswa
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  {loadingAnak ? (
+                    <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-400">
+                      <Loader2 size={14} className="animate-spin" /> Memuat...
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedAnak?.id_anak ?? ""}
+                      onChange={(e) => handleAnakChange(e.target.value)}
+                      disabled={!selectedKelas}
+                      className={selectClass}
+                    >
+                      <option value="">Pilih nama anak</option>
+                      {anakList.map((a) => (
+                        <option key={a.id_anak} value={a.id_anak}>{a.nama_anak}</option>
+                      ))}
+                    </select>
+                  )}
+                  {!loadingAnak && (
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          <button onClick={handleTampilkan} disabled={loadingKelas}
+            className="mt-5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium px-8 py-2.5 rounded-lg transition-colors">
             Tampilkan
           </button>
         </div>
@@ -346,39 +522,55 @@ export default function PenilaianPage() {
       {/* ══ STEP 2: PILIH ASPEK ══ */}
       {step === "pilih-aspek" && (
         <div className="space-y-4">
-          <InfoBar anak={anak} kelas={kelas} semester={semester} tahunAjaran={tahunAjaran} onGanti={() => setStep("filter")} />
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm font-semibold text-gray-700 mb-1">Pilih aspek yang dinilai hari ini</p>
-            <p className="text-xs text-gray-400 mb-4">Tidak semua aspek harus dinilai setiap hari.</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {dataAspek.map((a) => {
-                const active = aspekDipilih.includes(a.id);
-                return (
-                  <button key={a.id} onClick={() => toggleAspek(a.id)}
-                    className={`flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${active ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
-                    <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${active ? "bg-blue-500 border-blue-500" : "border-gray-300"}`}>
-                      {active && <span className="text-white text-[10px] font-bold">✓</span>}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-semibold ${active ? "text-blue-700" : "text-gray-700"}`}>{a.label}</p>
-                      <p className="text-xs text-gray-400">{a.kegiatan.length} kegiatan tersedia</p>
-                    </div>
-                  </button>
-                );
-              })}
+          <InfoBar anak={selectedAnak?.nama_anak ?? ""} kelas={selectedKelas?.nama_kelas ?? ""} semester={semester} tahunAjaran={tahunAjaran} onGanti={() => setStep("filter")} />
+
+          {/* Fetch aspek di step ini kalau belum ada */}
+          {aspekList.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              {loadingAspek ? (
+                <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+                  <Loader2 size={16} className="animate-spin" /> Memuat aspek perkembangan...
+                </div>
+              ) : (
+                <button onClick={() => apiFetch<Aspek[]>("/api/aspek").then(setAspekList)}
+                  className="text-sm text-blue-500 hover:underline">Muat ulang aspek</button>
+              )}
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">{aspekDipilih.length === 0 ? "Belum ada aspek dipilih" : `${aspekDipilih.length} aspek dipilih`}</span>
-              <div className="flex gap-2 text-xs">
-                <button onClick={() => setAspekDipilih(dataAspek.map((a) => a.id))} className="text-blue-500 hover:underline">Pilih semua</button>
-                <span className="text-gray-300">|</span>
-                <button onClick={() => setAspekDipilih([])} className="text-gray-400 hover:underline">Hapus pilihan</button>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <p className="text-sm font-semibold text-gray-700 mb-1">Pilih aspek yang dinilai hari ini</p>
+              <p className="text-xs text-gray-400 mb-4">Tidak semua aspek harus dinilai setiap hari.</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {aspekList.map((a) => {
+                  const active = aspekDipilih.includes(a.id_aspek);
+                  return (
+                    <button key={a.id_aspek} onClick={() => toggleAspek(a.id_aspek)}
+                      className={`flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${active ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                      <div className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${active ? "bg-blue-500 border-blue-500" : "border-gray-300"}`}>
+                        {active && <span className="text-white text-[10px] font-bold">✓</span>}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold ${active ? "text-blue-700" : "text-gray-700"}`}>{a.nama_aspek}</p>
+                        <p className="text-xs text-gray-400">{groupByKegiatan(a.indikator).length} kegiatan · {a.indikator.length} indikator</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">{aspekDipilih.length === 0 ? "Belum ada aspek dipilih" : `${aspekDipilih.length} aspek dipilih`}</span>
+                <div className="flex gap-2 text-xs">
+                  <button onClick={() => setAspekDipilih(aspekList.map((a) => a.id_aspek))} className="text-blue-500 hover:underline">Pilih semua</button>
+                  <span className="text-gray-300">|</span>
+                  <button onClick={() => setAspekDipilih([])} className="text-gray-400 hover:underline">Hapus pilihan</button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
           <div className="flex justify-end">
-            <button onClick={handleLanjutNilai}
-              className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors">
+            <button onClick={handleLanjutNilai} disabled={aspekList.length === 0}
+              className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors">
               Lanjut Pilih Kegiatan & Indikator →
             </button>
           </div>
@@ -388,7 +580,7 @@ export default function PenilaianPage() {
       {/* ══ STEP 3: ISI NILAI ══ */}
       {step === "isi-nilai" && (
         <div className="space-y-4">
-          <InfoBar anak={anak} kelas={kelas} semester={semester} tahunAjaran={tahunAjaran} onGanti={() => setStep("pilih-aspek")} gantiLabel="← Ubah aspek" />
+          <InfoBar anak={selectedAnak?.nama_anak ?? ""} kelas={selectedKelas?.nama_kelas ?? ""} semester={semester} tahunAjaran={tahunAjaran} onGanti={() => setStep("pilih-aspek")} gantiLabel="← Ubah aspek" />
 
           {/* Tanggal */}
           <div className="bg-white rounded-xl border border-gray-200 px-5 py-3 flex items-center gap-3 flex-wrap">
@@ -399,7 +591,7 @@ export default function PenilaianPage() {
             <span className="text-xs text-gray-400">Berlaku untuk semua indikator di bawah</span>
           </div>
 
-          {/* Legenda nilai */}
+          {/* Legenda */}
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
             <p className="text-xs font-semibold text-gray-500 mb-2">Keterangan Nilai Perkembangan</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -419,147 +611,125 @@ export default function PenilaianPage() {
           {totalInd > 0 && (
             <div className="flex items-center gap-3">
               <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                <div className="bg-green-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${(sudahNilaiCount / totalInd) * 100}%` }} />
+                <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{ width: `${(sudahNilaiCount / totalInd) * 100}%` }} />
               </div>
               <span className="text-xs text-gray-500 shrink-0">{sudahNilaiCount}/{totalInd} indikator dinilai</span>
             </div>
           )}
 
           {/* Per Aspek */}
-          {aspekTerpilih.map((aspek) => (
-            <div key={aspek.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              {/* Header aspek */}
-              <div className="bg-blue-600 px-4 py-2.5 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">{aspek.label}</span>
-                <span className="text-xs text-blue-200">
-                  {aspek.kegiatan.filter((k) => kegiatanDipilih.includes(k.id)).length}/{aspek.kegiatan.length} kegiatan dipilih
-                </span>
-              </div>
+          {loadingAspek ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+              <Loader2 size={16} className="animate-spin" /> Memuat aspek...
+            </div>
+          ) : (
+            aspekTerpilih.map((aspek) => {
+              const kegiatanGroups = groupByKegiatan(aspek.indikator);
+              return (
+                <div key={aspek.id_aspek} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="bg-blue-600 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">{aspek.nama_aspek}</span>
+                    <span className="text-xs text-blue-200">
+                      {kegiatanGroups.filter((kg) => kegiatanDipilih.includes(kegiatanKey(aspek.id_aspek, kg.nama_kegiatan))).length}/{kegiatanGroups.length} kegiatan dipilih
+                    </span>
+                  </div>
 
-              {/* List kegiatan */}
-              <div className="divide-y divide-gray-100">
-                {aspek.kegiatan.map((kegiatan) => {
-                  const isKegiatanSelected = kegiatanDipilih.includes(kegiatan.id);
-                  const isExpanded = expandedKegiatan.includes(kegiatan.id);
-                  const indTerpilihCount = kegiatan.indikator.filter((i) => indikatorDipilih.includes(i.id)).length;
-                  const nilaiCount = kegiatan.indikator.filter((i) => nilaiMap[i.id]?.nilai).length;
+                  <div className="divide-y divide-gray-100">
+                    {kegiatanGroups.map((kg) => {
+                      const key = kegiatanKey(aspek.id_aspek, kg.nama_kegiatan);
+                      const isKegiatanSelected = kegiatanDipilih.includes(key);
+                      const isExpanded = expandedKegiatan.includes(key);
+                      const indTerpilihCount = kg.indikator.filter((i) => indikatorDipilih.includes(i.id_indikator)).length;
+                      const nilaiCount = kg.indikator.filter((i) => nilaiMap[i.id_indikator]?.nilai).length;
 
-                  return (
-                    <div key={kegiatan.id}>
-                      {/* Row kegiatan */}
-                      <div className={`flex items-center gap-3 px-4 py-3 ${isKegiatanSelected ? "bg-blue-50" : "bg-white"}`}>
-                        {/* Checkbox kegiatan */}
-                        <button onClick={() => toggleKegiatan(kegiatan)}
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${isKegiatanSelected ? "bg-blue-500 border-blue-500" : "border-gray-300 hover:border-blue-400"}`}>
-                          {isKegiatanSelected && <span className="text-white text-[10px] font-bold">✓</span>}
-                        </button>
+                      return (
+                        <div key={key}>
+                          <div className={`flex items-center gap-3 px-4 py-3 ${isKegiatanSelected ? "bg-blue-50" : "bg-white"}`}>
+                            <button onClick={() => toggleKegiatan(aspek.id_aspek, kg)}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${isKegiatanSelected ? "bg-blue-500 border-blue-500" : "border-gray-300 hover:border-blue-400"}`}>
+                              {isKegiatanSelected && <span className="text-white text-[10px] font-bold">✓</span>}
+                            </button>
+                            <button className="flex-1 text-left" onClick={() => toggleExpandKegiatan(key)}>
+                              <span className={`text-sm font-semibold ${isKegiatanSelected ? "text-blue-700" : "text-gray-700"}`}>{kg.nama_kegiatan}</span>
+                              {isKegiatanSelected ? (
+                                <span className="ml-2 text-xs text-gray-400">
+                                  {indTerpilihCount}/{kg.indikator.length} indikator
+                                  {nilaiCount > 0 && <span className="text-green-500"> · {nilaiCount} dinilai</span>}
+                                </span>
+                              ) : (
+                                <span className="ml-2 text-xs text-gray-400">{kg.indikator.length} indikator</span>
+                              )}
+                            </button>
+                            <button onClick={() => toggleExpandKegiatan(key)} className="text-gray-400 hover:text-gray-600">
+                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                          </div>
 
-                        {/* Nama kegiatan + stats */}
-                        <button className="flex-1 text-left" onClick={() => toggleExpandKegiatan(kegiatan.id)}>
-                          <span className={`text-sm font-semibold ${isKegiatanSelected ? "text-blue-700" : "text-gray-700"}`}>
-                            {kegiatan.label}
-                          </span>
-                          {isKegiatanSelected && (
-                            <span className="ml-2 text-xs text-gray-400">
-                              {indTerpilihCount}/{kegiatan.indikator.length} indikator
-                              {nilaiCount > 0 && <span className="text-green-500"> · {nilaiCount} dinilai</span>}
-                            </span>
-                          )}
-                          {!isKegiatanSelected && (
-                            <span className="ml-2 text-xs text-gray-400">{kegiatan.indikator.length} indikator</span>
-                          )}
-                        </button>
+                          {isExpanded && (
+                            <div className="border-t border-gray-100 bg-gray-50">
+                              {!isKegiatanSelected && (
+                                <p className="px-12 py-2 text-xs text-gray-400 italic">Centang kegiatan di atas untuk memilih indikator</p>
+                              )}
+                              {kg.indikator.map((ind) => {
+                                const isIndSelected = indikatorDipilih.includes(ind.id_indikator);
+                                const entry = nilaiMap[ind.id_indikator];
+                                const disabled = !isKegiatanSelected;
 
-                        {/* Expand toggle */}
-                        <button onClick={() => toggleExpandKegiatan(kegiatan.id)} className="text-gray-400 hover:text-gray-600">
-                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        </button>
-                      </div>
+                                return (
+                                  <div key={ind.id_indikator}
+                                    className={`px-4 py-3 border-b border-gray-100 last:border-0 transition-colors pl-12 ${disabled ? "opacity-40" : isIndSelected ? "bg-white" : "hover:bg-white"}`}>
+                                    <div className="flex items-start gap-3">
+                                      <button onClick={() => !disabled && toggleIndikator(ind, aspek)} disabled={disabled}
+                                        className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${isIndSelected ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-green-400"} ${disabled ? "cursor-default" : "cursor-pointer"}`}>
+                                        {isIndSelected && <span className="text-white text-[9px] font-bold">✓</span>}
+                                      </button>
+                                      <p className="flex-1 text-xs text-gray-600 leading-relaxed">{ind.nama_indikator}</p>
+                                    </div>
 
-                      {/* Indikator list */}
-                      {isExpanded && (
-                        <div className="border-t border-gray-100 bg-gray-50">
-                          {!isKegiatanSelected && (
-                            <p className="px-12 py-2 text-xs text-gray-400 italic">
-                              Centang kegiatan di atas untuk memilih indikator
-                            </p>
-                          )}
-                          {kegiatan.indikator.map((ind) => {
-                            const isIndSelected = indikatorDipilih.includes(ind.id);
-                            const entry = nilaiMap[ind.id];
-                            const disabled = !isKegiatanSelected;
-
-                            return (
-                              <div key={ind.id}
-                                className={`px-4 py-3 border-b border-gray-100 last:border-0 transition-colors pl-12 ${
-                                  disabled ? "opacity-40" : isIndSelected ? "bg-white" : "hover:bg-white"
-                                }`}>
-                                {/* Baris atas: checkbox + label */}
-                                <div className="flex items-start gap-3">
-                                  <button onClick={() => !disabled && toggleIndikator(ind, kegiatan, aspek)}
-                                    disabled={disabled}
-                                    className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                      isIndSelected ? "bg-green-500 border-green-500" : "border-gray-300 hover:border-green-400"
-                                    } ${disabled ? "cursor-default" : "cursor-pointer"}`}>
-                                    {isIndSelected && <span className="text-white text-[9px] font-bold">✓</span>}
-                                  </button>
-                                  <p className="flex-1 text-xs text-gray-600 leading-relaxed">{ind.label}</p>
-                                </div>
-
-                                {/* Baris bawah: tombol nilai + upload — hanya jika indikator dipilih */}
-                                {isIndSelected && (
-                                  <div className="mt-2.5 ml-7 flex flex-wrap items-center gap-2">
-                                    {/* Tombol nilai */}
-                                    {NILAI_OPTIONS.map((val) => {
-                                      const selected = entry?.nilai === val;
-                                      const info = NILAI_INFO[val];
-                                      return (
-                                        <button
-                                          key={val}
-                                          onClick={() => handleNilai(ind.id, val)}
-                                          title={`${info.label} — ${info.desc}`}
-                                          className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${
-                                            selected ? info.selectedColor : info.color
-                                          }`}
-                                        >
-                                          {val}
-                                        </button>
-                                      );
-                                    })}
-
-                                    {/* Pemisah */}
-                                    <span className="text-gray-300 text-xs">|</span>
-
-                                    {/* Upload foto bukti */}
-                                    {entry?.dokumentasi ? (
-                                      <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
-                                        <ImagePlus size={12} className="text-blue-400 shrink-0" />
-                                        <span className="text-[11px] text-blue-600 max-w-[80px] truncate">{entry.dokumentasi}</span>
-                                        <button onClick={() => removeFile(ind.id)} title="Hapus foto">
-                                          <X size={11} className="text-red-400 hover:text-red-600" />
-                                        </button>
+                                    {isIndSelected && (
+                                      <div className="mt-2.5 ml-7 flex flex-wrap items-center gap-2">
+                                        {NILAI_OPTIONS.map((val) => {
+                                          const selected = entry?.nilai === val;
+                                          const info = NILAI_INFO[val];
+                                          return (
+                                            <button key={val} onClick={() => handleNilai(ind.id_indikator, val)}
+                                              title={`${info.label} — ${info.desc}`}
+                                              className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${selected ? info.selectedColor : info.color}`}>
+                                              {val}
+                                            </button>
+                                          );
+                                        })}
+                                        <span className="text-gray-300 text-xs">|</span>
+                                        {entry?.foto ? (
+                                          <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
+                                            <ImagePlus size={12} className="text-blue-400 shrink-0" />
+                                            <span className="text-[11px] text-blue-600 max-w-[80px] truncate">{entry.foto}</span>
+                                            <button onClick={() => removeFile(ind.id_indikator)} title="Hapus foto">
+                                              <X size={11} className="text-red-400 hover:text-red-600" />
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-500 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-400 rounded-lg px-2.5 py-1 transition-colors">
+                                            <ImagePlus size={12} />
+                                            <span>Tambah Foto Bukti</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(ind.id_indikator, e)} />
+                                          </label>
+                                        )}
                                       </div>
-                                    ) : (
-                                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-500 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-400 rounded-lg px-2.5 py-1 transition-colors">
-                                        <ImagePlus size={12} />
-                                        <span>Tambah Foto Bukti</span>
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(ind.id, e)} />
-                                      </label>
                                     )}
                                   </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })
+          )}
 
           {/* Komentar */}
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
@@ -571,13 +741,14 @@ export default function PenilaianPage() {
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pb-4">
-            <button onClick={() => setStep("pilih-aspek")}
-              className="border border-gray-300 text-gray-600 text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onClick={() => setStep("pilih-aspek")} disabled={loadingSimpan}
+              className="border border-gray-300 text-gray-600 text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
               Kembali
             </button>
-            <button onClick={handleSimpan}
-              className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors">
-              Simpan Penilaian
+            <button onClick={handleSimpan} disabled={loadingSimpan}
+              className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
+              {loadingSimpan && <Loader2 size={14} className="animate-spin" />}
+              {loadingSimpan ? "Menyimpan..." : "Simpan Penilaian"}
             </button>
           </div>
         </div>

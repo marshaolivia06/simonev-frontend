@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Users, ClipboardList, Megaphone, LogOut, User,
@@ -31,12 +31,9 @@ const pageTitles: Record<string, string> = {
   "/guru/profil":                 "Profil Guru",
 };
 
-/* Ganti dengan nama dari session / auth */
-const NAMA_GURU = "Sri Rahayu, S.Pd.";
-
 function getInitials(nama: string): string {
   return nama
-    .replace(/,.*/, "")           // hapus gelar setelah koma
+    .replace(/,.*/, "")
     .split(" ")
     .slice(0, 2)
     .map((w) => w[0])
@@ -47,8 +44,41 @@ function getInitials(nama: string): string {
 export default function GuruLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const [open, setOpen]           = useState(false);
+  const [open, setOpen]             = useState(false);
   const [showLogout, setShowLogout] = useState(false);
+  const [namaGuru, setNamaGuru]     = useState("Guru");
+
+  useEffect(() => {
+  const namaFromStorage = localStorage.getItem("nama_guru")
+  const userStr         = localStorage.getItem("user")
+
+  if (namaFromStorage) {
+    // Ambil 2 kata pertama saja
+    const duaKata = namaFromStorage.split(" ").slice(0, 2).join(" ")
+    setNamaGuru(duaKata)
+  } else if (userStr) {
+    const user = JSON.parse(userStr)
+    setNamaGuru(user.username || "Guru")
+  }
+}, [])
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json",
+        }
+      })
+    } catch {
+      // tetap logout meski error
+    } finally {
+      localStorage.clear()
+      router.push("/login")
+    }
+  }
 
   const pageTitle = pageTitles[pathname] ?? "Sistem Monitoring & Evaluasi";
 
@@ -62,7 +92,6 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
 
           <h1 className="text-lg font-semibold text-gray-800 text-center flex-1">{pageTitle}</h1>
 
-          {/* Tombol Guru — dengan lingkaran inisial */}
           <div className="relative">
             <button
               onClick={() => setOpen(!open)}
@@ -70,10 +99,10 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
             >
               <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
                 <span className="text-[10px] font-bold text-white leading-none">
-                  {getInitials(NAMA_GURU)}
+                  {getInitials(namaGuru)}
                 </span>
               </div>
-              Guru
+              {namaGuru}
             </button>
 
             {open && (
@@ -98,7 +127,6 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
 
-      {/* Modal Logout */}
       {showLogout && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-80 shadow-xl text-center">
@@ -115,7 +143,7 @@ export default function GuruLayout({ children }: { children: React.ReactNode }) 
                 Batal
               </button>
               <button
-                onClick={() => { setShowLogout(false); router.push("/login"); }}
+                onClick={handleLogout}
                 className="flex-1 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
               >
                 Logout

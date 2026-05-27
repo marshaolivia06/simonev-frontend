@@ -36,127 +36,127 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
-const emptyForm = {
-  nama_anak: "",
-  id_kelas: "",
-  jenis_kelamin: "L",
-  tanggal_lahir: "",
-};
-
 export default function DataAnakAdminPage() {
-  const [data, setData]               = useState<Anak[]>([])
-  const [kelasList, setKelasList]     = useState<KelasOption[]>([])
-  const [search, setSearch]           = useState("")
-  const [kelasFilter, setKelasFilter] = useState("Semua")
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState("")
-  const [showModal, setShowModal]     = useState(false)
-  const [showHapus, setShowHapus]     = useState(false)
-  const [hapusId, setHapusId]         = useState<number | null>(null)
-  const [editData, setEditData]       = useState<Anak | null>(null)
-  const [form, setForm]               = useState(emptyForm)
-  const [saving, setSaving]           = useState(false)
+  const [data, setData]               = useState<Anak[]>([]);
+  const [kelasList, setKelasList]     = useState<KelasOption[]>([]);
+  const [search, setSearch]           = useState("");
+  const [kelasFilter, setKelasFilter] = useState("Semua");
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState("");
+  const [showModal, setShowModal]     = useState(false);
+  const [showHapus, setShowHapus]     = useState(false);
+  const [hapusTarget, setHapusTarget] = useState<Anak | null>(null);
+  const [editData, setEditData]       = useState<Anak | null>(null);
+  const [form, setForm]               = useState({
+    nama_anak: "", id_kelas: "", jenis_kelamin: "", tanggal_lahir: "",
+  });
+  const [saving, setSaving] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : ""
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
   const headers = {
     "Authorization": `Bearer ${token}`,
     "Accept": "application/json",
     "Content-Type": "application/json",
-  }
+  };
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const [resAnak, resKelas] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/anak`, { headers }),
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas`, { headers }),
-      ])
-      const dataAnak  = await resAnak.json()
-      const dataKelas = await resKelas.json()
-
-      if (dataAnak.success)  setData(dataAnak.data)
-      if (dataKelas.success) setKelasList(dataKelas.data)
+      ]);
+      const dataAnak  = await resAnak.json();
+      const dataKelas = await resKelas.json();
+      if (dataAnak.success)  setData(dataAnak.data);
+      if (dataKelas.success) setKelasList(dataKelas.data);
     } catch {
-      setError("Gagal memuat data.")
+      setError("Gagal memuat data.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData(); }, []);
 
   const filtered = data.filter((a) => {
     const matchSearch =
       a.nama_anak.toLowerCase().includes(search.toLowerCase()) ||
-      (a.orang_tua?.nama_orangtua ?? "").toLowerCase().includes(search.toLowerCase())
+      (a.orang_tua?.nama_orangtua ?? "").toLowerCase().includes(search.toLowerCase());
     const matchKelas =
-      kelasFilter === "Semua" || a.kelas?.nama_kelas === kelasFilter
-    return matchSearch && matchKelas
-  })
+      kelasFilter === "Semua" || a.kelas?.nama_kelas === kelasFilter;
+    return matchSearch && matchKelas;
+  });
 
   const handleEdit = (anak: Anak) => {
-    setEditData(anak)
+    setEditData(anak);
+    setError("");
     setForm({
       nama_anak:     anak.nama_anak,
-      id_kelas:      anak.kelas
-        ? String(kelasList.find(k => k.nama_kelas === anak.kelas?.nama_kelas)?.id_kelas ?? "")
-        : "",
-      jenis_kelamin: anak.jenis_kelamin,
+      id_kelas:      String(kelasList.find(k => k.nama_kelas === anak.kelas?.nama_kelas)?.id_kelas ?? ""),
+      jenis_kelamin: anak.jenis_kelamin ?? "",
       tanggal_lahir: anak.tanggal_lahir ?? "",
-    })
-    setShowModal(true)
-  }
+    });
+    setShowModal(true);
+  };
 
   const handleSimpan = async () => {
-    if (!form.nama_anak.trim() || !form.id_kelas) return
-    setSaving(true)
+    if (!form.nama_anak.trim()) {
+      setError("Nama anak wajib diisi.");
+      return;
+    }
+    setSaving(true);
+    setError("");
     try {
       const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/anak/${editData!.id_anak}`, {
         method: "PUT",
         headers,
         body: JSON.stringify(form),
-      })
-      const json = await res.json()
-
+      });
+      const json = await res.json();
       if (json.success) {
-        setShowModal(false)
-        fetchData()
+        setShowModal(false);
+        fetchData();
       } else {
-        setError(json.message || "Gagal menyimpan.")
+        setError(json.message || "Gagal menyimpan.");
       }
     } catch {
-      setError("Gagal terhubung ke server.")
+      setError("Gagal terhubung ke server.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
-  const handleHapusKonfirm = (id: number) => { setHapusId(id); setShowHapus(true) }
+  const handleHapusKonfirm = (anak: Anak) => {
+    setHapusTarget(anak);
+    setShowHapus(true);
+  };
 
   const handleHapus = async () => {
-    if (!hapusId) return
+    if (!hapusTarget) return;
     try {
-      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/anak/${hapusId}`, {
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/anak/${hapusTarget.id_anak}`, {
         method: "DELETE", headers,
-      })
-      const json = await res.json()
-      if (json.success) fetchData()
+      });
+      const json = await res.json();
+      if (json.success) fetchData();
+      else setError("Gagal menghapus data.");
     } catch {
-      setError("Gagal menghapus data.")
+      setError("Gagal menghapus data.");
     } finally {
-      setShowHapus(false)
-      setHapusId(null)
+      setShowHapus(false);
+      setHapusTarget(null);
     }
-  }
+  };
 
-  const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-  const labelCls = "block text-xs font-medium text-gray-600 mb-1.5"
+  const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300";
+  const labelCls = "block text-xs font-medium text-gray-600 mb-1.5";
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <p className="text-gray-400 text-sm">Memuat data anak...</p>
     </div>
-  )
+  );
 
   return (
     <div className="max-w-full">
@@ -170,7 +170,7 @@ export default function DataAnakAdminPage() {
                 <h2 className="text-sm font-semibold text-gray-900">Edit Data Anak</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Perbarui informasi anak</p>
               </div>
-              <button onClick={() => setShowModal(false)}
+              <button onClick={() => { setShowModal(false); setError(""); }}
                 className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={15} />
               </button>
@@ -181,7 +181,7 @@ export default function DataAnakAdminPage() {
               {/* Info orang tua — read only */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 space-y-1">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                  Info Orang Tua
+                  Info Orang Tua (dari registrasi)
                 </p>
                 <p className="text-xs text-gray-600">
                   <span className="text-gray-400">Nama:</span>{" "}
@@ -195,23 +195,37 @@ export default function DataAnakAdminPage() {
                   <span className="text-gray-400">Email:</span>{" "}
                   {editData.orang_tua?.user?.email ?? "-"}
                 </p>
+                <p className="text-xs text-gray-500 italic mt-1">
+                  * Data orang tua hanya bisa diubah oleh orang tua yang bersangkutan.
+                </p>
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-600">
+                  ⚠ {error}
+                </div>
+              )}
 
               <div>
                 <label className={labelCls}>Nama Anak</label>
-                <input type="text" placeholder="Masukkan nama anak"
+                <input
+                  type="text"
+                  placeholder="Masukkan nama anak"
                   value={form.nama_anak}
                   onChange={(e) => setForm({ ...form, nama_anak: e.target.value })}
-                  className={inputCls} />
+                  className={inputCls}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Kelas</label>
-                  <select value={form.id_kelas}
+                  <select
+                    value={form.id_kelas}
                     onChange={(e) => setForm({ ...form, id_kelas: e.target.value })}
-                    className={inputCls}>
-                    <option value="">Pilih kelas</option>
+                    className={inputCls}
+                  >
+                    <option value="">-- Pilih kelas --</option>
                     {kelasList.map((k) => (
                       <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>
                     ))}
@@ -219,9 +233,12 @@ export default function DataAnakAdminPage() {
                 </div>
                 <div>
                   <label className={labelCls}>Jenis Kelamin</label>
-                  <select value={form.jenis_kelamin}
+                  <select
+                    value={form.jenis_kelamin}
                     onChange={(e) => setForm({ ...form, jenis_kelamin: e.target.value })}
-                    className={inputCls}>
+                    className={inputCls}
+                  >
+                    <option value="">-- Belum diisi --</option>
                     <option value="L">Laki-laki</option>
                     <option value="P">Perempuan</option>
                   </select>
@@ -230,20 +247,28 @@ export default function DataAnakAdminPage() {
 
               <div>
                 <label className={labelCls}>Tanggal Lahir</label>
-                <input type="date" value={form.tanggal_lahir}
+                <input
+                  type="date"
+                  value={form.tanggal_lahir}
                   onChange={(e) => setForm({ ...form, tanggal_lahir: e.target.value })}
-                  className={inputCls} />
+                  className={inputCls}
+                />
               </div>
 
             </div>
 
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
-              <button onClick={() => setShowModal(false)}
-                className="border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+              <button
+                onClick={() => { setShowModal(false); setError(""); }}
+                className="border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              >
                 Batal
               </button>
-              <button onClick={handleSimpan} disabled={saving}
-                className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-60">
+              <button
+                onClick={handleSimpan}
+                disabled={saving}
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
+              >
                 {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </div>
@@ -252,21 +277,29 @@ export default function DataAnakAdminPage() {
       )}
 
       {/* Modal Konfirmasi Hapus */}
-      {showHapus && (
+      {showHapus && hapusTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-80 text-center">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
               <Trash2 size={20} className="text-red-500" />
             </div>
             <h3 className="text-base font-semibold text-gray-800 mb-1">Hapus Data Anak?</h3>
-            <p className="text-sm text-gray-500 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
+            <p className="text-sm text-gray-500 mb-1">
+              Kamu akan menghapus data{" "}
+              <span className="font-semibold text-gray-700">{hapusTarget.nama_anak}</span>.
+            </p>
+            <p className="text-xs text-gray-400 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
             <div className="flex gap-2">
-              <button onClick={() => setShowHapus(false)}
-                className="flex-1 border border-gray-300 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50">
+              <button
+                onClick={() => { setShowHapus(false); setHapusTarget(null); }}
+                className="flex-1 border border-gray-300 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50"
+              >
                 Batal
               </button>
-              <button onClick={handleHapus}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm py-2 rounded-lg">
+              <button
+                onClick={handleHapus}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm py-2 rounded-lg"
+              >
                 Hapus
               </button>
             </div>
@@ -274,7 +307,8 @@ export default function DataAnakAdminPage() {
         </div>
       )}
 
-      {error && (
+      {/* Error global (di luar modal) */}
+      {error && !showModal && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-600 mb-4">
           ⚠ {error}
         </div>
@@ -288,13 +322,18 @@ export default function DataAnakAdminPage() {
           </div>
           <div>
             <p className="text-lg font-bold text-gray-800 leading-tight">Data Anak</p>
-            <p className="text-sm text-gray-500">{data.length} anak terdaftar</p>
+            <p className="text-sm text-gray-500">
+              {data.length} anak terdaftar · data masuk otomatis dari registrasi orang tua
+            </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 ml-auto">
-          <select value={kelasFilter} onChange={(e) => setKelasFilter(e.target.value)}
-            className="bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none text-gray-700">
+          <select
+            value={kelasFilter}
+            onChange={(e) => setKelasFilter(e.target.value)}
+            className="bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none text-gray-700"
+          >
             <option value="Semua">Semua Kelas</option>
             {kelasList.map((k) => (
               <option key={k.id_kelas} value={k.nama_kelas}>{k.nama_kelas}</option>
@@ -303,9 +342,13 @@ export default function DataAnakAdminPage() {
 
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Cari anak..." value={search}
+            <input
+              type="text"
+              placeholder="Cari anak / orang tua..."
+              value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-44" />
+              className="bg-gray-100 rounded-full pl-8 pr-4 py-2 text-sm focus:outline-none w-52"
+            />
           </div>
         </div>
       </div>
@@ -316,16 +359,12 @@ export default function DataAnakAdminPage() {
           <table className="w-full text-sm" style={{ minWidth: "1000px", borderCollapse: "collapse" }}>
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-10 border-r border-b border-gray-300">No</th>
-                <th className="px-3 py-3 text-left font-bold text-black whitespace-nowrap min-w-[150px] border-r border-b border-gray-300">Nama Anak</th>
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-20 border-r border-b border-gray-300">Kelas</th>
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap min-w-[110px] border-r border-b border-gray-300">Jenis Kelamin</th>
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-28 border-r border-b border-gray-300">Tanggal Lahir</th>
-                <th className="px-3 py-3 text-left font-bold text-black whitespace-nowrap min-w-[130px] border-r border-b border-gray-300">Nama Orangtua</th>
-                <th className="px-3 py-3 text-left font-bold text-black whitespace-nowrap min-w-[120px] border-r border-b border-gray-300">Pekerjaan Orangtua</th>
-                <th className="px-3 py-3 text-left font-bold text-black whitespace-nowrap min-w-[140px] border-r border-b border-gray-300">Email</th>
-                <th className="px-3 py-3 text-left font-bold text-black whitespace-nowrap min-w-[140px] border-r border-b border-gray-300">Alamat</th>
-                <th className="px-3 py-3 text-center font-bold text-black whitespace-nowrap w-28 border-b border-gray-300">Aksi</th>
+                {["No","Nama Anak","Kelas","Jenis Kelamin","Tanggal Lahir","Nama Orangtua","Pekerjaan Orangtua","Email","Alamat","Aksi"].map((h, i, arr) => (
+                  <th key={h}
+                    className={`px-3 py-3 text-xs font-bold text-black whitespace-nowrap border-b border-gray-300 ${i < arr.length - 1 ? "border-r border-gray-300" : ""} ${["No","Kelas","Jenis Kelamin","Tanggal Lahir","Aksi"].includes(h) ? "text-center" : "text-left"}`}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -349,11 +388,21 @@ export default function DataAnakAdminPage() {
                       </div>
                     </td>
                     <td className="px-3 py-3 text-center text-xs whitespace-nowrap border-r border-gray-200">
-                      {anak.kelas?.nama_kelas ?? <span className="text-gray-400 italic">-</span>}
+                      {anak.kelas?.nama_kelas ?? <span className="text-gray-400 italic">Belum ada</span>}
                     </td>
                     <td className="px-3 py-3 text-center border-r border-gray-200">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${anak.jenis_kelamin === "P" ? "bg-pink-100 text-pink-600" : "bg-blue-100 text-blue-600"}`}>
-                        {anak.jenis_kelamin === "P" ? "Perempuan" : "Laki-laki"}
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                        anak.jenis_kelamin === "P"
+                          ? "bg-pink-100 text-pink-600"
+                          : anak.jenis_kelamin === "L"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-400"
+                      }`}>
+                        {anak.jenis_kelamin === "P"
+                          ? "Perempuan"
+                          : anak.jenis_kelamin === "L"
+                          ? "Laki-laki"
+                          : "-"}
                       </span>
                     </td>
                     <td className="px-3 py-3 text-center text-gray-700 text-xs whitespace-nowrap border-r border-gray-200">
@@ -377,7 +426,7 @@ export default function DataAnakAdminPage() {
                           className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded-md transition-colors">
                           <Pencil size={11} /> Edit
                         </button>
-                        <button onClick={() => handleHapusKonfirm(anak.id_anak)}
+                        <button onClick={() => handleHapusKonfirm(anak)}
                           className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md transition-colors">
                           <Trash2 size={11} /> Hapus
                         </button>
@@ -392,5 +441,5 @@ export default function DataAnakAdminPage() {
       </div>
 
     </div>
-  )
+  );
 }

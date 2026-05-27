@@ -33,6 +33,14 @@ const badgeColor: Record<string, string> = {
   Info:     "bg-purple-100 text-purple-800",
 };
 
+// TAMBAHAN
+const dotColor: Record<string, string> = {
+  Kegiatan: "bg-blue-400",
+  Libur:    "bg-green-400",
+  Penting:  "bg-yellow-400",
+  Info:     "bg-purple-400",
+};
+
 export default function OrangtuaDashboard() {
   // anak
   const [namaAnak, setNamaAnak]       = useState("-");
@@ -201,17 +209,21 @@ export default function OrangtuaDashboard() {
           <p className="text-sm text-gray-300 text-center py-8">Belum ada pengumuman</p>
         ) : (
           <div className="space-y-4">
-            {pengumuman.map((ann: any) => (
-              <div key={ann.id_pengumuman}
-                className="p-4 rounded-xl border border-gray-100 hover:shadow-sm hover:bg-gray-50 transition">
-                <span className={`text-xs px-2 py-1 rounded-full font-semibold ${badgeColor[ann.kategori] ?? "bg-gray-100 text-gray-700"}`}>
-                  {ann.kategori}
-                </span>
-                <p className="font-bold text-gray-800 mt-1">{ann.judul_pengumuman}</p>
-                <p className="text-xs text-gray-500">{ann.tanggal}</p>
-                <p className="text-sm text-gray-700 mt-1 leading-relaxed">{ann.isi_pengumuman}</p>
-              </div>
-            ))}
+            {pengumuman.map((ann: any) => {
+              const kat = ann.kategori ?? "Info"
+              return (
+                <div key={ann.id_pengumuman}
+                  className="p-4 rounded-xl border border-gray-100 hover:shadow-sm hover:bg-gray-50 transition">
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor[kat] ?? "bg-gray-100 text-gray-700"}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${dotColor[kat] ?? "bg-gray-400"}`} />
+                    {kat}
+                  </span>
+                  <p className="font-bold text-gray-800 mt-1">{ann.judul_pengumuman}</p>
+                  <p className="text-xs text-gray-400 mb-1">{ann.tanggal}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{ann.isi_pengumuman}</p>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

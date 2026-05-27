@@ -164,14 +164,14 @@ export default function IndikatorPenilaianPage() {
 
       {/* TABLE */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full text-sm border-collapse table-fixed">
           <thead>
             <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[52px] border-r border-gray-200">No</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">Indikator</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">Kegiatan</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider w-[180px] border-r border-gray-200">Aspek</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[140px]">Aksi</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[40px] border-r border-gray-200">No</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200">Indikator</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200">Kegiatan</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[160px] border-r border-gray-200">Aspek</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -188,10 +188,14 @@ export default function IndikatorPenilaianPage() {
                 <tr key={item.id_indikator} className="hover:bg-blue-50/40 transition-colors">
                   <td className="px-4 py-3.5 text-center text-xs text-gray-400 font-medium border-r border-gray-100">{index + 1}</td>
                   <td className="px-5 py-3.5 border-r border-gray-100">
-                    <span className="font-medium text-gray-800 text-sm">{item.nama_indikator}</span>
+                    <span className="font-medium text-gray-800 text-sm block whitespace-normal break-words">{item.nama_indikator}</span>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.nama_kegiatan}</td>
-                  <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">{item.aspek?.nama_aspek ?? "-"}</td>
+                  <td className="px-5 py-3.5 border-r border-gray-100">
+                    <span className="text-gray-600 text-sm block whitespace-normal break-words">{item.nama_kegiatan}</span>
+                  </td>
+                  <td className="px-5 py-3.5 border-r border-gray-100">
+                    <span className="text-gray-600 text-sm block whitespace-normal break-words">{item.aspek?.nama_aspek ?? "-"}</span>
+                  </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
@@ -245,23 +249,23 @@ export default function IndikatorPenilaianPage() {
             <div className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Indikator</label>
-                <input
-                  type="text"
+                <textarea
+                  rows={3}
                   value={form.nama_indikator}
                   onChange={(e) => setForm({ ...form, nama_indikator: e.target.value })}
                   placeholder="Masukkan indikator penilaian"
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Kegiatan</label>
-                <input
-                  type="text"
+                <textarea
+                  rows={3}
                   value={form.nama_kegiatan}
                   onChange={(e) => setForm({ ...form, nama_kegiatan: e.target.value })}
                   placeholder="Masukkan nama kegiatan"
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none"
                 />
               </div>
 

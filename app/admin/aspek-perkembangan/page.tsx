@@ -161,19 +161,19 @@ export default function AspekPage() {
 
       {/* TABLE */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full text-sm border-collapse table-fixed">
           <thead>
             <tr className="bg-gray-200 border-b border-gray-200">
-              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[52px] border-r border-gray-200">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[40px] border-r border-gray-200">
                 No
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[180px] border-r border-gray-200">
                 Nama Aspek
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider border-r border-gray-200">
+              <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200">
                 Definisi
               </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-black-500 uppercase tracking-wider w-[140px]">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">
                 Aksi
               </th>
             </tr>
@@ -202,12 +202,12 @@ export default function AspekPage() {
                     {index + 1}
                   </td>
                   <td className="px-5 py-3.5 border-r border-gray-100">
-                    <span className="font-medium text-gray-800 text-sm">
+                    <span className="font-medium text-gray-800 text-sm block whitespace-normal break-words">
                       {item.nama_aspek}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 text-sm border-r border-gray-100">
-                    <span className="truncate block max-w-[280px]">
+                    <span className="block whitespace-normal break-words leading-relaxed">
                       {item.definisi_aspek}
                     </span>
                   </td>
@@ -288,11 +288,11 @@ export default function AspekPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
                   Definisi
                 </label>
-                <input
-                  type="text"
+                <textarea
+                  rows={4}
                   value={form.definisi_aspek}
                   onChange={(e) => setForm({ ...form, definisi_aspek: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
                 />
               </div>
             </div>

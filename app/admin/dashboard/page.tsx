@@ -51,13 +51,14 @@ export default function DashboardAdmin() {
   useEffect(() => {
     const h = authHeaders();
 
-    Promise.all([
-      fetch(`${API}/guru`, { headers: h }).then(r => r.json()),
-      fetch(`${API}/kelas`).then(r => r.json()),
-      fetch(`${API}/anak`, { headers: h }).then(r => r.json()),
-      fetch(`${API}/verifikasi`, { headers: h }).then(r => r.json()),
-      fetch(`${API}/pengumuman`).then(r => r.json()),
-      fetch(`${API}/observasi`, { headers: h }).then(r => r.json()),
+Promise.all([
+  fetch(`${API}/guru`,       { headers: h }).then(r => r.json()),
+  fetch(`${API}/kelas`,      { headers: h }).then(r => r.json()), // ← tambah h
+  fetch(`${API}/anak`,       { headers: h }).then(r => r.json()),
+  fetch(`${API}/verifikasi`, { headers: h }).then(r => r.json()),
+  fetch(`${API}/pengumuman`).then(r => r.json()),                 // ← tetap tanpa h
+  fetch(`${API}/observasi`,  { headers: h }).then(r => r.json()),
+
     ]).then(([guru, kelas, anak, verif, pengumuman, observasi]) => {
 
       // Guru
