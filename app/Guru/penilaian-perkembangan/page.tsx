@@ -25,6 +25,7 @@ interface Kelas {
   id_kelas: number;
   nama_kelas: string;
   tahun_ajaran: string;
+  wali_kelas: string;
 }
 interface Anak {
   id_anak: number;
@@ -144,29 +145,40 @@ export default function PenilaianPage() {
 
   // ── 1. Fetch kelas guru saat mount ──
   useEffect(() => {
-    setLoadingKelas(true);
-    apiFetch<Kelas[]>("/api/kelas")
-      .then((data) => {
-        setKelasList(data);
-        console.log("DATA KELAS:", data); 
-        // default tahun ajaran = tahun ajaran terbaru
-        if (data.length > 0) {
-          const latest = [...data].sort((a, b) =>
-            b.tahun_ajaran.localeCompare(a.tahun_ajaran)
-          )[0].tahun_ajaran;
-          setTahunAjaran(latest);
-        }
-      })
-      .catch(() => setErrorFields(["Gagal memuat data kelas."]))
-      .finally(() => setLoadingKelas(false));
-  }, []);
+  setLoadingKelas(true);
+  
+  // Fetch profil guru dan kelas bersamaan
+  Promise.all([
+    apiFetch<{ guru?: { nama_guru: string } }>("/profil"),
+    apiFetch<Kelas[]>("/kelas"),
+  ])
+    .then(([profil, kelas]) => {
+      const namaGuru = profil.guru?.nama_guru ?? "";
+      
+      // Filter kelas yang wali_kelasnya adalah guru ini
+      const kelasSaya = kelas.filter(
+        (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru.toLowerCase()
+      );
+      
+      setKelasList(kelasSaya);
+      
+      if (kelasSaya.length > 0) {
+        const latest = [...kelasSaya].sort((a, b) =>
+          b.tahun_ajaran.localeCompare(a.tahun_ajaran)
+        )[0].tahun_ajaran;
+        setTahunAjaran(latest);
+      }
+    })
+    .catch(() => setErrorFields(["Gagal memuat data kelas."]))
+    .finally(() => setLoadingKelas(false));
+}, []);
 
   // ── 2. Fetch anak saat kelas dipilih ──
   useEffect(() => {
     if (!selectedKelas) { setAnakList([]); setSelectedAnak(null); return; }
     setLoadingAnak(true);
     setSelectedAnak(null);
-    apiFetch<Anak[]>(`/api/anak?id_kelas=${selectedKelas.id_kelas}`)
+    apiFetch<Anak[]>(`/anak?id_kelas=${selectedKelas.id_kelas}`)
       .then(setAnakList)
       .catch(() => setErrorFields(["Gagal memuat data anak."]))
       .finally(() => setLoadingAnak(false));
@@ -174,13 +186,16 @@ export default function PenilaianPage() {
 
   // ── 3. Fetch aspek saat masuk step isi-nilai ──
   useEffect(() => {
-    if (step !== "isi-nilai" || aspekList.length > 0) return;
-    setLoadingAspek(true);
-    apiFetch<Aspek[]>("/api/aspek")
-      .then(setAspekList)
-      .catch(() => setErrorFields(["Gagal memuat data aspek."]))
-      .finally(() => setLoadingAspek(false));
-  }, [step]);
+  if (step !== "pilih-aspek" || aspekList.length > 0) return;
+  setLoadingAspek(true);
+  apiFetch<Aspek[]>("/aspek")
+    .then(setAspekList)
+    .catch(() => {
+      setErrorFields(["Gagal memuat data aspek."]);
+      setShowError(true);
+    })
+    .finally(() => setLoadingAspek(false));
+}, [step]);
 
   // ── Handler cascade ──
   const handleTahunAjaranChange = (val: string) => {
@@ -307,7 +322,7 @@ export default function PenilaianPage() {
             fd.append("nilai", entry.nilai);
             fd.append("komentar", komentar);
             // Upload via endpoint single (yang sudah ada) untuk dapat path foto
-            const res = await fetch(`${API_URL}/api/observasi`, {
+            const res = await fetch(`${API_URL}/observasi`, {
               method: "POST",
               headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
               body: fd,
@@ -323,7 +338,7 @@ export default function PenilaianPage() {
       // Batch insert untuk yang tidak punya foto
       const batchItems = penilaian.filter(Boolean);
       if (batchItems.length > 0) {
-        const res = await fetch(`${API_URL}/api/observasi/batch`, {
+        const res = await fetch(`${API_URL}/observasi/batch`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

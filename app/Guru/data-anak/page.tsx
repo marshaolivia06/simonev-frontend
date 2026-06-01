@@ -82,7 +82,9 @@ const kelasJson = await kelasRes.json();
 const kelasList = kelasJson.data as Record<string, unknown>[];
 
 // Langsung ambil kelas pertama (sudah difilter by guru di backend)
-const kelasSaya = kelasList[0] ?? null;
+const kelasSaya = kelasList.find(
+  (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru?.toLowerCase()
+) ?? null;
 
       if (!kelasSaya) {
         setData([]);

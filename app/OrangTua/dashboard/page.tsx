@@ -41,12 +41,16 @@ const dotColor: Record<string, string> = {
   Info:     "bg-purple-400",
 };
 
+function getDefaultSemester(): string {
+  return new Date().getMonth() + 1 >= 7 ? "Semester 1" : "Semester 2";
+}
+
 export default function OrangtuaDashboard() {
   // anak
   const [namaAnak, setNamaAnak]       = useState("-");
   const [kelas, setKelas]             = useState("-");
   const [guruKelas, setGuruKelas]     = useState("-");
-  const [semester] = useState("Semester 1");
+  const [semester] = useState(getDefaultSemester);
   const [tahunAjaran] = useState("2025/2026");
   const [idAnak, setIdAnak]           = useState<number | null>(null);
 

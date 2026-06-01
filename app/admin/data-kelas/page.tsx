@@ -6,7 +6,7 @@ import { Pencil, Trash2, Plus, Search, X, Users } from "lucide-react";
 interface Kelas {
   id_kelas: number;
   nama_kelas: string;
-  wali_kelas: string;
+   wali_kelas: string | null;
   tahun_ajaran: string;
 }
 
@@ -23,6 +23,7 @@ const getToken = () =>
 const authHeaders = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${getToken()}`,
+    "Accept": "application/json",
 });
 
 // Generate tahun ajaran otomatis mulai dari sekarang + 5 tahun ke depan
@@ -81,11 +82,11 @@ export default function DataKelasPage() {
   }, []);
 
   const filtered = data
-    .filter((k) =>
-      k.nama_kelas.toLowerCase().includes(search.toLowerCase()) ||
-      k.wali_kelas.toLowerCase().includes(search.toLowerCase()) ||
-      k.tahun_ajaran.includes(search)
-    )
+  .filter((k) =>
+    k.nama_kelas.toLowerCase().includes(search.toLowerCase()) ||
+    (k.wali_kelas ?? "").toLowerCase().includes(search.toLowerCase()) || // ← fix
+    k.tahun_ajaran.includes(search)
+  ) 
     .sort((a, b) => a.nama_kelas.localeCompare(b.nama_kelas));
 
   const handleTambah = () => {
@@ -94,15 +95,16 @@ export default function DataKelasPage() {
     setShowModal(true);
   };
 
-  const handleEdit = (kelas: Kelas) => {
-    setEditData(kelas);
-    setForm({
-      nama_kelas: kelas.nama_kelas,
-      wali_kelas: kelas.wali_kelas,
-      tahun_ajaran: kelas.tahun_ajaran,
-    });
-    setShowModal(true);
-  };
+  // SESUDAH
+const handleEdit = (kelas: Kelas) => {
+  setEditData(kelas);
+  setForm({
+    nama_kelas: kelas.nama_kelas,
+    wali_kelas: kelas.wali_kelas ?? "",  // ← null jadi ""
+    tahun_ajaran: kelas.tahun_ajaran,
+  });
+  setShowModal(true);
+};
 
   const handleHapus = async (id: number) => {
     if (!confirm("Yakin ingin hapus data ini?")) return;
@@ -119,11 +121,23 @@ export default function DataKelasPage() {
   };
 
   const handleSimpan = async () => {
-    if (!form.nama_kelas.trim() || !form.wali_kelas || !form.tahun_ajaran) {
-      alert("Semua field wajib diisi!");
+  if (!form.nama_kelas.trim() || !form.tahun_ajaran) {
+    alert("Nama kelas dan tahun ajaran wajib diisi!");
+    return;
+  }
+
+  // ← Cek apakah guru sudah mengajar kelas lain
+  if (form.wali_kelas) {
+    const kelasGuru = data.find(
+      (k) => k.wali_kelas === form.wali_kelas && k.id_kelas !== editData?.id_kelas
+    );
+    if (kelasGuru) {
+      alert(`Guru "${form.wali_kelas}" sudah mengajar kelas "${kelasGuru.nama_kelas}". Pilih guru lain.`);
       return;
     }
-    setSaving(true);
+  }
+
+  setSaving(true);
     try {
       const url = editData
         ? `${API_BASE}/kelas/${editData.id_kelas}`
@@ -274,8 +288,8 @@ export default function DataKelasPage() {
               {/* Nama Kelas — input manual */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                  Nama Kelas
-                </label>
+  Nama Kelas <span className="text-red-500">*</span>
+</label>
                 <input
                   type="text"
                   value={form.nama_kelas}
@@ -312,9 +326,9 @@ export default function DataKelasPage() {
               {/* Tahun Ajaran — dropdown dengan default otomatis */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                  Tahun Ajaran
-                  <span className="ml-1.5 text-green-600 font-normal">(otomatis tahun ini)</span>
-                </label>
+  Tahun Ajaran <span className="text-red-500">*</span>
+  <span className="ml-1.5 text-green-600 font-normal">(otomatis tahun ini)</span>
+</label>
                 <select
                   value={form.tahun_ajaran}
                   onChange={(e) => setForm({ ...form, tahun_ajaran: e.target.value })}

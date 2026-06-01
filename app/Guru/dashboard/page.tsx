@@ -21,6 +21,7 @@ interface DashboardData {
   MB: number
   BSH: number
   BSB: number
+  belum_dinilai: number
 }
 
 interface Pengumuman {
@@ -106,11 +107,11 @@ export default function DashboardGuru() {
   ]
 
   const pieData = {
-    labels: ['BB', 'MB', 'BSH', 'BSB'],
+    labels: ['BB', 'MB', 'BSH', 'BSB', 'Belum Dinilai'],
     datasets: [
       {
-        data: [dashboard?.BB ?? 0, dashboard?.MB ?? 0, dashboard?.BSH ?? 0, dashboard?.BSB ?? 0],
-        backgroundColor: ['#fca5a5', '#fdba74', '#93c5fd', '#86efac'],
+        data: [dashboard?.BB ?? 0, dashboard?.MB ?? 0, dashboard?.BSH ?? 0, dashboard?.BSB ?? 0, dashboard?.belum_dinilai ?? 0,],
+        backgroundColor: ['#fca5a5', '#fdba74', '#93c5fd', '#86efac', '#e5e7eb'],
         borderWidth: 0,
       },
     ],

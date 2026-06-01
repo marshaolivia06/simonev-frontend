@@ -22,7 +22,6 @@ const nilaiColorMap: Record<string, string> = {
   BSH: "bg-blue-100 text-blue-700",
   BSB: "bg-green-100 text-green-700",
 };
-const nilaiOrder: Record<string, number> = { BB: 1, MB: 2, BSH: 3, BSB: 4 };
 
 const badgeColor: Record<string, string> = {
   Kegiatan: "bg-blue-100 text-blue-800",
@@ -37,63 +36,73 @@ const dotColor: Record<string, string> = {
   Info:     "bg-purple-400",
 };
 
+// Warna card per urutan kelas (loop, bukan hardcode per kelas)
+const kelasColors = [
+  { color: "from-purple-200 to-purple-100", iconColor: "text-purple-600" },
+  { color: "from-cyan-200 to-cyan-100",     iconColor: "text-cyan-600" },
+  { color: "from-orange-200 to-orange-100", iconColor: "text-orange-600" },
+  { color: "from-pink-200 to-pink-100",     iconColor: "text-pink-600" },
+  { color: "from-teal-200 to-teal-100",     iconColor: "text-teal-600" },
+];
+
 export default function DashboardAdmin() {
-  const [jumlahGuru, setJumlahGuru]       = useState<number | null>(null);
-  const [jumlahKelas, setJumlahKelas]     = useState<number | null>(null);
-  const [jumlahAnakA, setJumlahAnakA]     = useState<number | null>(null);
-  const [jumlahAnakB, setJumlahAnakB]     = useState<number | null>(null);
-  const [totalAnak, setTotalAnak]         = useState<number | null>(null);
-  const [perluVerif, setPerluVerif]       = useState<number | null>(null);
-  const [pengumuman, setPengumuman]       = useState<any[]>([]);
-  const [distribusi, setDistribusi]       = useState<Record<string, number>>({ BB: 0, MB: 0, BSH: 0, BSB: 0 });
-  const [loading, setLoading]             = useState(true);
+  const [jumlahGuru,   setJumlahGuru]   = useState<number | null>(null);
+  const [jumlahKelas,  setJumlahKelas]  = useState<number | null>(null);
+  const [totalAnak,    setTotalAnak]    = useState<number | null>(null);
+  const [perluVerif,   setPerluVerif]   = useState<number | null>(null);
+  const [pengumuman,   setPengumuman]   = useState<any[]>([]);
+  const [distribusi,   setDistribusi]   = useState<Record<string, number>>({ BB: 0, MB: 0, BSH: 0, BSB: 0 });
+  // Dinamis: { "TK A1": 12, "TK A2": 10, ... }
+  const [anakPerKelas, setAnakPerKelas] = useState<Record<string, number>>({});
+  const [loading,      setLoading]      = useState(true);
 
   useEffect(() => {
     const h = authHeaders();
-
-Promise.all([
-  fetch(`${API}/guru`,       { headers: h }).then(r => r.json()),
-  fetch(`${API}/kelas`,      { headers: h }).then(r => r.json()), // ← tambah h
-  fetch(`${API}/anak`,       { headers: h }).then(r => r.json()),
-  fetch(`${API}/verifikasi`, { headers: h }).then(r => r.json()),
-  fetch(`${API}/pengumuman`).then(r => r.json()),                 // ← tetap tanpa h
-  fetch(`${API}/observasi`,  { headers: h }).then(r => r.json()),
-
+    Promise.all([
+      fetch(`${API}/guru`,       { headers: h }).then(r => r.json()),
+      fetch(`${API}/kelas`,      { headers: h }).then(r => r.json()),
+      fetch(`${API}/anak`,       { headers: h }).then(r => r.json()),
+      fetch(`${API}/verifikasi`, { headers: h }).then(r => r.json()),
+      fetch(`${API}/pengumuman`).then(r => r.json()),
+      fetch(`${API}/observasi`,  { headers: h }).then(r => r.json()),
     ]).then(([guru, kelas, anak, verif, pengumuman, observasi]) => {
 
-      // Guru
       if (guru.success) setJumlahGuru(guru.data.length);
-
-      // Kelas
       if (kelas.success) setJumlahKelas(kelas.data.length);
 
-      // Anak — pisah TK A dan TK B berdasarkan nama kelas
-      if (anak.success) {
-        const anakData = anak.data as any[];
-        setTotalAnak(anakData.length);
+      if (kelas.success && anak.success) {
+  setJumlahKelas(kelas.data.length);
+  setTotalAnak((anak.data as any[]).length); // ← ini juga perlu diset ulang
 
-        const tkA = anakData.filter((a: any) =>
-          (a.kelas?.nama_kelas ?? "").toLowerCase().includes("tk a")
-        ).length;
-        const tkB = anakData.filter((a: any) =>
-          (a.kelas?.nama_kelas ?? "").toLowerCase().includes("tk b")
-        ).length;
-        setJumlahAnakA(tkA);
-        setJumlahAnakB(tkB);
-      }
+  // Inisialisasi semua kelas dari API kelas dengan nilai 0
+  const initKelas = (kelas.data as any[]).reduce<Record<string, number>>((acc, k) => {
+    acc[k.nama_kelas] = 0;
+    return acc;
+  }, {});
 
-      // Verifikasi — hitung yang status pending
+  // Hitung jumlah anak per kelas
+  (anak.data as any[]).forEach((a: any) => {
+    const namaKelas = a.kelas?.nama_kelas;
+    if (namaKelas && initKelas[namaKelas] !== undefined) {
+      initKelas[namaKelas]++;
+    }
+  });
+
+  const sorted = Object.fromEntries(
+    Object.entries(initKelas).sort(([a], [b]) => a.localeCompare(b))
+  );
+  setAnakPerKelas(sorted);
+}
+
       if (verif.success) {
         const pending = (verif.data as any[]).filter((u: any) => u.status === "pending").length;
         setPerluVerif(pending);
       }
 
-      // Pengumuman — ambil 3 terbaru
       if (pengumuman.success) {
         setPengumuman((pengumuman.data as any[]).slice(0, 3));
       }
 
-      // Distribusi perkembangan dari observasi
       if (observasi.success) {
         const dist: Record<string, number> = { BB: 0, MB: 0, BSH: 0, BSB: 0 };
         (observasi.data as any[]).forEach((o: any) => {
@@ -106,20 +115,27 @@ Promise.all([
     }).catch(() => setLoading(false));
   }, []);
 
-  const stats = [
-    { label: "Jumlah Guru",          value: jumlahGuru,  color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
-    { label: "Jumlah Kelas",         value: jumlahKelas, color: "from-rose-200 to-rose-100",       iconColor: "text-rose-600",    icon: School },
-    { label: "Total Anak TK A",      value: jumlahAnakA, color: "from-purple-200 to-purple-100",   iconColor: "text-purple-600",  icon: User },
-    { label: "Total Anak TK B",      value: jumlahAnakB, color: "from-cyan-200 to-cyan-100",       iconColor: "text-cyan-600",    icon: Users },
-    { label: "Total Anak",           value: totalAnak,   color: "from-blue-200 to-blue-100",       iconColor: "text-blue-600",    icon: GraduationCap },
-    { label: "Akun Perlu Verifikasi",value: perluVerif,  color: "from-yellow-200 to-yellow-100",   iconColor: "text-yellow-600",  icon: ShieldCheck },
+  // Stats statis (guru, kelas, total anak, verifikasi)
+  const statsStatis = [
+    { label: "Jumlah Guru",           value: jumlahGuru,  color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
+    { label: "Jumlah Kelas",          value: jumlahKelas, color: "from-rose-200 to-rose-100",       iconColor: "text-rose-600",    icon: School },
+    { label: "Total Anak",            value: totalAnak,   color: "from-blue-200 to-blue-100",       iconColor: "text-blue-600",    icon: GraduationCap },
+    { label: "Akun Perlu Verifikasi", value: perluVerif,  color: "from-yellow-200 to-yellow-100",   iconColor: "text-yellow-600",  icon: ShieldCheck },
   ];
 
+  // Stats dinamis per kelas
+  const statsKelas = Object.entries(anakPerKelas).map(([namaKelas, jumlah], i) => {
+    const theme = kelasColors[i % kelasColors.length];
+    return { label: `Total Anak ${namaKelas}`, value: jumlah, ...theme, icon: User };
+  });
+
+  const allStats = [...statsStatis, ...statsKelas];
+
   const distribusiDetail = [
-    { label: "Belum Berkembang (BB)",              nilai: "BB",  value: distribusi.BB  },
-    { label: "Mulai Berkembang (MB)",              nilai: "MB",  value: distribusi.MB  },
-    { label: "Berkembang Sesuai Harapan (BSH)",    nilai: "BSH", value: distribusi.BSH },
-    { label: "Berkembang Sangat Baik (BSB)",       nilai: "BSB", value: distribusi.BSB },
+    { label: "Belum Berkembang (BB)",           nilai: "BB",  value: distribusi.BB  },
+    { label: "Mulai Berkembang (MB)",           nilai: "MB",  value: distribusi.MB  },
+    { label: "Berkembang Sesuai Harapan (BSH)", nilai: "BSH", value: distribusi.BSH },
+    { label: "Berkembang Sangat Baik (BSB)",    nilai: "BSB", value: distribusi.BSB },
   ];
 
   const distribusiData = {
@@ -134,15 +150,14 @@ Promise.all([
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Selamat Datang, Admin!</h1>
         <p className="text-sm text-gray-500">Ringkasan data sekolah dan informasi terbaru</p>
       </div>
 
-      {/* STAT CARDS */}
+      {/* Satu grid, semua card — statis + dinamis per kelas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s) => (
+        {allStats.map((s) => (
           <div key={s.label}
             className={`bg-gradient-to-br ${s.color} rounded-2xl p-5 shadow-md hover:shadow-lg transition`}>
             <p className="text-sm font-medium text-gray-700">{s.label}</p>
@@ -156,7 +171,7 @@ Promise.all([
         ))}
       </div>
 
-      {/* DISTRIBUSI + PIE CHART */}
+      {/* Distribusi + Pie chart */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-6 shadow-md flex flex-col justify-center space-y-3">
           <p className="text-sm font-semibold text-gray-700 mb-1">Distribusi Perkembangan</p>
@@ -198,7 +213,7 @@ Promise.all([
         </div>
       </div>
 
-      {/* PENGUMUMAN */}
+      {/* Pengumuman */}
       <div className="bg-white rounded-2xl p-6 shadow-md">
         <h2 className="font-semibold text-gray-800 mb-4">Pengumuman Terbaru</h2>
         {loading ? (

@@ -50,10 +50,11 @@ export default function RegisterPage() {
     })
       .then((r) => r.json())
       .then((data) => {
-        const list = data.data ?? data
-        const names = list.map((k: { nama_kelas: string }) => k.nama_kelas)
-        setKelasOptions(names)
-      })
+  console.log("Response kelas:", JSON.stringify(data))  // ← tambah ini
+  const list = data.data ?? data
+  const names = list.map((k: { nama_kelas: string }) => k.nama_kelas)
+  setKelasOptions(names)
+})
       .catch(() => setKelasOptions([]))
       .finally(() => setLoadingKelas(false))
   }, [role])
