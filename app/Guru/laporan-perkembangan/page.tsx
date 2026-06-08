@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_BASE = API_URL.replace("/api", "");
 
 async function apiFetch<T>(path: string): Promise<T> {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -33,6 +34,7 @@ interface Kelas {
 interface Anak {
   id_anak: number;
   nama_anak: string;
+  tanggal_lahir?: string;
 }
 interface RekapAspek {
   aspek: string;
@@ -59,6 +61,17 @@ interface LaporanData {
   komentar: string;
   total: number;
 }
+interface ProfilSekolah {
+  nama_sekolah: string;
+  nama_kepala_sekolah: string;
+  nip_kepala_sekolah: string;
+  foto_ttd_ks: string | null;
+}
+interface GuruProfil {
+  nama_guru: string;
+  nip: string | null;
+  foto_ttd: string | null;
+}
 
 // ─── CONFIG ──────────────────────────────────────────────────────
 const ASPEK_COLORS = ["#4DB6AC", "#F48FB1", "#FFCC80", "#CE93D8", "#80CBC4", "#FFF176"];
@@ -70,27 +83,14 @@ const nilaiColorMap: Record<string, string> = {
 };
 const nilaiToNum: Record<string, number> = { BB: 1, MB: 2, BSH: 3, BSB: 4 };
 const numToNilai: Record<number, string> = { 1: "BB", 2: "MB", 3: "BSH", 4: "BSB" };
-const nilaiPdfStyle: Record<string, { bg: string; color: string }> = {
-  BB: { bg: "#fee2e2", color: "#b91c1c" },
-  MB: { bg: "#fef9c3", color: "#a16207" },
-  BSH: { bg: "#dcfce7", color: "#15803d" },
-  BSB: { bg: "#dbeafe", color: "#1d4ed8" },
-};
 const aspekAbbrMap: Record<string, string> = {
-  "Perkembangan Motorik": "FM",
-  "Fisik Motorik": "FM",
-  "Perkembangan Kognitif": "KOG",
-  "Kognitif": "KOG",
-  "Perkembangan Bahasa": "BHS",
-  "Bahasa": "BHS",
-  "Perkembangan Sosial-Emosional": "SOS-EM",
-  "Sosial Emosional": "SOS-EM",
-  "Nilai Agama dan Moral": "NAM",
-  "Agama dan Moral": "NAM",
-  "Seni dan Kreativitas": "SENI",
-  "Seni": "SENI",
+  "Perkembangan Motorik": "FM", "Fisik Motorik": "FM",
+  "Perkembangan Kognitif": "KOG", "Kognitif": "KOG",
+  "Perkembangan Bahasa": "BHS", "Bahasa": "BHS",
+  "Perkembangan Sosial-Emosional": "SOS-EM", "Sosial Emosional": "SOS-EM",
+  "Nilai Agama dan Moral": "NAM", "Agama dan Moral": "NAM",
+  "Seni dan Kreativitas": "SENI", "Seni": "SENI",
 };
-
 const aspekDefinisi: Record<string, string> = {
   "Perkembangan Motorik": "Kemampuan gerak kasar dan halus, koordinasi tubuh, serta keterampilan fisik anak.",
   "Fisik Motorik": "Kemampuan gerak kasar dan halus, koordinasi tubuh, serta keterampilan fisik anak.",
@@ -110,21 +110,55 @@ const aspekDefinisi: Record<string, string> = {
 
 function getAspekAbbr(name: string): string {
   return aspekAbbrMap[name]
-    ?? name.split(" ")
-      .filter(w => !["Perkembangan", "dan", "atau"].includes(w))
-      .map(w => w.substring(0, 3).toUpperCase())
-      .join("");
+    ?? name.split(" ").filter(w => !["Perkembangan", "dan", "atau"].includes(w))
+      .map(w => w.substring(0, 3).toUpperCase()).join("");
+}
+
+function hitungUmur(tanggalLahir: string): string {
+  const lahir = new Date(tanggalLahir);
+  const sekarang = new Date();
+  let tahun = sekarang.getFullYear() - lahir.getFullYear();
+  let bulan = sekarang.getMonth() - lahir.getMonth();
+  if (bulan < 0) { tahun--; bulan += 12; }
+  if (tahun === 0) return `${bulan} Bulan`;
+  if (bulan === 0) return `${tahun} Tahun`;
+  return `${tahun} Tahun ${bulan} Bulan`;
+}
+
+function formatTanggal(tanggal: string): string {
+  return new Date(tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
+
+async function loadImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function toApiStorageUrl(path: string): string {
+  const parts = path.split("/");
+  const folder = parts[0];
+  const filename = parts.slice(1).join("/");
+  return `${API_URL}/storage-file/${folder}/${filename}`;
 }
 
 const semesterOptions = ["Semester 1", "Semester 2"];
-
 function getDefaultSemester(): string {
   return new Date().getMonth() + 1 >= 7 ? "Semester 1" : "Semester 2";
 }
 
 const ChevronDownIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 9l6 6 6-6" />
   </svg>
 );
@@ -157,26 +191,27 @@ export default function LaporanPerkembanganGuruPage() {
   const [loadingLaporan, setLoadingLaporan] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [error, setError] = useState("");
+  const [tahunAjaran, setTahunAjaran] = useState("");
+  const [guruProfil, setGuruProfil] = useState<GuruProfil | null>(null);
 
   const tahunAjaranList = [...new Set(kelasList.map((k) => k.tahun_ajaran))].sort();
-  const [tahunAjaran, setTahunAjaran] = useState("");
   const kelasFiltered = kelasList.filter((k) => k.tahun_ajaran === tahunAjaran);
 
+  // Load kelas & profil guru
   useEffect(() => {
     setLoadingKelas(true);
     Promise.all([
-      apiFetch<{ guru?: { nama_guru: string } }>("/profil"),
+      apiFetch<{ guru?: GuruProfil }>("/profil"),
       apiFetch<Kelas[]>("/kelas"),
     ])
       .then(([profil, data]) => {
         const namaGuru = (profil as any).guru?.nama_guru ?? "";
+        setGuruProfil((profil as any).guru ?? null);
         const kelasSaya = data.filter(
           (k) => (k as any).wali_kelas?.toLowerCase() === namaGuru.toLowerCase()
         );
         if (kelasSaya.length > 0) {
-          const latest = [...kelasSaya].sort((a, b) =>
-            b.tahun_ajaran.localeCompare(a.tahun_ajaran)
-          )[0].tahun_ajaran;
+          const latest = [...kelasSaya].sort((a, b) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
           setKelasList(kelasSaya);
           setTahunAjaran(latest);
         } else {
@@ -186,6 +221,15 @@ export default function LaporanPerkembanganGuruPage() {
       .catch(() => setError("Gagal memuat data kelas."))
       .finally(() => setLoadingKelas(false));
   }, []);
+
+  // Auto-select kelas jika hanya 1 kelas di tahun ajaran yang aktif
+  useEffect(() => {
+    if (!tahunAjaran || kelasList.length === 0) return;
+    const kelasDiTahun = kelasList.filter((k) => k.tahun_ajaran === tahunAjaran);
+    if (kelasDiTahun.length === 1) {
+      setSelectedKelas(kelasDiTahun[0]);
+    }
+  }, [kelasList, tahunAjaran]);
 
   useEffect(() => {
     if (!selectedKelas) { setAnakList([]); setSelectedAnak(null); return; }
@@ -216,16 +260,21 @@ export default function LaporanPerkembanganGuruPage() {
 
   const handleTahunAjaranChange = (val: string) => {
     setTahunAjaran(val);
-    setSelectedKelas(null);
     setSelectedAnak(null);
     setLaporan(null);
+    // Auto-select jika hanya ada 1 kelas di tahun ajaran ini
+    const kelasDiTahun = kelasList.filter((k) => k.tahun_ajaran === val);
+    if (kelasDiTahun.length === 1) {
+      setSelectedKelas(kelasDiTahun[0]);
+    } else {
+      setSelectedKelas(null);
+    }
   };
 
   const rekapWithNilai = (laporan?.rekap_aspek ?? []).map((item) => {
     const nilaiPerAspek = (laporan?.riwayat ?? [])
       .filter((r) => r.indikator?.aspek?.nama_aspek === item.aspek)
-      .map((r) => nilaiToNum[r.nilai] ?? 0)
-      .filter(Boolean);
+      .map((r) => nilaiToNum[r.nilai] ?? 0).filter(Boolean);
     if (nilaiPerAspek.length === 0) return { ...item, nilai: null };
     const rata = nilaiPerAspek.reduce((a, b) => a + b, 0) / nilaiPerAspek.length;
     return { ...item, nilai: numToNilai[Math.round(rata)] ?? null };
@@ -243,9 +292,7 @@ export default function LaporanPerkembanganGuruPage() {
     ? (laporan?.riwayat ?? [])
     : (laporan?.riwayat ?? []).filter((r) => r.indikator?.aspek?.nama_aspek === aspekFilter);
 
-  const nilaiList = (laporan?.riwayat ?? [])
-    .map((r) => nilaiToNum[r.nilai] ?? 0)
-    .filter(Boolean);
+  const nilaiList = (laporan?.riwayat ?? []).map((r) => nilaiToNum[r.nilai] ?? 0).filter(Boolean);
   const rataRata = nilaiList.length > 0
     ? numToNilai[Math.round(nilaiList.reduce((a, b) => a + b, 0) / nilaiList.length)]
     : null;
@@ -266,253 +313,407 @@ export default function LaporanPerkembanganGuruPage() {
       const contentW = pageW - margin * 2;
       let y = margin;
 
-      // ── Header ──
-      pdf.setFillColor(37, 99, 235);
-      pdf.rect(0, 0, pageW, 24, "F");
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(13);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("LAPORAN PERKEMBANGAN ANAK", pageW / 2, 9, { align: "center" });
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "normal");
-      pdf.text("TK AL MUHAJIRIN DOTAMANA", pageW / 2, 16, { align: "center" });
       const tglCetak = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
-      pdf.setFontSize(7);
-      pdf.text(`Dicetak: ${tglCetak}`, pageW - margin, 22, { align: "right" });
-      y = 32;
+      const nomorRapor = `R-${tahunAjaran.replace("/", "")}-${String(selectedAnak?.id_anak ?? "").padStart(3, "0")}`;
+      const semesterLabel = semester === "Semester 1" ? "1 (Ganjil)" : "2 (Genap)";
 
-      // ── Info Anak ──
-      pdf.setLineWidth(0.1);
-      pdf.setDrawColor(229, 231, 235);
-      pdf.setFillColor(249, 250, 251);
-      pdf.roundedRect(margin, y, contentW, 32, 3, 3, "FD");
+      const ps = await apiFetch<ProfilSekolah>("/profil-sekolah");
+      const [logo, ttdKS, ttdGuru] = await Promise.all([
+        loadImageAsDataUrl("/logo-sekolah.png"),
+        ps.foto_ttd_ks ? loadImageAsDataUrl(toApiStorageUrl(ps.foto_ttd_ks)) : Promise.resolve(null),
+        guruProfil?.foto_ttd ? loadImageAsDataUrl(toApiStorageUrl(guruProfil.foto_ttd)) : Promise.resolve(null),
+      ]);
 
-      const col1X = margin + 5;
-      const col2X = margin + 90;
-      const labelColor: [number, number, number] = [107, 114, 128];
-      const valueColor: [number, number, number] = [31, 41, 55];
+      const namaKS = ps.nama_kepala_sekolah || "Kepala Sekolah";
+      const nipKS = ps.nip_kepala_sekolah || "";
+      const namaWaliKelas = guruProfil?.nama_guru || selectedKelas?.wali_kelas || "Wali Kelas";
+      const nipWaliKelas = guruProfil?.nip || "";
 
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(...labelColor);
-      pdf.text("Nama", col1X, y + 8);
-      pdf.text("Kelas", col1X, y + 16);
-      pdf.text("Semester", col1X, y + 24);
-      pdf.text("Tahun Ajaran", col2X, y + 8);
-      pdf.text("Total Aspek", col2X, y + 16);
-      pdf.text("Total Penilaian", col2X, y + 24);
+      const headerH = 38;
+      const rightColW = 44;
+      const leftColW = 28;
 
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(...valueColor);
-      pdf.text(`: ${anakNama}`, col1X + 22, y + 8);
-      pdf.text(`: ${kelasNama}`, col1X + 22, y + 16);
-      pdf.text(`: ${semester.replace("Semester ", "")}`, col1X + 22, y + 24);
-      pdf.text(`: ${tahunAjaran}`, col2X + 28, y + 8);
-      pdf.text(`: ${rekapWithNilai.length}`, col2X + 28, y + 16);
-      pdf.text(`: ${laporan.total}`, col2X + 28, y + 24);
-      y += 40;
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(margin, y, contentW, headerH, "S");
 
-      // ── Grafik Perkembangan ──
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(31, 41, 55);
-      pdf.text("Grafik Perkembangan", margin, y);
-      y += 5;
+      pdf.setLineWidth(0.4);
+      pdf.line(margin + leftColW, y, margin + leftColW, y + headerH);
+      pdf.line(margin + contentW - rightColW, y, margin + contentW - rightColW, y + headerH);
+      pdf.line(
+        margin + contentW - rightColW,
+        y + headerH / 2,
+        margin + contentW,
+        y + headerH / 2
+      );
 
-      pdf.setDrawColor(229, 231, 235);
-      pdf.setFillColor(249, 250, 251);
-      const chartBoxH = 55;
-      pdf.roundedRect(margin, y, contentW, chartBoxH, 3, 3, "FD");
-
-      if (chartData.length > 0) {
-        const chartPadL = 18;
-        const chartPadR = 10;
-        const chartPadT = 6;
-        const chartPadB = 14;
-        const chartInnerW = contentW - chartPadL - chartPadR;
-        const chartInnerH = chartBoxH - chartPadT - chartPadB;
-        const barCount = chartData.length;
-        const barW = Math.min(14, (chartInnerW / barCount) - 4);
-        const gap = (chartInnerW - barW * barCount) / (barCount + 1);
-        const maxVal = 4;
-        const chartBaseY = y + chartPadT + chartInnerH;
-        const chartStartX = margin + chartPadL;
-
-        // Garis horizontal Y
-        [1, 2, 3, 4].forEach(v => {
-          const lineY = chartBaseY - (v / maxVal) * chartInnerH;
-          pdf.setDrawColor(229, 231, 235);
-          pdf.setLineWidth(0.2);
-          pdf.line(chartStartX, lineY, chartStartX + chartInnerW, lineY);
-          pdf.setFontSize(6);
-          pdf.setTextColor(156, 163, 175);
-          pdf.setFont("helvetica", "normal");
-          pdf.text(["", "BB", "MB", "BSH", "BSB"][v], chartStartX - 2, lineY + 1.5, { align: "right" });
-        });
-
-        // Tutup sumbu vertikal
-        pdf.setFillColor(249, 250, 251);
-        pdf.rect(margin + 1, y + chartPadT, chartPadL - 2, chartInnerH + 1, "F");
-
-        // Bar + label
-        chartData.forEach((item, i) => {
-          const barX = chartStartX + gap + i * (barW + gap);
-          const barH = item.nilai > 0 ? (item.nilai / maxVal) * chartInnerH : 0;
-          const barY = chartBaseY - barH;
-          const hex = item.color;
-          const r = parseInt(hex.slice(1, 3), 16);
-          const g = parseInt(hex.slice(3, 5), 16);
-          const b = parseInt(hex.slice(5, 7), 16);
-          pdf.setFillColor(r, g, b);
-          pdf.roundedRect(barX, barY, barW, barH > 0 ? barH : 0.5, 1.5, 1.5, "F");
-          if (item.nilai > 0) {
-            pdf.setFontSize(6.5);
-            pdf.setFont("helvetica", "bold");
-            pdf.setTextColor(75, 85, 99);
-            pdf.text(numToNilai[item.nilai] ?? "", barX + barW / 2, barY - 1.5, { align: "center" });
-          }
-          pdf.setFontSize(6);
-          pdf.setFont("helvetica", "normal");
-          pdf.setTextColor(107, 114, 128);
-          pdf.text(item.name, barX + barW / 2, chartBaseY + 5, { align: "center" });
-        });
+      if (logo) {
+        const logoSize = 24;
+        const logoX = margin + (leftColW - logoSize) / 2;
+        const logoY = y + (headerH - logoSize) / 2;
+        pdf.addImage(logo, "PNG", logoX, logoY, logoSize, logoSize);
       }
-      y += chartBoxH + 6;
 
-      // ── Rekap Aspek ──
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(31, 41, 55);
-      pdf.text("Rekap Aspek Perkembangan", margin, y);
-      y += 5;
+      const titleAreaX = margin + leftColW;
+      const titleAreaW = contentW - leftColW - rightColW;
+      const titleCenterX = titleAreaX + titleAreaW / 2;
 
-      pdf.setFillColor(37, 99, 235);
-      pdf.rect(margin, y, contentW, 7, "F");
-      pdf.setFontSize(8);
-      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(14);
       pdf.setFont("helvetica", "bold");
-      pdf.text("No", margin + 4, y + 4.8);
-      pdf.text("Aspek Perkembangan", margin + 14, y + 4.8);
-      pdf.text("Nilai", margin + 120, y + 4.8);
-      pdf.text("Jumlah Penilaian", margin + 145, y + 4.8);
+      pdf.setTextColor(0, 0, 0);
+      const line1Y = y + 10;
+      pdf.text("LAPORAN PERKEMBANGAN ANAK", titleCenterX, line1Y, { align: "center" });
+      const line1W = pdf.getTextWidth("LAPORAN PERKEMBANGAN ANAK");
+      pdf.setLineWidth(0.35);
+      pdf.line(titleCenterX - line1W / 2, line1Y + 1, titleCenterX + line1W / 2, line1Y + 1);
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      const namaSekolah = ps.nama_sekolah || "TK AL MUHAJIRIN DOTAMANA";
+      pdf.text(namaSekolah, titleCenterX, y + 20, { align: "center" });
+
+      pdf.setFontSize(9.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`TAHUN AJARAN ${tahunAjaran}`, titleCenterX, y + 29, { align: "center" });
+
+      const rightColX = margin + contentW - rightColW;
+
+      pdf.setFontSize(7.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("Nomor Rapor", rightColX + 3, y + 6);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(nomorRapor, rightColX + 3, y + 13);
+
+      pdf.setFontSize(7.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("Semester", rightColX + 3, y + headerH / 2 + 6);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(semesterLabel, rightColX + 3, y + headerH / 2 + 13);
+
+      y += headerH + 6;
+
+      pdf.setFillColor(230, 230, 230);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.3);
+      pdf.rect(margin, y, contentW, 7, "FD");
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("IDENTITAS ANAK", margin + 3, y + 5);
       y += 7;
 
-      rekapWithNilai.forEach((item, i) => {
-        const rowH = 7;
-        pdf.setFillColor(i % 2 === 0 ? 255 : 249, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 251);
-        pdf.rect(margin, y, contentW, rowH, "F");
+      pdf.rect(margin, y, contentW, 28, "S");
+
+      const tglLahirAnak = selectedAnak?.tanggal_lahir ?? "";
+      const umurAnak = tglLahirAnak ? hitungUmur(tglLahirAnak) : "-";
+      const tglLahirFormatted = tglLahirAnak ? formatTanggal(tglLahirAnak) : "-";
+
+      const col1x = margin + 4;
+      const col2x = margin + 94;
+
+      const rows1 = [
+        ["Nama", anakNama],
+        ["Kelas", kelasNama],
+        ["Semester", semesterLabel],
+      ];
+      const rows2 = [
+        ["Tahun Ajaran", tahunAjaran],
+        ["Tanggal Lahir", tglLahirFormatted],
+        ["Usia", umurAnak],
+      ];
+
+      rows1.forEach(([label, value], i) => {
+        const rowY = y + 6 + i * 8;
         pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(8);
-        pdf.setTextColor(75, 85, 99);
-        pdf.text(String(i + 1), margin + 4, y + 4.8);
-        pdf.text(item.aspek, margin + 14, y + 4.8);
-        if (item.nilai && nilaiPdfStyle[item.nilai]) {
-          const { bg, color } = nilaiPdfStyle[item.nilai];
-          pdf.setFillColor(bg);
-          pdf.roundedRect(margin + 116, y + 1.2, 14, 4.5, 1.5, 1.5, "F");
-          pdf.setTextColor(color);
-          pdf.setFont("helvetica", "bold");
-          pdf.text(item.nilai, margin + 123, y + 4.8, { align: "center" });
-        } else {
-          pdf.setTextColor(156, 163, 175);
-          pdf.text("-", margin + 123, y + 4.8, { align: "center" });
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(label, col1x, rowY);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`: ${value}`, col1x + 22, rowY);
+      });
+
+      rows2.forEach(([label, value], i) => {
+        const rowY = y + 6 + i * 8;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(label, col2x, rowY);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`: ${value}`, col2x + 28, rowY);
+      });
+
+      y += 36;
+
+      pdf.setFillColor(230, 230, 230);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.3);
+      pdf.rect(margin, y, contentW, 7, "FD");
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("ASPEK PERKEMBANGAN", margin + 3, y + 5);
+      y += 7;
+
+      const colWidths = [10, 52, 18, 0];
+      colWidths[3] = contentW - colWidths[0] - colWidths[1] - colWidths[2];
+      const colX = [
+        margin,
+        margin + colWidths[0],
+        margin + colWidths[0] + colWidths[1],
+        margin + colWidths[0] + colWidths[1] + colWidths[2],
+      ];
+
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, y, contentW, 7, "FD");
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("No", colX[0] + colWidths[0] / 2, y + 4.8, { align: "center" });
+      pdf.text("Aspek Perkembangan", colX[1] + 3, y + 4.8);
+      pdf.text("Nilai", colX[2] + colWidths[2] / 2, y + 4.8, { align: "center" });
+      pdf.text("Keterangan", colX[3] + 3, y + 4.8);
+      colX.forEach((x, i) => { if (i > 0) pdf.line(x, y, x, y + 7); });
+      pdf.line(margin + contentW, y, margin + contentW, y + 7);
+      y += 7;
+
+      const komentarPerAspek: Record<string, string> = {};
+      const indikatorPerAspek: Record<string, string[]> = {};
+      (laporan.riwayat ?? []).forEach((r) => {
+        const aspek = r.indikator?.aspek?.nama_aspek ?? "";
+        if (r.komentar && aspek && !komentarPerAspek[aspek]) komentarPerAspek[aspek] = r.komentar;
+        const ind = r.indikator?.nama_indikator ?? "";
+        if (aspek && ind) {
+          if (!indikatorPerAspek[aspek]) indikatorPerAspek[aspek] = [];
+          if (!indikatorPerAspek[aspek].includes(ind)) indikatorPerAspek[aspek].push(ind);
         }
+      });
+
+      rekapWithNilai.forEach((item, i) => {
+        let keterangan = komentarPerAspek[item.aspek] ?? "";
+        if (!keterangan && indikatorPerAspek[item.aspek]?.length) {
+          keterangan = indikatorPerAspek[item.aspek].slice(0, 3).join(", ") + ".";
+        }
+        if (!keterangan) keterangan = "-";
+
+        const keteranganLines = pdf.splitTextToSize(keterangan, colWidths[3] - 5);
+        const rowH = Math.max(10, keteranganLines.length * 4.5 + 4);
+
+        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        colX.forEach((x, ci) => { if (ci > 0) pdf.line(x, y, x, y + rowH); });
+        pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+
+        const midY = y + rowH / 2 + 1.5;
+        pdf.setFontSize(8);
         pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(75, 85, 99);
-        pdf.text(`${item.jumlah} penilaian`, margin + 145, y + 4.8);
-        pdf.setDrawColor(229, 231, 235);
-        pdf.setLineWidth(0.2);
-        pdf.line(margin, y + rowH, margin + contentW, y + rowH);
+        pdf.setTextColor(80, 80, 80);
+        pdf.text(String(i + 1), colX[0] + colWidths[0] / 2, midY, { align: "center" });
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(item.aspek, colX[1] + 3, midY);
+
+        if (item.nilai) {
+          pdf.setFont("helvetica", "bold");
+          pdf.text(item.nilai, colX[2] + colWidths[2] / 2, midY, { align: "center" });
+        } else {
+          pdf.setTextColor(150, 150, 150);
+          pdf.text("-", colX[2] + colWidths[2] / 2, midY, { align: "center" });
+        }
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(60, 60, 60);
+        const textStartY = y + (rowH - keteranganLines.length * 4.5) / 2 + 4;
+        pdf.text(keteranganLines, colX[3] + 3, textStartY);
         y += rowH;
       });
-      y += 6;
 
-      // ── Komentar Guru ──
+      y += 8;
+
       if (laporan.komentar) {
-        if (y > pageH - 40) { pdf.addPage(); y = margin; }
-        pdf.setFontSize(10);
+        if (y > pageH - 50) { pdf.addPage(); y = margin; }
+        pdf.setFillColor(230, 230, 230);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.setLineWidth(0.3);
+        pdf.rect(margin, y, contentW, 7, "FD");
+        pdf.setFontSize(9);
         pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(31, 41, 55);
-        pdf.text("Komentar Guru", margin, y);
-        y += 5;
-        pdf.setFillColor(249, 250, 251);
-        pdf.setDrawColor(229, 231, 235);
-        pdf.setLineWidth(0.1);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text("KOMENTAR GURU", margin + 3, y + 5);
+        y += 7;
+
         const komentarLines = pdf.splitTextToSize(laporan.komentar, contentW - 8);
-        const komentarH = komentarLines.length * 4.5 + 6;
-        pdf.roundedRect(margin, y, contentW, komentarH, 3, 3, "FD");
+        const komentarH = komentarLines.length * 5 + 8;
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(margin, y, contentW, komentarH, "FD");
         pdf.setFontSize(8.5);
         pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(75, 85, 99);
-        pdf.text(komentarLines, margin + 4, y + 5);
-        y += komentarH + 6;
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(komentarLines, margin + 4, y + 6);
+        y += komentarH + 8;
       }
 
-      // ── Riwayat Penilaian ──
       if (y > pageH - 50) { pdf.addPage(); y = margin; }
-      pdf.setFontSize(10);
+      pdf.setFillColor(230, 230, 230);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.3);
+      pdf.rect(margin, y, contentW, 7, "FD");
+      pdf.setFontSize(9);
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(31, 41, 55);
-      pdf.text("Riwayat Penilaian", margin, y);
-      y += 5;
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("RIWAYAT PENILAIAN", margin + 3, y + 5);
+      y += 7;
+
+      const rColW = [10, 22, 36, 36, 52, 16];
+      const rColX = rColW.reduce<number[]>((acc, w, i) => {
+        acc.push(i === 0 ? margin : acc[i - 1] + rColW[i - 1]);
+        return acc;
+      }, []);
+      const rHeaders = ["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai"];
 
       const drawRiwayatHeader = () => {
-        pdf.setFillColor(37, 99, 235);
-        pdf.rect(margin, y, contentW, 7, "F");
+        pdf.setFillColor(240, 240, 240);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.rect(margin, y, contentW, 7, "FD");
         pdf.setFontSize(7.5);
         pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(255, 255, 255);
-        pdf.text("No", margin + 2, y + 4.8);
-        pdf.text("Tanggal", margin + 10, y + 4.8);
-        pdf.text("Aspek", margin + 33, y + 4.8);
-        pdf.text("Kegiatan", margin + 70, y + 4.8);
-        pdf.text("Indikator", margin + 110, y + 4.8);
-        pdf.text("Nilai", margin + 163, y + 4.8);
+        pdf.setTextColor(0, 0, 0);
+        rHeaders.forEach((h, i) => {
+          pdf.text(h, rColX[i] + (i === 0 || i === 5 ? rColW[i] / 2 : 2), y + 4.8, {
+            align: i === 0 || i === 5 ? "center" : "left",
+          });
+          if (i > 0) pdf.line(rColX[i], y, rColX[i], y + 7);
+        });
+        pdf.line(margin + contentW, y, margin + contentW, y + 7);
         y += 7;
       };
       drawRiwayatHeader();
 
       (laporan.riwayat ?? []).forEach((item, i) => {
         const rowH = 8;
-        if (y + rowH > pageH - margin) {
-          pdf.addPage();
-          y = margin;
-          drawRiwayatHeader();
-        }
-        pdf.setFillColor(i % 2 === 0 ? 255 : 249, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 251);
-        pdf.rect(margin, y, contentW, rowH, "F");
+        if (y + rowH > pageH - margin - 30) { pdf.addPage(); y = margin; drawRiwayatHeader(); }
+        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        rColW.forEach((_, ci) => { if (ci > 0) pdf.line(rColX[ci], y, rColX[ci], y + rowH); });
+        pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(7.5);
-        pdf.setTextColor(75, 85, 99);
-        pdf.text(String(i + 1), margin + 2, y + 5);
-        pdf.text(item.tanggal ?? "-", margin + 10, y + 5);
-        pdf.text(pdf.splitTextToSize(item.indikator?.aspek?.nama_aspek ?? "-", 32)[0], margin + 33, y + 5);
-        pdf.text(pdf.splitTextToSize(item.indikator?.nama_kegiatan ?? "-", 36)[0], margin + 70, y + 5);
-        pdf.text(pdf.splitTextToSize(item.indikator?.nama_indikator ?? "-", 48)[0], margin + 110, y + 5);
-        if (item.nilai && nilaiPdfStyle[item.nilai]) {
-          const { bg, color } = nilaiPdfStyle[item.nilai];
-          pdf.setFillColor(bg);
-          pdf.roundedRect(margin + 159, y + 1.5, 14, 5, 1.5, 1.5, "F");
-          pdf.setTextColor(color);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(String(i + 1), rColX[0] + rColW[0] / 2, y + 5, { align: "center" });
+        pdf.text(item.tanggal ?? "-", rColX[1] + 2, y + 5);
+        pdf.text(pdf.splitTextToSize(item.indikator?.aspek?.nama_aspek ?? "-", rColW[2] - 3)[0], rColX[2] + 2, y + 5);
+        pdf.text(pdf.splitTextToSize(item.indikator?.nama_kegiatan ?? "-", rColW[3] - 3)[0], rColX[3] + 2, y + 5);
+        pdf.text(pdf.splitTextToSize(item.indikator?.nama_indikator ?? "-", rColW[4] - 3)[0], rColX[4] + 2, y + 5);
+        if (item.nilai) {
           pdf.setFont("helvetica", "bold");
-          pdf.text(item.nilai, margin + 166, y + 5, { align: "center" });
+          pdf.text(item.nilai, rColX[5] + rColW[5] / 2, y + 5, { align: "center" });
         }
-        pdf.setDrawColor(229, 231, 235);
-        pdf.setLineWidth(0.2);
-        pdf.line(margin, y + rowH, margin + contentW, y + rowH);
         y += rowH;
       });
 
-      // ── Footer ──
+      y += 10;
+
+      if (y > pageH - 90) { pdf.addPage(); y = margin; }
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Keterangan Nilai:", margin, y);
+      y += 5;
+      const keteranganNilai = [
+        "BSB : Berkembang Sangat Baik",
+        "BSH : Berkembang Sesuai Harapan",
+        "MB  : Mulai Berkembang",
+        "BB  : Belum Berkembang",
+      ];
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(60, 60, 60);
+      keteranganNilai.forEach((line) => {
+        pdf.text(line, margin, y);
+        y += 5;
+      });
+
+      y += 8;
+
+      if (y > pageH - 70) { pdf.addPage(); y = margin; }
+
+      const ttdStartY = y;
+      const ttdBoxW = 60;
+      const ttdKiriCenterX = margin + ttdBoxW / 2;
+      const ttdKananCenterX = pageW - margin - ttdBoxW / 2;
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Mengetahui,", pageW / 2, ttdStartY, { align: "center" });
+      pdf.text("Kepala Sekolah", ttdKiriCenterX, ttdStartY + 7, { align: "center" });
+      pdf.text("Guru Kelas", ttdKananCenterX, ttdStartY + 7, { align: "center" });
+
+      const ttdImgW = 40;
+      const ttdImgH = 18;
+      const ttdImgY = ttdStartY + 10;
+
+      if (ttdKS) {
+        pdf.addImage(ttdKS, "PNG", ttdKiriCenterX - ttdImgW / 2, ttdImgY, ttdImgW, ttdImgH);
+      }
+      if (ttdGuru) {
+        pdf.addImage(ttdGuru, "PNG", ttdKananCenterX - ttdImgW / 2, ttdImgY, ttdImgW, ttdImgH);
+      }
+
+      const namaNipY = ttdImgY + ttdImgH + 4;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
+      const namaKSW = pdf.getTextWidth(namaKS);
+      pdf.text(namaKS, ttdKiriCenterX, namaNipY, { align: "center" });
+      pdf.setLineWidth(0.3);
+      pdf.line(ttdKiriCenterX - namaKSW / 2, namaNipY + 1, ttdKiriCenterX + namaKSW / 2, namaNipY + 1);
+      if (nipKS) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text(`NIP. ${nipKS}`, ttdKiriCenterX, namaNipY + 6, { align: "center" });
+      }
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
+      const namaGuruW = pdf.getTextWidth(namaWaliKelas);
+      pdf.text(namaWaliKelas, ttdKananCenterX, namaNipY, { align: "center" });
+      pdf.setLineWidth(0.3);
+      pdf.line(ttdKananCenterX - namaGuruW / 2, namaNipY + 1, ttdKananCenterX + namaGuruW / 2, namaNipY + 1);
+      if (nipWaliKelas) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text(`NIP. ${nipWaliKelas}`, ttdKananCenterX, namaNipY + 6, { align: "center" });
+      }
+
+      const nipBottomY = nipKS || nipWaliKelas ? namaNipY + 6 : namaNipY;
+      const tglY = nipBottomY + 9;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Dotamana, ${tglCetak}`, pageW / 2, tglY, { align: "center" });
+
+      y = tglY + 10;
+
       const totalPages = (pdf as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPages; p++) {
         pdf.setPage(p);
-        pdf.setFontSize(7.5);
+        pdf.setFontSize(7);
         pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(156, 163, 175);
+        pdf.setTextColor(150, 150, 150);
         pdf.text(
-          `Halaman ${p} dari ${totalPages}  •  TK Al Muhajirin Dotamana  •  Dicetak ${tglCetak}`,
-          pageW / 2, pageH - 6, { align: "center" }
+          `Halaman ${p} dari ${totalPages}  •  ${ps.nama_sekolah || "TK Al Muhajirin Dotamana"}  •  Dicetak ${tglCetak}`,
+          pageW / 2, pageH - 5, { align: "center" }
         );
       }
 
@@ -525,6 +726,7 @@ export default function LaporanPerkembanganGuruPage() {
     setLoadingPdf(false);
   };
 
+  // ─── RENDER ──────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-4">
 
@@ -535,7 +737,6 @@ export default function LaporanPerkembanganGuruPage() {
         </div>
       )}
 
-      {/* Kelas badge */}
       <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
         <span>Kelas yang Anda ampu:</span>
         {loadingKelas
@@ -568,14 +769,26 @@ export default function LaporanPerkembanganGuruPage() {
             </select>
             <span className="pointer-events-none absolute right-3 bottom-3 text-gray-400"><ChevronDownIcon /></span>
           </div>
+
+          {/* Kelas — auto-select jika hanya 1, dropdown jika lebih */}
           <div className="relative">
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Kelas</label>
-            <select value={selectedKelas?.id_kelas ?? ""} onChange={(e) => handleKelasChange(e.target.value)} disabled={!semester} className={selectCls}>
-              <option value="">Pilih kelas</option>
-              {kelasFiltered.map((k) => <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>)}
-            </select>
-            <span className="pointer-events-none absolute right-3 bottom-3 text-gray-400"><ChevronDownIcon /></span>
+            {kelasFiltered.length === 1 ? (
+              <div className={`${selectCls} flex items-center gap-2 cursor-default`}>
+                <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+                <span className="text-gray-700 font-medium">{kelasFiltered[0].nama_kelas}</span>
+              </div>
+            ) : (
+              <>
+                <select value={selectedKelas?.id_kelas ?? ""} onChange={(e) => handleKelasChange(e.target.value)} disabled={!semester} className={selectCls}>
+                  <option value="">Pilih kelas</option>
+                  {kelasFiltered.map((k) => <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>)}
+                </select>
+                <span className="pointer-events-none absolute right-3 bottom-3 text-gray-400"><ChevronDownIcon /></span>
+              </>
+            )}
           </div>
+
           <div className="relative">
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nama Anak</label>
             {loadingAnak ? (
@@ -602,9 +815,7 @@ export default function LaporanPerkembanganGuruPage() {
             {loadingLaporan && <Loader2 size={14} className="animate-spin" />}
             {loadingLaporan ? "Memuat..." : "Tampilkan"}
           </button>
-          <button
-            onClick={handleExportPDF}
-            disabled={!laporan || loadingPdf}
+          <button onClick={handleExportPDF} disabled={!laporan || loadingPdf}
             className="flex items-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
             {loadingPdf
               ? <><Loader2 size={14} className="animate-spin" /> Membuat PDF...</>
@@ -628,6 +839,11 @@ export default function LaporanPerkembanganGuruPage() {
                 ? `${laporan.anak.kelas?.nama_kelas ?? selectedKelas?.nama_kelas} • ${semester} • ${tahunAjaran}`
                 : <span className="text-gray-300">Belum ada data dipilih</span>}
             </p>
+            {selectedAnak?.tanggal_lahir && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                {formatTanggal(selectedAnak.tanggal_lahir)} • {hitungUmur(selectedAnak.tanggal_lahir)}
+              </p>
+            )}
           </div>
           <div className="flex gap-6 text-center">
             <div>
@@ -804,8 +1020,7 @@ export default function LaporanPerkembanganGuruPage() {
                     </td>
                     <td className="px-3 py-3 text-center">
                       {item.foto ? (
-                        <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/storage/${item.foto}`}
-                          target="_blank" rel="noopener noreferrer"
+                        <a href={`${API_BASE}/storage/${item.foto}`} target="_blank" rel="noopener noreferrer"
                           className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" />

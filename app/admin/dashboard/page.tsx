@@ -36,7 +36,6 @@ const dotColor: Record<string, string> = {
   Info:     "bg-purple-400",
 };
 
-// Warna card per urutan kelas (loop, bukan hardcode per kelas)
 const kelasColors = [
   { color: "from-purple-200 to-purple-100", iconColor: "text-purple-600" },
   { color: "from-cyan-200 to-cyan-100",     iconColor: "text-cyan-600" },
@@ -45,6 +44,9 @@ const kelasColors = [
   { color: "from-teal-200 to-teal-100",     iconColor: "text-teal-600" },
 ];
 
+const nilaiToNum: Record<string, number> = { BB: 1, MB: 2, BSH: 3, BSB: 4 };
+const numToNilai: Record<number, string> = { 1: "BB", 2: "MB", 3: "BSH", 4: "BSB" };
+
 export default function DashboardAdmin() {
   const [jumlahGuru,   setJumlahGuru]   = useState<number | null>(null);
   const [jumlahKelas,  setJumlahKelas]  = useState<number | null>(null);
@@ -52,7 +54,6 @@ export default function DashboardAdmin() {
   const [perluVerif,   setPerluVerif]   = useState<number | null>(null);
   const [pengumuman,   setPengumuman]   = useState<any[]>([]);
   const [distribusi,   setDistribusi]   = useState<Record<string, number>>({ BB: 0, MB: 0, BSH: 0, BSB: 0 });
-  // Dinamis: { "TK A1": 12, "TK A2": 10, ... }
   const [anakPerKelas, setAnakPerKelas] = useState<Record<string, number>>({});
   const [loading,      setLoading]      = useState(true);
 
@@ -68,31 +69,28 @@ export default function DashboardAdmin() {
     ]).then(([guru, kelas, anak, verif, pengumuman, observasi]) => {
 
       if (guru.success) setJumlahGuru(guru.data.length);
-      if (kelas.success) setJumlahKelas(kelas.data.length);
 
       if (kelas.success && anak.success) {
-  setJumlahKelas(kelas.data.length);
-  setTotalAnak((anak.data as any[]).length); // ← ini juga perlu diset ulang
+        setJumlahKelas(kelas.data.length);
+        setTotalAnak((anak.data as any[]).length);
 
-  // Inisialisasi semua kelas dari API kelas dengan nilai 0
-  const initKelas = (kelas.data as any[]).reduce<Record<string, number>>((acc, k) => {
-    acc[k.nama_kelas] = 0;
-    return acc;
-  }, {});
+        const initKelas = (kelas.data as any[]).reduce<Record<string, number>>((acc, k) => {
+          acc[k.nama_kelas] = 0;
+          return acc;
+        }, {});
 
-  // Hitung jumlah anak per kelas
-  (anak.data as any[]).forEach((a: any) => {
-    const namaKelas = a.kelas?.nama_kelas;
-    if (namaKelas && initKelas[namaKelas] !== undefined) {
-      initKelas[namaKelas]++;
-    }
-  });
+        (anak.data as any[]).forEach((a: any) => {
+          const namaKelas = a.kelas?.nama_kelas;
+          if (namaKelas && initKelas[namaKelas] !== undefined) {
+            initKelas[namaKelas]++;
+          }
+        });
 
-  const sorted = Object.fromEntries(
-    Object.entries(initKelas).sort(([a], [b]) => a.localeCompare(b))
-  );
-  setAnakPerKelas(sorted);
-}
+        const sorted = Object.fromEntries(
+          Object.entries(initKelas).sort(([a], [b]) => a.localeCompare(b))
+        );
+        setAnakPerKelas(sorted);
+      }
 
       if (verif.success) {
         const pending = (verif.data as any[]).filter((u: any) => u.status === "pending").length;
@@ -103,11 +101,31 @@ export default function DashboardAdmin() {
         setPengumuman((pengumuman.data as any[]).slice(0, 3));
       }
 
-      if (observasi.success) {
-        const dist: Record<string, number> = { BB: 0, MB: 0, BSH: 0, BSB: 0 };
+      // ── Distribusi: hitung nilai rata-rata per anak, bukan per observasi ──
+      if (observasi.success && anak.success) {
+        const anakList: any[] = anak.data;
+
+        // Kumpulkan semua nilai observasi per id_anak
+        const nilaiPerAnak: Record<number, number[]> = {};
         (observasi.data as any[]).forEach((o: any) => {
-          if (o.nilai && dist[o.nilai] !== undefined) dist[o.nilai]++;
+          const idAnak = o.id_anak ?? o.anak?.id_anak;
+          const nilaiNum = nilaiToNum[o.nilai];
+          if (idAnak !== undefined && nilaiNum !== undefined) {
+            if (!nilaiPerAnak[idAnak]) nilaiPerAnak[idAnak] = [];
+            nilaiPerAnak[idAnak].push(nilaiNum);
+          }
         });
+
+        // Hitung rata-rata per anak → konversi ke kategori nilai
+        const dist: Record<string, number> = { BB: 0, MB: 0, BSH: 0, BSB: 0 };
+        anakList.forEach((a: any) => {
+          const vals = nilaiPerAnak[a.id_anak];
+          if (!vals || vals.length === 0) return; // anak belum punya observasi, skip
+          const rata = vals.reduce((sum, v) => sum + v, 0) / vals.length;
+          const kategori = numToNilai[Math.round(rata)];
+          if (kategori && dist[kategori] !== undefined) dist[kategori]++;
+        });
+
         setDistribusi(dist);
       }
 
@@ -115,7 +133,6 @@ export default function DashboardAdmin() {
     }).catch(() => setLoading(false));
   }, []);
 
-  // Stats statis (guru, kelas, total anak, verifikasi)
   const statsStatis = [
     { label: "Jumlah Guru",           value: jumlahGuru,  color: "from-emerald-200 to-emerald-100", iconColor: "text-emerald-600", icon: Users },
     { label: "Jumlah Kelas",          value: jumlahKelas, color: "from-rose-200 to-rose-100",       iconColor: "text-rose-600",    icon: School },
@@ -123,13 +140,14 @@ export default function DashboardAdmin() {
     { label: "Akun Perlu Verifikasi", value: perluVerif,  color: "from-yellow-200 to-yellow-100",   iconColor: "text-yellow-600",  icon: ShieldCheck },
   ];
 
-  // Stats dinamis per kelas
   const statsKelas = Object.entries(anakPerKelas).map(([namaKelas, jumlah], i) => {
     const theme = kelasColors[i % kelasColors.length];
     return { label: `Total Anak ${namaKelas}`, value: jumlah, ...theme, icon: User };
   });
 
   const allStats = [...statsStatis, ...statsKelas];
+
+  const totalDistribusi = distribusi.BB + distribusi.MB + distribusi.BSH + distribusi.BSB;
 
   const distribusiDetail = [
     { label: "Belum Berkembang (BB)",           nilai: "BB",  value: distribusi.BB  },
@@ -155,7 +173,6 @@ export default function DashboardAdmin() {
         <p className="text-sm text-gray-500">Ringkasan data sekolah dan informasi terbaru</p>
       </div>
 
-      {/* Satu grid, semua card — statis + dinamis per kelas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {allStats.map((s) => (
           <div key={s.label}
@@ -174,7 +191,15 @@ export default function DashboardAdmin() {
       {/* Distribusi + Pie chart */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-6 shadow-md flex flex-col justify-center space-y-3">
-          <p className="text-sm font-semibold text-gray-700 mb-1">Distribusi Perkembangan</p>
+          <div>
+            <p className="text-sm font-semibold text-gray-700">Distribusi Perkembangan</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Nilai rata-rata per anak
+              {!loading && totalDistribusi > 0 && (
+                <span className="ml-1 text-gray-500">({totalDistribusi} anak dinilai)</span>
+              )}
+            </p>
+          </div>
           {distribusiDetail.map((d) => (
             <div key={d.label} className="flex items-center justify-between">
               <span className="text-xs text-gray-600 flex-1">{d.label}</span>
@@ -183,17 +208,25 @@ export default function DashboardAdmin() {
               </span>
             </div>
           ))}
+          {!loading && totalDistribusi === 0 && (
+            <p className="text-xs text-gray-300 text-center pt-2">Belum ada data penilaian</p>
+          )}
         </div>
 
         <div className="col-span-2 bg-white rounded-2xl p-6 shadow-md">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-1">
             Grafik Perkembangan Seluruh Anak
           </h2>
+          <p className="text-xs text-gray-400 mb-4">Berdasarkan nilai rata-rata per anak</p>
           <div className="flex justify-center">
             <div className="w-56 h-56">
               {loading ? (
                 <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
                   Memuat...
+                </div>
+              ) : totalDistribusi === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
+                  Belum ada data
                 </div>
               ) : (
                 <Pie
@@ -203,6 +236,15 @@ export default function DashboardAdmin() {
                       legend: {
                         position: "right",
                         labels: { boxWidth: 12, font: { size: 11 } },
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const val = ctx.parsed;
+                            const pct = totalDistribusi > 0 ? Math.round((val / totalDistribusi) * 100) : 0;
+                            return ` ${val} anak (${pct}%)`;
+                          },
+                        },
                       },
                     },
                   }}
