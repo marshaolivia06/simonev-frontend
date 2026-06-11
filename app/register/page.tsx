@@ -24,7 +24,6 @@ export default function RegisterPage() {
   const [nikError, setNikError] = useState("")
   const [nipError, setNipError] = useState("")
 
-  // ← PERUBAHAN: state kelas dinamis dari API
   const [kelasOptions, setKelasOptions] = useState<string[]>([])
   const [loadingKelas, setLoadingKelas] = useState(false)
 
@@ -37,11 +36,10 @@ export default function RegisterPage() {
   const [formOrtu, setFormOrtu] = useState({
     namaLengkap: "", username: "", email: "", password: "",
     konfirmasiPassword: "", noHp: "", nik: "", hubungan: "",
-    namaAnak: "", tanggalLahirAnak: "", kelasAnak: "", alamat: "",
+    namaAnak: "", tanggalLahirAnak: "", jenisKelaminAnak: "", kelasAnak: "", alamat: "",
     fotoKtp: null as File | null,
   })
 
-  // ← PERUBAHAN: fetch kelas dari API saat role "ortu" dipilih
   useEffect(() => {
     if (role !== "ortu") return
     setLoadingKelas(true)
@@ -50,11 +48,10 @@ export default function RegisterPage() {
     })
       .then((r) => r.json())
       .then((data) => {
-  console.log("Response kelas:", JSON.stringify(data))  // ← tambah ini
-  const list = data.data ?? data
-  const names = list.map((k: { nama_kelas: string }) => k.nama_kelas)
-  setKelasOptions(names)
-})
+        const list = data.data ?? data
+        const names = list.map((k: { nama_kelas: string }) => k.nama_kelas)
+        setKelasOptions(names)
+      })
       .catch(() => setKelasOptions([]))
       .finally(() => setLoadingKelas(false))
   }, [role])
@@ -100,6 +97,7 @@ export default function RegisterPage() {
         formData.append("kelas_anak", formOrtu.kelasAnak)
         formData.append("alamat", formOrtu.alamat)
         if (formOrtu.tanggalLahirAnak) formData.append("tanggal_lahir_anak", formOrtu.tanggalLahirAnak)
+        if (formOrtu.jenisKelaminAnak) formData.append("jenis_kelamin_anak", formOrtu.jenisKelaminAnak)
         if (formOrtu.fotoKtp) formData.append("foto_ktp", formOrtu.fotoKtp)
       }
 
@@ -391,7 +389,6 @@ export default function RegisterPage() {
                         </div>
                       </div>
                       <div>
-                        {/* ← PERUBAHAN: dropdown kelas dari API */}
                         <label className={labelClass}>Kelas Anak <span className="text-red-500">*</span></label>
                         <div className="relative">
                           <select
@@ -417,12 +414,29 @@ export default function RegisterPage() {
                         onChange={(e) => setFormOrtu({ ...formOrtu, namaAnak: e.target.value })} />
                     </div>
 
-                    {/* ← TAMBAHAN: Tanggal Lahir Anak */}
-                    <div>
-                      <label className={labelClass}>Tanggal Lahir Anak <span className="text-gray-400 font-normal">(opsional)</span></label>
-                      <input type="date" className={inputClass}
-                        value={formOrtu.tanggalLahirAnak}
-                        onChange={(e) => setFormOrtu({ ...formOrtu, tanggalLahirAnak: e.target.value })} />
+                    {/* Jenis Kelamin & Tanggal Lahir Anak — grid 2 kolom */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelClass}>Jenis Kelamin Anak <span className="text-gray-400 font-normal">(opsional)</span></label>
+                        <div className="relative">
+                          <select
+                            className={selectClass}
+                            value={formOrtu.jenisKelaminAnak}
+                            onChange={(e) => setFormOrtu({ ...formOrtu, jenisKelaminAnak: e.target.value })}
+                          >
+                            <option value="">-- Belum diisi --</option>
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                          </select>
+                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▾</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClass}>Tanggal Lahir Anak <span className="text-gray-400 font-normal">(opsional)</span></label>
+                        <input type="date" className={inputClass}
+                          value={formOrtu.tanggalLahirAnak}
+                          onChange={(e) => setFormOrtu({ ...formOrtu, tanggalLahirAnak: e.target.value })} />
+                      </div>
                     </div>
 
                     <div>

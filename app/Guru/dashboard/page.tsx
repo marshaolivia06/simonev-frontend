@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Users } from 'lucide-react'
+import { Users, X, AlertCircle, TrendingUp, CheckCircle2, Award } from 'lucide-react'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Pie } from 'react-chartjs-2'
 
@@ -33,6 +33,13 @@ interface Pengumuman {
   isi: string
 }
 
+// Tipe data anak yang ditampilkan di modal
+interface AnakSkala {
+  id_anak: number
+  nama_anak: string
+  nama_kelas?: string
+}
+
 function fromApiPengumuman(item: Record<string, unknown>): Pengumuman {
   const createdAt = item.created_at as string | undefined
   const posting = createdAt
@@ -62,11 +69,38 @@ const dotColor: Record<string, string> = {
   Info:     'bg-purple-400',
 }
 
+// Label lengkap untuk judul modal
+const skalaLabel: Record<string, string> = {
+  BB: 'Belum Berkembang (BB)',
+  MB: 'Mulai Berkembang (MB)',
+  BSH: 'Berkembang Sesuai Harapan (BSH)',
+  BSB: 'Berkembang Sangat Baik (BSB)',
+}
+
+// Tema visual modal per skala: gradasi header, warna avatar, & icon
+const skalaTheme: Record<string, {
+  gradient: string
+  avatarBg: string
+  avatarText: string
+  ring: string
+  icon: React.ComponentType<{ size?: number; className?: string }>
+}> = {
+  BB:  { gradient: 'from-red-500 to-rose-400',     avatarBg: 'bg-red-100',    avatarText: 'text-red-600',    ring: 'ring-red-100',    icon: AlertCircle },
+  MB:  { gradient: 'from-orange-500 to-amber-400', avatarBg: 'bg-orange-100', avatarText: 'text-orange-600', ring: 'ring-orange-100', icon: TrendingUp },
+  BSH: { gradient: 'from-yellow-400 to-amber-300', avatarBg: 'bg-yellow-100', avatarText: 'text-yellow-700', ring: 'ring-yellow-100', icon: CheckCircle2 },
+  BSB: { gradient: 'from-green-500 to-emerald-400',avatarBg: 'bg-green-100',  avatarText: 'text-green-600',  ring: 'ring-green-100',  icon: Award },
+}
+
 export default function DashboardGuru() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [pengumuman, setPengumuman] = useState<Pengumuman[]>([])
   const [loadingDashboard, setLoadingDashboard] = useState(true)
   const [loadingPengumuman, setLoadingPengumuman] = useState(true)
+
+  // State untuk modal daftar anak per skala
+  const [selectedSkala, setSelectedSkala] = useState<string | null>(null)
+  const [anakList, setAnakList] = useState<AnakSkala[]>([])
+  const [loadingAnak, setLoadingAnak] = useState(false)
 
   const fetchDashboard = useCallback(async () => {
     setLoadingDashboard(true)
@@ -99,11 +133,32 @@ export default function DashboardGuru() {
     fetchPengumuman()
   }, [fetchDashboard, fetchPengumuman])
 
+  // Fetch daftar anak berdasarkan skala yang diklik
+  const fetchAnakBySkala = useCallback(async (skala: string) => {
+    setSelectedSkala(skala)
+    setLoadingAnak(true)
+    setAnakList([])
+    try {
+      const res = await fetch(`${API_BASE}/dashboard-guru/anak-by-skala?skala=${skala}`, { headers: authHeaders() })
+      const json = await res.json()
+      if (json.success) setAnakList(json.data ?? [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingAnak(false)
+    }
+  }, [])
+
+  const closeModal = () => {
+    setSelectedSkala(null)
+    setAnakList([])
+  }
+
   const stats = [
-    { label: 'Belum Berkembang (BB)',           value: dashboard?.BB ?? 0,  color: 'from-red-200 to-red-100',       iconColor: 'text-red-600'    },
-    { label: 'Mulai Berkembang (MB)',           value: dashboard?.MB ?? 0,  color: 'from-orange-200 to-orange-100', iconColor: 'text-orange-600' },
-    { label: 'Berkembang Sesuai Harapan (BSH)', value: dashboard?.BSH ?? 0, color: 'from-yellow-200 to-yellow-100', iconColor: 'text-yellow-600' },
-    { label: 'Berkembang Sangat Baik (BSB)',    value: dashboard?.BSB ?? 0, color: 'from-green-200 to-green-100',   iconColor: 'text-green-600'  },
+    { key: 'BB',  label: 'Belum Berkembang (BB)',           value: dashboard?.BB ?? 0,  color: 'from-red-200 to-red-100',       iconColor: 'text-red-600'    },
+    { key: 'MB',  label: 'Mulai Berkembang (MB)',           value: dashboard?.MB ?? 0,  color: 'from-orange-200 to-orange-100', iconColor: 'text-orange-600' },
+    { key: 'BSH', label: 'Berkembang Sesuai Harapan (BSH)', value: dashboard?.BSH ?? 0, color: 'from-yellow-200 to-yellow-100', iconColor: 'text-yellow-600' },
+    { key: 'BSB', label: 'Berkembang Sangat Baik (BSB)',    value: dashboard?.BSB ?? 0, color: 'from-green-200 to-green-100',   iconColor: 'text-green-600'  },
   ]
 
   const pieData = {
@@ -139,13 +194,18 @@ export default function DashboardGuru() {
       ) : (
         <div className="grid grid-cols-4 gap-4">
           {stats.map((stat) => (
-            <div key={stat.label} className={`bg-gradient-to-br ${stat.color} rounded-2xl p-5 shadow-md hover:shadow-lg transition`}>
+            <button
+              key={stat.key}
+              type="button"
+              onClick={() => fetchAnakBySkala(stat.key)}
+              className={`text-left bg-gradient-to-br ${stat.color} rounded-2xl p-5 shadow-md hover:shadow-lg hover:scale-[1.02] transition cursor-pointer`}
+            >
               <p className="text-sm text-gray-700 font-medium">{stat.label}</p>
               <div className="flex items-center justify-between mt-3">
                 <span className="text-3xl font-bold text-gray-800">{stat.value}</span>
                 <Users size={28} className={stat.iconColor} />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -205,6 +265,91 @@ export default function DashboardGuru() {
           </div>
         )}
       </div>
+
+      {/* MODAL DAFTAR ANAK PER SKALA */}
+      {selectedSkala && (() => {
+        const theme = skalaTheme[selectedSkala]
+        const Icon = theme.icon
+        return (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.15s_ease-out]"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden animate-[scaleIn_0.18s_ease-out]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* HEADER GRADIEN */}
+              <div className={`bg-gradient-to-r ${theme.gradient} p-5 relative`}>
+                <button
+                  onClick={closeModal}
+                  className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition"
+                >
+                  <X size={18} />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                    <Icon size={22} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-base leading-tight">
+                      {skalaLabel[selectedSkala] ?? selectedSkala}
+                    </h3>
+                    <p className="text-xs text-white/80 mt-0.5">
+                      {loadingAnak ? 'Memuat data...' : `${anakList.length} anak`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* LIST ANAK */}
+              <div className="p-4 overflow-y-auto">
+                {loadingAnak ? (
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                    ))}
+                  </div>
+                ) : anakList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className={`w-12 h-12 rounded-full ${theme.avatarBg} flex items-center justify-center mb-3`}>
+                      <Icon size={22} className={theme.avatarText} />
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Belum ada anak dengan skala ini
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {anakList.map((anak, idx) => (
+                      <li
+                        key={anak.id_anak}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition"
+                      >
+                        <span className={`w-9 h-9 shrink-0 flex items-center justify-center rounded-full ${theme.avatarBg} ${theme.avatarText} ring-4 ${theme.ring} text-sm font-bold`}>
+                          {idx + 1}
+                        </span>
+                        <span className="text-sm font-medium text-gray-800 truncate">{anak.nama_anak}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <style jsx>{`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes scaleIn {
+                from { opacity: 0; transform: scale(0.95) translateY(8px); }
+                to { opacity: 1; transform: scale(1) translateY(0); }
+              }
+            `}</style>
+          </div>
+        )
+      })()}
 
     </div>
   )

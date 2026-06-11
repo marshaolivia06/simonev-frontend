@@ -12,7 +12,11 @@ import {
 interface Kelas { id_kelas: number; nama_kelas: string; tahun_ajaran: string; wali_kelas?: string }
 interface GuruProfil { nama_guru: string; nip: string | null; foto_ttd: string | null }
 interface Anak { id_anak: number; nama_anak: string; tanggal_lahir?: string }
-interface RekapAspek { aspek: string; nilai: string | null; jumlah: number }
+interface RekapAspek {
+  aspek: string;
+  nilai: string | null;
+  jumlah: number;
+}
 interface Riwayat {
   id_observasi: number;
   tanggal: string;
@@ -25,6 +29,16 @@ interface Riwayat {
     aspek: { nama_aspek: string };
   };
   guru: { nama_guru: string };
+}
+interface LaporanData {
+  anak: {
+    nama_anak: string;
+    kelas: { nama_kelas: string };
+  };
+  rekap_aspek: RekapAspek[];
+  riwayat: Riwayat[];
+  komentar: string;
+  total: number;
 }
 interface ProfilSekolah {
   nama_sekolah: string;
@@ -137,24 +151,32 @@ export default function LaporanPerkembanganAdminPage() {
   const [selectedKelas, setSelectedKelas] = useState<Kelas | null>(null);
   const [selectedAnak, setSelectedAnak] = useState<Anak | null>(null);
   const [aspekFilter, setAspekFilter] = useState("Semua aspek");
-
-  const [rekapAspek, setRekapAspek] = useState<RekapAspek[]>([]);
-  const [riwayat, setRiwayat] = useState<Riwayat[]>([]);
-  const [komentar, setKomentar] = useState("");
-  const [totalPenilaian, setTotalPenilaian] = useState(0);
-  const [anakNama, setAnakNama] = useState("");
-  const [kelasNama, setKelasNama] = useState("");
-
+  const [laporan, setLaporan] = useState<LaporanData | null>(null);
   const [waliKelasProfil, setWaliKelasProfil] = useState<GuruProfil | null>(null);
   const [loadingKelas, setLoadingKelas] = useState(false);
   const [loadingAnak, setLoadingAnak] = useState(false);
   const [loadingLaporan, setLoadingLaporan] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(false);
-  const [showData, setShowData] = useState(false);
   const [error, setError] = useState("");
+
+  // Shortcut dari laporan
+  const rekapAspek = laporan?.rekap_aspek ?? [];
+  const riwayat = laporan?.riwayat ?? [];
+  const totalPenilaian = laporan?.total ?? 0;
+  const anakNama = laporan?.anak?.nama_anak ?? selectedAnak?.nama_anak ?? "";
+  const kelasNama = laporan?.anak?.kelas?.nama_kelas ?? selectedKelas?.nama_kelas ?? "";
 
   const tahunAjaranList = [...new Set(kelasList.map(k => k.tahun_ajaran))].sort();
   const kelasFiltered = kelasList.filter(k => k.tahun_ajaran === tahunAjaran);
+
+  // ─── Helper: komentar terbaru dari riwayat (sama dengan versi guru) ──────────
+  const getKomentarTerbaru = (): string => {
+    if (!laporan?.riwayat?.length) return "";
+    const withKomentar = [...laporan.riwayat]
+      .filter(r => r.komentar && r.komentar.trim() !== "")
+      .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+    return withKomentar[0]?.komentar ?? "";
+  };
 
   useEffect(() => {
     setLoadingKelas(true);
@@ -162,14 +184,14 @@ export default function LaporanPerkembanganAdminPage() {
       .then(r => r.json())
       .then(json => {
         if (json.success) {
-          setKelasList(json.data);
-          if (json.data.length > 0) {
-            const latest = [...json.data].sort((a: Kelas, b: Kelas) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
+          const data: Kelas[] = json.data;
+          if (data.length > 0) {
+            const latest = [...data].sort((a, b) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
             const baseYear = parseInt(latest.split("/")[0]);
             const extraTahun: Kelas[] = [`${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`]
-              .filter(t => !json.data.some((k: Kelas) => k.tahun_ajaran === t))
-              .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t }));
-            setKelasList([...json.data, ...extraTahun]);
+              .filter(t => !data.some(k => k.tahun_ajaran === t))
+              .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, wali_kelas: "" }));
+            setKelasList([...data, ...extraTahun]);
             setTahunAjaran(latest);
           }
         }
@@ -182,7 +204,7 @@ export default function LaporanPerkembanganAdminPage() {
     if (!selectedKelas) { setAnakList([]); setSelectedAnak(null); return; }
     setLoadingAnak(true);
     setSelectedAnak(null);
-    setShowData(false);
+    setLaporan(null);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/anak?id_kelas=${selectedKelas.id_kelas}`, { headers })
       .then(r => r.json())
       .then(json => { if (json.success) setAnakList(json.data); })
@@ -190,14 +212,20 @@ export default function LaporanPerkembanganAdminPage() {
       .finally(() => setLoadingAnak(false));
   }, [selectedKelas]);
 
-  const handleTahunAjaranChange = (val: string) => { setTahunAjaran(val); setSelectedKelas(null); setSelectedAnak(null); setShowData(false); setWaliKelasProfil(null); };
+  const handleTahunAjaranChange = (val: string) => {
+    setTahunAjaran(val);
+    setSelectedKelas(null);
+    setSelectedAnak(null);
+    setLaporan(null);
+    setWaliKelasProfil(null);
+  };
+
   const handleKelasChange = (id: string) => {
     const kelas = kelasList.find(k => k.id_kelas === Number(id)) ?? null;
     setSelectedKelas(kelas);
-    setShowData(false);
+    setLaporan(null);
     setWaliKelasProfil(null);
     if (kelas && kelas.id_kelas > 0) {
-      // Fetch semua guru lalu cocokkan dengan wali_kelas
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/guru`, { headers })
         .then(r => r.json())
         .then(json => {
@@ -213,20 +241,19 @@ export default function LaporanPerkembanganAdminPage() {
 
   const handleTampilkan = async () => {
     if (!selectedAnak) { setError("Pilih nama anak terlebih dahulu."); return; }
-    setError(""); setLoadingLaporan(true);
+    setError("");
+    setLoadingLaporan(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/observasi/anak/${selectedAnak.id_anak}?semester=${encodeURIComponent(semester)}`, { headers });
       const json = await res.json();
       if (json.success) {
-        setRekapAspek(json.data.rekap_aspek);
-        setRiwayat(json.data.riwayat);
-        setKomentar(json.data.komentar);
-        setTotalPenilaian(json.data.total);
-        setAnakNama(json.data.anak?.nama_anak ?? selectedAnak.nama_anak);
-        setKelasNama(json.data.anak?.kelas?.nama_kelas ?? selectedKelas?.nama_kelas ?? "");
-        setShowData(true);
-      } else { setError(json.message || "Gagal memuat laporan."); }
-    } catch { setError("Gagal terhubung ke server."); }
+        setLaporan(json.data as LaporanData);
+      } else {
+        setError(json.message || "Gagal memuat laporan.");
+      }
+    } catch {
+      setError("Gagal terhubung ke server.");
+    }
     setLoadingLaporan(false);
   };
 
@@ -246,10 +273,11 @@ export default function LaporanPerkembanganAdminPage() {
   const nilaiList = riwayat.map(r => nilaiToNum[r.nilai] ?? 0).filter(Boolean);
   const rataRata = nilaiList.length > 0 ? numToNilai[Math.round(nilaiList.reduce((a, b) => a + b, 0) / nilaiList.length)] : null;
   const initials = anakNama.split(" ").map(n => n[0]).join("").substring(0, 2);
+  const komentarTerbaru = getKomentarTerbaru();
 
-  // ─── Export PDF ─────────────────────────────────────────────────────────────
+  // ─── Export PDF (disamakan dengan versi guru) ────────────────────────────────
   const handleExportPDF = async () => {
-    if (!showData) return;
+    if (!laporan) return;
     setLoadingPdf(true);
     try {
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -261,7 +289,11 @@ export default function LaporanPerkembanganAdminPage() {
       const nomorRapor = `R-${tahunAjaran.replace("/", "")}-${String(selectedAnak?.id_anak ?? "").padStart(3, "0")}`;
       const semesterLabel = semester === "Semester 1" ? "1 (Ganjil)" : "2 (Genap)";
 
-      const ps = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profil-sekolah`, { headers }).then(r => r.json()).then(j => j.data as ProfilSekolah).catch(() => ({ nama_sekolah: "TK AL MUHAJIRIN DOTAMANA", nama_kepala_sekolah: "Kepala Sekolah", nip_kepala_sekolah: "", foto_ttd_ks: null } as ProfilSekolah));
+      const ps = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profil-sekolah`, { headers })
+        .then(r => r.json())
+        .then(j => j.data as ProfilSekolah)
+        .catch(() => ({ nama_sekolah: "TK AL MUHAJIRIN DOTAMANA", nama_kepala_sekolah: "Kepala Sekolah", nip_kepala_sekolah: "", foto_ttd_ks: null } as ProfilSekolah));
+
       const [logo, ttdKS, ttdGuru] = await Promise.all([
         loadImageAsDataUrl("/logo-sekolah.png"),
         ps.foto_ttd_ks ? loadImageAsDataUrl(toApiStorageUrl(ps.foto_ttd_ks)) : Promise.resolve(null),
@@ -272,23 +304,32 @@ export default function LaporanPerkembanganAdminPage() {
       const namaWaliKelas = waliKelasProfil?.nama_guru || selectedKelas?.wali_kelas || "Wali Kelas";
       const nipWaliKelas = waliKelasProfil?.nip || "";
 
-      // ── HEADER dalam satu kotak ──
+      const setLineGray = () => { pdf.setDrawColor(160, 160, 160); pdf.setLineWidth(0.5); };
+      const setLineDark = () => { pdf.setDrawColor(0, 0, 0); };
+
+      // ── HEADER ──────────────────────────────────────────────────────────────
       const headerH = 38, rightColW = 44, leftColW = 28;
-      pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.5);
+      setLineGray();
       pdf.rect(margin, y, contentW, headerH, "S");
       pdf.setLineWidth(0.4);
       pdf.line(margin + leftColW, y, margin + leftColW, y + headerH);
       pdf.line(margin + contentW - rightColW, y, margin + contentW - rightColW, y + headerH);
       pdf.line(margin + contentW - rightColW, y + headerH / 2, margin + contentW, y + headerH / 2);
 
-      if (logo) { const ls = 24; pdf.addImage(logo, "PNG", margin + (leftColW - ls) / 2, y + (headerH - ls) / 2, ls, ls); }
+      if (logo) {
+        const ls = 24;
+        pdf.addImage(logo, "PNG", margin + (leftColW - ls) / 2, y + (headerH - ls) / 2, ls, ls);
+      }
 
-      const titleAreaX = margin + leftColW, titleAreaW = contentW - leftColW - rightColW;
+      const titleAreaX = margin + leftColW;
+      const titleAreaW = contentW - leftColW - rightColW;
       const titleCenterX = titleAreaX + titleAreaW / 2;
+
       pdf.setFontSize(14); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
       pdf.text("LAPORAN PERKEMBANGAN ANAK", titleCenterX, y + 10, { align: "center" });
       const lw = pdf.getTextWidth("LAPORAN PERKEMBANGAN ANAK");
-      pdf.setLineWidth(0.35); pdf.line(titleCenterX - lw / 2, y + 11, titleCenterX + lw / 2, y + 11);
+      pdf.setLineWidth(0.35);
+      pdf.line(titleCenterX - lw / 2, y + 11, titleCenterX + lw / 2, y + 11);
       pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
       pdf.text(ps.nama_sekolah || "TK AL MUHAJIRIN DOTAMANA", titleCenterX, y + 20, { align: "center" });
       pdf.setFontSize(9.5); pdf.setFont("helvetica", "normal");
@@ -305,121 +346,164 @@ export default function LaporanPerkembanganAdminPage() {
       pdf.text(semesterLabel, rightColX + 3, y + headerH / 2 + 13);
       y += headerH + 6;
 
-      // ── IDENTITAS ANAK ──
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      // ── IDENTITAS ANAK ───────────────────────────────────────────────────────
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
       pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
       pdf.text("IDENTITAS ANAK", margin + 3, y + 5);
       y += 7;
-      const identH = selectedAnak?.tanggal_lahir ? 28 : 20;
-      pdf.rect(margin, y, contentW, identH, "S");
+
+      setLineGray();
+      pdf.rect(margin, y, contentW, 28, "S");
       const col1x = margin + 4, col2x = margin + 94;
       const tglLahir = selectedAnak?.tanggal_lahir ?? "";
       const rows1: string[][] = [["Nama", anakNama], ["Kelas", kelasNama], ["Semester", semesterLabel]];
-      const rows2: string[][] = [["Tahun Ajaran", tahunAjaran], ...(tglLahir ? [["Tanggal Lahir", formatTanggal(tglLahir)], ["Usia", hitungUmur(tglLahir)]] : [["Total Penilaian", String(totalPenilaian)]])];
+      const rows2: string[][] = [
+        ["Tahun Ajaran", tahunAjaran],
+        ...(tglLahir
+          ? [["Tanggal Lahir", formatTanggal(tglLahir)], ["Usia", hitungUmur(tglLahir)]]
+          : [["Total Penilaian", String(totalPenilaian)]]),
+      ];
       rows1.forEach(([label, value], i) => {
-        const ry = y + 6 + i * 7;
+        const ry = y + 6 + i * 8;
         pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(60, 60, 60);
         pdf.text(label, col1x, ry); pdf.setTextColor(0, 0, 0); pdf.text(`: ${value}`, col1x + 22, ry);
       });
       rows2.forEach(([label, value], i) => {
-        const ry = y + 6 + i * 7;
+        const ry = y + 6 + i * 8;
         pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(60, 60, 60);
         pdf.text(label, col2x, ry); pdf.setTextColor(0, 0, 0); pdf.text(`: ${value}`, col2x + 28, ry);
       });
-      y += identH + 6;
+      y += 36;
 
-      // ── ASPEK PERKEMBANGAN ──
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      // ── ASPEK PERKEMBANGAN (dengan kolom Definisi Aspek, sama dengan guru) ──
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
       pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
       pdf.text("ASPEK PERKEMBANGAN", margin + 3, y + 5);
       y += 7;
 
-      const colWidths = [10, 52, 18, 0];
-      colWidths[3] = contentW - colWidths[0] - colWidths[1] - colWidths[2];
-      const colX = [margin, margin + colWidths[0], margin + colWidths[0] + colWidths[1], margin + colWidths[0] + colWidths[1] + colWidths[2]];
+      // Kolom: No | Aspek Perkembangan | Definisi | Nilai
+      const colWidths = [10, 42, 0, 18];
+      colWidths[2] = contentW - colWidths[0] - colWidths[1] - colWidths[3];
+      const colX = [
+        margin,
+        margin + colWidths[0],
+        margin + colWidths[0] + colWidths[1],
+        margin + colWidths[0] + colWidths[1] + colWidths[2],
+      ];
 
-      pdf.setFillColor(240, 240, 240); pdf.rect(margin, y, contentW, 7, "FD");
+      // Header tabel aspek
+      setLineGray();
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(margin, y, contentW, 7, "FD");
       pdf.setFontSize(8); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
       pdf.text("No", colX[0] + colWidths[0] / 2, y + 4.8, { align: "center" });
       pdf.text("Aspek Perkembangan", colX[1] + 3, y + 4.8);
-      pdf.text("Nilai", colX[2] + colWidths[2] / 2, y + 4.8, { align: "center" });
-      pdf.text("Keterangan", colX[3] + 3, y + 4.8);
-      colX.forEach((x, i) => { if (i > 0) pdf.line(x, y, x, y + 7); });
-      pdf.line(margin + contentW, y, margin + contentW, y + 7);
+      pdf.text("Definisi Aspek", colX[2] + 3, y + 4.8);
+      pdf.text("Nilai", colX[3] + colWidths[3] / 2, y + 4.8, { align: "center" });
+      [1, 2, 3].forEach(ci => { setLineGray(); pdf.line(colX[ci], y, colX[ci], y + 7); });
+      setLineGray(); pdf.line(margin + contentW, y, margin + contentW, y + 7);
       y += 7;
 
-      const komentarPerAspek: Record<string, string> = {};
-      const indikatorPerAspek: Record<string, string[]> = {};
-      riwayat.forEach(r => {
-        const aspek = r.indikator?.aspek?.nama_aspek ?? "";
-        if (r.komentar && aspek && !komentarPerAspek[aspek]) komentarPerAspek[aspek] = r.komentar;
-        const ind = r.indikator?.nama_indikator ?? "";
-        if (aspek && ind) { if (!indikatorPerAspek[aspek]) indikatorPerAspek[aspek] = []; if (!indikatorPerAspek[aspek].includes(ind)) indikatorPerAspek[aspek].push(ind); }
-      });
-
       rekapWithNilai.forEach((item, i) => {
-        let ket = komentarPerAspek[item.aspek] ?? "";
-        if (!ket && indikatorPerAspek[item.aspek]?.length) ket = indikatorPerAspek[item.aspek].slice(0, 3).join(", ") + ".";
-        if (!ket) ket = "-";
-        const ketLines = pdf.splitTextToSize(ket, colWidths[3] - 5);
-        const rowH = Math.max(10, ketLines.length * 4.5 + 4);
-        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
-        pdf.setDrawColor(0, 0, 0); pdf.rect(margin, y, contentW, rowH, "FD");
-        colX.forEach((x, ci) => { if (ci > 0) pdf.line(x, y, x, y + rowH); });
-        pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+        const definisi = aspekDefinisi[item.aspek] ?? "-";
+        const definisiLines = pdf.splitTextToSize(definisi, colWidths[2] - 5);
+        const rowH = Math.max(10, definisiLines.length * 4.5 + 4);
+
+        setLineGray();
+        pdf.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        [1, 2, 3].forEach(ci => { setLineGray(); pdf.line(colX[ci], y, colX[ci], y + rowH); });
+        setLineGray(); pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+
         const midY = y + rowH / 2 + 1.5;
         pdf.setFontSize(8); pdf.setFont("helvetica", "normal"); pdf.setTextColor(80, 80, 80);
         pdf.text(String(i + 1), colX[0] + colWidths[0] / 2, midY, { align: "center" });
         pdf.setTextColor(0, 0, 0); pdf.text(item.aspek, colX[1] + 3, midY);
-        if (item.nilai) { pdf.setFont("helvetica", "bold"); pdf.text(item.nilai, colX[2] + colWidths[2] / 2, midY, { align: "center" }); }
-        else { pdf.setTextColor(150, 150, 150); pdf.text("-", colX[2] + colWidths[2] / 2, midY, { align: "center" }); }
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(60, 60, 60);
-        pdf.text(ketLines, colX[3] + 3, y + (rowH - ketLines.length * 4.5) / 2 + 4);
+
+        pdf.setFontSize(7.5); pdf.setFont("helvetica", "normal"); pdf.setTextColor(60, 60, 60);
+        const textStartY = y + (rowH - definisiLines.length * 4.5) / 2 + 4;
+        pdf.text(definisiLines, colX[2] + 3, textStartY);
+
+        pdf.setFontSize(8);
+        if (item.nilai) {
+          pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
+          pdf.text(item.nilai, colX[3] + colWidths[3] / 2, midY, { align: "center" });
+        } else {
+          pdf.setTextColor(150, 150, 150);
+          pdf.text("-", colX[3] + colWidths[3] / 2, midY, { align: "center" });
+        }
         y += rowH;
       });
       y += 8;
 
-      // ── KOMENTAR GURU ──
-      if (komentar) {
+      // ── KOMENTAR GURU (dari komentar terbaru di riwayat, sama dengan guru) ──
+      const komentarPdf = komentarTerbaru;
+      if (komentarPdf) {
         if (y > pageH - 50) { pdf.addPage(); y = margin; }
-        pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+        setLineGray();
+        pdf.setLineWidth(0.3);
+        pdf.setFillColor(255, 255, 255);
         pdf.rect(margin, y, contentW, 7, "FD");
         pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-        pdf.text("KOMENTAR GURU", margin + 3, y + 5); y += 7;
-        const kLines = pdf.splitTextToSize(komentar, contentW - 8);
+        pdf.text("KOMENTAR GURU", margin + 3, y + 5);
+        y += 7;
+        const kLines = pdf.splitTextToSize(komentarPdf, contentW - 8);
         const kH = kLines.length * 5 + 8;
-        pdf.setFillColor(255, 255, 255); pdf.rect(margin, y, contentW, kH, "FD");
+        setLineGray();
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(margin, y, contentW, kH, "FD");
         pdf.setFontSize(8.5); pdf.setFont("helvetica", "normal"); pdf.setTextColor(0, 0, 0);
-        pdf.text(kLines, margin + 4, y + 6); y += kH + 8;
+        pdf.text(kLines, margin + 4, y + 6);
+        y += kH + 8;
       }
 
-      // ── RIWAYAT PENILAIAN ──
+      // ── RIWAYAT PENILAIAN ────────────────────────────────────────────────────
       if (y > pageH - 50) { pdf.addPage(); y = margin; }
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
       pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("RIWAYAT PENILAIAN", margin + 3, y + 5); y += 7;
+      pdf.text("RIWAYAT PENILAIAN", margin + 3, y + 5);
+      y += 7;
 
       const rColW = [10, 22, 36, 36, 52, 16];
-      const rColX = rColW.reduce<number[]>((acc, w, i) => { acc.push(i === 0 ? margin : acc[i - 1] + rColW[i - 1]); return acc; }, []);
+      const rColX = rColW.reduce<number[]>((acc, w, i) => {
+        acc.push(i === 0 ? margin : acc[i - 1] + rColW[i - 1]);
+        return acc;
+      }, []);
       const rHeaders = ["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai"];
+
       const drawRiwayatHeader = () => {
-        pdf.setFillColor(240, 240, 240); pdf.setDrawColor(0, 0, 0);
+        setLineGray();
+        pdf.setFillColor(245, 245, 245);
         pdf.rect(margin, y, contentW, 7, "FD");
         pdf.setFontSize(7.5); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-        rHeaders.forEach((h, i) => { pdf.text(h, rColX[i] + (i === 0 || i === 5 ? rColW[i] / 2 : 2), y + 4.8, { align: i === 0 || i === 5 ? "center" : "left" }); if (i > 0) pdf.line(rColX[i], y, rColX[i], y + 7); });
-        pdf.line(margin + contentW, y, margin + contentW, y + 7); y += 7;
+        rHeaders.forEach((h, i) => {
+          pdf.text(h, rColX[i] + (i === 0 || i === 5 ? rColW[i] / 2 : 2), y + 4.8, {
+            align: i === 0 || i === 5 ? "center" : "left",
+          });
+          if (i > 0) { setLineGray(); pdf.line(rColX[i], y, rColX[i], y + 7); }
+        });
+        setLineGray(); pdf.line(margin + contentW, y, margin + contentW, y + 7);
+        y += 7;
       };
       drawRiwayatHeader();
+
       riwayat.forEach((item, i) => {
         const rowH = 8;
         if (y + rowH > pageH - margin - 30) { pdf.addPage(); y = margin; drawRiwayatHeader(); }
-        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
-        pdf.setDrawColor(0, 0, 0); pdf.rect(margin, y, contentW, rowH, "FD");
-        rColW.forEach((_, ci) => { if (ci > 0) pdf.line(rColX[ci], y, rColX[ci], y + rowH); });
-        pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+        setLineGray();
+        pdf.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        rColW.forEach((_, ci) => { if (ci > 0) { setLineGray(); pdf.line(rColX[ci], y, rColX[ci], y + rowH); } });
+        setLineGray(); pdf.line(margin + contentW, y, margin + contentW, y + rowH);
         pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(0, 0, 0);
         pdf.text(String(i + 1), rColX[0] + rColW[0] / 2, y + 5, { align: "center" });
         pdf.text(item.tanggal ?? "-", rColX[1] + 2, y + 5);
@@ -431,17 +515,18 @@ export default function LaporanPerkembanganAdminPage() {
       });
       y += 10;
 
-      // ── KETERANGAN NILAI ──
+      // ── KETERANGAN NILAI ─────────────────────────────────────────────────────
       if (y > pageH - 90) { pdf.addPage(); y = margin; }
       pdf.setFontSize(8); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("Keterangan Nilai:", margin, y); y += 5;
+      pdf.text("Keterangan Nilai:", margin, y);
+      y += 5;
       ["BSB : Berkembang Sangat Baik", "BSH : Berkembang Sesuai Harapan", "MB  : Mulai Berkembang", "BB  : Belum Berkembang"].forEach(line => {
         pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(60, 60, 60);
         pdf.text(line, margin, y); y += 5;
       });
       y += 8;
 
-      // ── TANDA TANGAN ──
+      // ── TANDA TANGAN ─────────────────────────────────────────────────────────
       if (y > pageH - 70) { pdf.addPage(); y = margin; }
       const ttdStartY = y;
       const ttdBoxW = 60;
@@ -459,18 +544,18 @@ export default function LaporanPerkembanganAdminPage() {
 
       const namaNipY = ttdImgY + ttdImgH + 4;
 
-      // Nama KS
       pdf.setFont("helvetica", "bold"); pdf.setFontSize(9); pdf.setTextColor(0, 0, 0);
       const namaKSW = pdf.getTextWidth(namaKS);
       pdf.text(namaKS, ttdKiriCenterX, namaNipY, { align: "center" });
-      pdf.setLineWidth(0.3); pdf.line(ttdKiriCenterX - namaKSW / 2, namaNipY + 1, ttdKiriCenterX + namaKSW / 2, namaNipY + 1);
+      pdf.setLineWidth(0.3); setLineDark();
+      pdf.line(ttdKiriCenterX - namaKSW / 2, namaNipY + 1, ttdKiriCenterX + namaKSW / 2, namaNipY + 1);
       if (nipKS) { pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.text(`NIP. ${nipKS}`, ttdKiriCenterX, namaNipY + 6, { align: "center" }); }
 
-      // Nama Wali Kelas
       pdf.setFont("helvetica", "bold"); pdf.setFontSize(9); pdf.setTextColor(0, 0, 0);
       const namaGuruW = pdf.getTextWidth(namaWaliKelas);
       pdf.text(namaWaliKelas, ttdKananCenterX, namaNipY, { align: "center" });
-      pdf.setLineWidth(0.3); pdf.line(ttdKananCenterX - namaGuruW / 2, namaNipY + 1, ttdKananCenterX + namaGuruW / 2, namaNipY + 1);
+      setLineDark(); pdf.setLineWidth(0.3);
+      pdf.line(ttdKananCenterX - namaGuruW / 2, namaNipY + 1, ttdKananCenterX + namaGuruW / 2, namaNipY + 1);
       if (nipWaliKelas) { pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.text(`NIP. ${nipWaliKelas}`, ttdKananCenterX, namaNipY + 6, { align: "center" }); }
 
       const nipBottomY = nipKS || nipWaliKelas ? namaNipY + 6 : namaNipY;
@@ -479,16 +564,22 @@ export default function LaporanPerkembanganAdminPage() {
       pdf.text(`Dotamana, ${tglCetak}`, pageW / 2, tglY, { align: "center" });
       y = tglY + 10;
 
-      // ── FOOTER ──
+      // ── FOOTER halaman ───────────────────────────────────────────────────────
       const totalPages = (pdf as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPages; p++) {
         pdf.setPage(p);
         pdf.setFontSize(7); pdf.setFont("helvetica", "normal"); pdf.setTextColor(150, 150, 150);
-        pdf.text(`Halaman ${p} dari ${totalPages}  •  ${ps.nama_sekolah || "TK Al Muhajirin Dotamana"}  •  Dicetak ${tglCetak}`, pageW / 2, pageH - 5, { align: "center" });
+        pdf.text(
+          `Halaman ${p} dari ${totalPages}  •  ${ps.nama_sekolah || "TK Al Muhajirin Dotamana"}  •  Dicetak ${tglCetak}`,
+          pageW / 2, pageH - 5, { align: "center" }
+        );
       }
 
       pdf.save(`Laporan_${anakNama.replace(/\s+/g, "_")}_${semester.replace(" ", "")}_${tahunAjaran.replace("/", "-")}.pdf`);
-    } catch (err) { console.error(err); setError("Gagal membuat PDF. Coba lagi."); }
+    } catch (err) {
+      console.error(err);
+      setError("Gagal membuat PDF. Coba lagi.");
+    }
     setLoadingPdf(false);
   };
 
@@ -514,7 +605,7 @@ export default function LaporanPerkembanganAdminPage() {
           </div>
           <div className="relative">
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Semester</label>
-            <select value={semester} onChange={e => { setSemester(e.target.value); setShowData(false); }} disabled={!tahunAjaran} className={selectCls}>
+            <select value={semester} onChange={e => { setSemester(e.target.value); setLaporan(null); }} disabled={!tahunAjaran} className={selectCls}>
               {semesterOptions.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <span className="pointer-events-none absolute right-3 bottom-3 text-gray-400"><ChevronDown /></span>
@@ -535,7 +626,7 @@ export default function LaporanPerkembanganAdminPage() {
               </div>
             ) : (
               <>
-                <select value={selectedAnak?.id_anak ?? ""} onChange={e => { setSelectedAnak(anakList.find(a => a.id_anak === Number(e.target.value)) ?? null); setShowData(false); }} disabled={!selectedKelas} className={selectCls}>
+                <select value={selectedAnak?.id_anak ?? ""} onChange={e => { setSelectedAnak(anakList.find(a => a.id_anak === Number(e.target.value)) ?? null); setLaporan(null); }} disabled={!selectedKelas} className={selectCls}>
                   <option value="">Pilih anak</option>
                   {anakList.map(a => <option key={a.id_anak} value={a.id_anak}>{a.nama_anak}</option>)}
                 </select>
@@ -550,7 +641,7 @@ export default function LaporanPerkembanganAdminPage() {
             {loadingLaporan && <Loader2 size={14} className="animate-spin" />}
             {loadingLaporan ? "Memuat..." : "Tampilkan"}
           </button>
-          <button onClick={handleExportPDF} disabled={!showData || loadingPdf}
+          <button onClick={handleExportPDF} disabled={!laporan || loadingPdf}
             className="flex items-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
             {loadingPdf ? <><Loader2 size={14} className="animate-spin" /> Membuat PDF...</> : <><FileText size={16} /> Export PDF</>}
           </button>
@@ -561,17 +652,28 @@ export default function LaporanPerkembanganAdminPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg">
-            {showData ? initials : <User size={22} className="text-blue-400" />}
+            {laporan ? initials : <User size={22} className="text-blue-400" />}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-800">{showData ? anakNama : <span className="text-gray-400">-</span>}</h3>
-            <p className="text-sm text-gray-500">{showData ? `${kelasNama} • ${semester} • ${tahunAjaran}` : <span className="text-gray-300">Belum ada data dipilih</span>}</p>
+            <h3 className="font-semibold text-gray-800">{laporan ? anakNama : <span className="text-gray-400">-</span>}</h3>
+            <p className="text-sm text-gray-500">
+              {laporan
+                ? `${kelasNama} • ${semester} • ${tahunAjaran}`
+                : <span className="text-gray-300">Belum ada data dipilih</span>}
+            </p>
+            {selectedAnak?.tanggal_lahir && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                {formatTanggal(selectedAnak.tanggal_lahir)} • {hitungUmur(selectedAnak.tanggal_lahir)}
+              </p>
+            )}
           </div>
           <div className="flex gap-6 text-center">
-            <div><p className="text-2xl font-bold text-blue-500">{showData ? rekapWithNilai.length : "-"}</p><p className="text-xs text-gray-500">Aspek</p></div>
-            <div><p className="text-2xl font-bold text-blue-500">{showData ? totalPenilaian : "-"}</p><p className="text-xs text-gray-500">Penilaian</p></div>
+            <div><p className="text-2xl font-bold text-blue-500">{laporan ? rekapWithNilai.length : "-"}</p><p className="text-xs text-gray-500">Aspek</p></div>
+            <div><p className="text-2xl font-bold text-blue-500">{laporan ? totalPenilaian : "-"}</p><p className="text-xs text-gray-500">Penilaian</p></div>
             <div>
-              {showData && rataRata ? <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${nilaiColorMap[rataRata]}`}>{rataRata}</span> : <span className="inline-block px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-sm font-semibold">-</span>}
+              {laporan && rataRata
+                ? <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${nilaiColorMap[rataRata]}`}>{rataRata}</span>
+                : <span className="inline-block px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-sm font-semibold">-</span>}
               <p className="text-xs text-gray-500 mt-1">Rata-rata</p>
             </div>
           </div>
@@ -583,10 +685,15 @@ export default function LaporanPerkembanganAdminPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-800 mb-1">Grafik Perkembangan</h3>
           <p className="text-xs text-gray-500 mb-4">Rekapitulasi aspek perkembangan</p>
-          {showData && chartData.length > 0 ? (
+          {laporan && chartData.length > 0 ? (
             <>
               <div className="flex flex-wrap gap-2 mb-4">
-                {chartData.map((item, i) => (<div key={i} className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} /><span className="text-xs text-gray-600">{item.name}</span></div>))}
+                {chartData.map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-xs text-gray-600">{item.name}</span>
+                  </div>
+                ))}
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -612,52 +719,63 @@ export default function LaporanPerkembanganAdminPage() {
           <h3 className="font-semibold text-gray-800 mb-1">Ringkasan Aspek</h3>
           <p className="text-xs text-gray-500 mb-4">Capaian setiap aspek perkembangan</p>
           <div className="space-y-3">
-            {showData && rekapWithNilai.length > 0 ? rekapWithNilai.map((item, i) => (
+            {laporan && rekapWithNilai.length > 0 ? rekapWithNilai.map((item, i) => (
               <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} /><span className="text-sm text-gray-700">{item.aspek}</span></div>
-                {item.nilai ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span> : <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-300">-</span>}
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} />
+                  <span className="text-sm text-gray-700">{item.aspek}</span>
+                </div>
+                {item.nilai
+                  ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
+                  : <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-300">-</span>}
               </div>
-            )) : <div className="text-center text-gray-300 text-sm py-8">{loadingLaporan ? <Loader2 size={20} className="animate-spin text-blue-400 mx-auto" /> : "Belum ada data"}</div>}
+            )) : (
+              <div className="text-center text-gray-300 text-sm py-8">
+                {loadingLaporan ? <Loader2 size={20} className="animate-spin text-blue-400 mx-auto" /> : "Belum ada data"}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Tabel Nilai Aspek */}
+      {/* Tabel Nilai Aspek — No | Aspek | Definisi Aspek | Nilai */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-4">Tabel Nilai Aspek Perkembangan</h3>
-        <div className="rounded-xl border border-gray-200 overflow-visible">
+        <div className="rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-100 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-12">No</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/2">Aspek Perkembangan</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/4">Nilai</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 w-1/4">Jumlah Penilaian</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-10">No</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/4">Aspek Perkembangan</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200">Definisi Aspek</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-20">Nilai</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {showData && rekapWithNilai.length > 0 ? rekapWithNilai.map((item, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+              {laporan && rekapWithNilai.length > 0 ? rekapWithNilai.map((item, i) => (
+                <tr key={i} className="hover:bg-gray-50 align-top">
                   <td className="px-4 py-3 text-gray-500 text-center border-r border-gray-200">{i + 1}</td>
                   <td className="px-4 py-3 text-gray-700 border-r border-gray-200">
-                    <div className="flex items-center gap-2 group relative">
-                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} />
-                      <span className="cursor-default">{item.aspek}</span>
-                      {aspekDefinisi[item.aspek] && (
-                        <div className="absolute left-0 bottom-full mb-2 z-50 hidden group-hover:block bg-white border border-gray-200 rounded-xl shadow-xl p-4 w-80">
-                          <p className="text-xs font-semibold mb-1" style={{ color: ASPEK_COLORS[i % ASPEK_COLORS.length] }}>{item.aspek}</p>
-                          <p className="text-xs text-gray-500 leading-relaxed">{aspekDefinisi[item.aspek]}</p>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} />
+                      <span className="font-medium">{item.aspek}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 border-r border-gray-200">
-                    {item.nilai ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span> : <span className="text-gray-300 text-xs">-</span>}
+                  <td className="px-4 py-3 text-gray-500 text-xs leading-relaxed border-r border-gray-200">
+                    {aspekDefinisi[item.aspek] ?? "-"}
                   </td>
-                  <td className="px-4 py-3 text-gray-600 text-xs">{item.jumlah} penilaian</td>
+                  <td className="px-4 py-3 text-center">
+                    {item.nilai
+                      ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
+                      : <span className="text-gray-300 text-xs">-</span>}
+                  </td>
                 </tr>
               )) : (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-300 text-sm">{loadingLaporan ? "Memuat..." : "Pilih filter lalu klik Tampilkan"}</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-300 text-sm">
+                    {loadingLaporan ? "Memuat..." : "Pilih filter lalu klik Tampilkan"}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -667,8 +785,10 @@ export default function LaporanPerkembanganAdminPage() {
       {/* Komentar Guru */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-1">Komentar Guru</h3>
-        <p className="text-xs text-gray-500 mb-3">Catatan dan evaluasi</p>
-        <p className="text-sm text-gray-600 leading-relaxed">{showData && komentar ? komentar : <span className="text-gray-300">-</span>}</p>
+        <p className="text-xs text-gray-500 mb-3">Belum ada komentar</p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {komentarTerbaru ? komentarTerbaru : <span className="text-gray-300">-</span>}
+        </p>
       </div>
 
       {/* Riwayat Penilaian */}
@@ -676,7 +796,8 @@ export default function LaporanPerkembanganAdminPage() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-gray-800">Riwayat Penilaian</h3>
           <div className="relative">
-            <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[160px]">
+            <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[160px]">
               {aspekOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDown /></span>
@@ -692,7 +813,7 @@ export default function LaporanPerkembanganAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {showData && riwayatFiltered.length > 0 ? riwayatFiltered.map((item, index) => (
+              {laporan && riwayatFiltered.length > 0 ? riwayatFiltered.map((item, index) => (
                 <tr key={item.id_observasi} className="hover:bg-gray-50">
                   <td className="px-3 py-3 text-gray-600 border-r border-gray-200">{index + 1}</td>
                   <td className="px-3 py-3 text-gray-600 border-r border-gray-200 whitespace-nowrap">{item.tanggal}</td>
@@ -704,15 +825,24 @@ export default function LaporanPerkembanganAdminPage() {
                   </td>
                   <td className="px-3 py-3 text-center">
                     {item.foto ? (
-                      <a href={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.foto}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                      <a href={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.foto}`} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                        </svg>
                         Lihat
                       </a>
                     ) : <span className="text-xs text-gray-300">-</span>}
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-gray-300">{loadingLaporan ? <Loader2 size={16} className="animate-spin text-blue-400 mx-auto" /> : showData ? "Tidak ada data untuk aspek ini" : "Pilih filter lalu klik Tampilkan"}</td></tr>
+                <tr>
+                  <td colSpan={7} className="px-3 py-8 text-center text-gray-300">
+                    {loadingLaporan
+                      ? <Loader2 size={16} className="animate-spin text-blue-400 mx-auto" />
+                      : laporan ? "Tidak ada data untuk aspek ini" : "Pilih filter lalu klik Tampilkan"}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

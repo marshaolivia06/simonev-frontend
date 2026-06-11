@@ -39,13 +39,12 @@ interface NilaiEntry {
   kegiatanLabel: string;
   indikatorLabel: string;
   nilai: string;
-  foto: string; // nama file
+  foto: string;
   fotoFile: File | null;
 }
 type Step = "filter" | "pilih-aspek" | "isi-nilai";
 
 // ─── GROUPING helper ─────────────────────────────────────────────
-// Karena kegiatan hanya field string di indikator, kita group manual
 interface KegiatanGroup {
   nama_kegiatan: string;
   indikator: Indikator[];
@@ -66,20 +65,20 @@ function groupByKegiatan(indikator: Indikator[]): KegiatanGroup[] {
 // ─── NILAI config ────────────────────────────────────────────────
 const NILAI_OPTIONS = ["BB", "MB", "BSH", "BSB"] as const;
 const NILAI_INFO: Record<string, { label: string; desc: string; color: string; selectedColor: string }> = {
-  BB: { label: "Belum Berkembang",          desc: "Anak belum menunjukkan kemampuan ini",             color: "text-red-500 border-red-200 bg-white hover:bg-red-50",       selectedColor: "text-red-700 border-red-400 bg-red-100 ring-2 ring-red-300 ring-offset-1" },
-  MB: { label: "Mulai Berkembang",           desc: "Anak sudah mulai menunjukkan kemampuan dengan bantuan", color: "text-yellow-600 border-yellow-200 bg-white hover:bg-yellow-50", selectedColor: "text-yellow-800 border-yellow-400 bg-yellow-100 ring-2 ring-yellow-300 ring-offset-1" },
-  BSH:{ label: "Berkembang Sesuai Harapan", desc: "Anak mampu melakukan secara mandiri",              color: "text-blue-500 border-blue-200 bg-white hover:bg-blue-50",     selectedColor: "text-blue-800 border-blue-400 bg-blue-100 ring-2 ring-blue-300 ring-offset-1" },
-  BSB:{ label: "Berkembang Sangat Baik",    desc: "Anak mampu dan membantu teman lainnya",            color: "text-green-600 border-green-200 bg-white hover:bg-green-50",  selectedColor: "text-green-800 border-green-400 bg-green-100 ring-2 ring-green-300 ring-offset-1" },
+  BB:  { label: "Belum Berkembang",          desc: "Anak belum menunjukkan kemampuan ini",                  color: "text-red-500 border-red-200 bg-white hover:bg-red-50",       selectedColor: "text-red-700 border-red-400 bg-red-100 ring-2 ring-red-300 ring-offset-1" },
+  MB:  { label: "Mulai Berkembang",           desc: "Anak sudah mulai menunjukkan kemampuan dengan bantuan", color: "text-yellow-600 border-yellow-200 bg-white hover:bg-yellow-50", selectedColor: "text-yellow-800 border-yellow-400 bg-yellow-100 ring-2 ring-yellow-300 ring-offset-1" },
+  BSH: { label: "Berkembang Sesuai Harapan", desc: "Anak mampu melakukan secara mandiri",                   color: "text-blue-500 border-blue-200 bg-white hover:bg-blue-50",     selectedColor: "text-blue-800 border-blue-400 bg-blue-100 ring-2 ring-blue-300 ring-offset-1" },
+  BSB: { label: "Berkembang Sangat Baik",    desc: "Anak mampu dan membantu teman lainnya",                 color: "text-green-600 border-green-200 bg-white hover:bg-green-50",  selectedColor: "text-green-800 border-green-400 bg-green-100 ring-2 ring-green-300 ring-offset-1" },
 };
 
 const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 appearance-none pr-8 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
 // ─── API helper ──────────────────────────────────────────────────
 async function apiFetch<T>(path: string): Promise<T> {
-  const token = typeof window !== "undefined" 
-    ? localStorage.getItem("token") 
+  const token = typeof window !== "undefined"
+    ? localStorage.getItem("token")
     : null;
-    
+
   const res = await fetch(`${API_URL}${path}`, {
     headers: {
       Authorization: `Bearer ${token ?? ""}`,
@@ -107,37 +106,35 @@ export default function PenilaianPage() {
   const [selectedAnak, setSelectedAnak] = useState<Anak | null>(null);
 
   // ── Data dari API ──
-  const [kelasList, setKelasList]   = useState<Kelas[]>([]);
-  const [anakList, setAnakList]     = useState<Anak[]>([]);
-  const [aspekList, setAspekList]   = useState<Aspek[]>([]);
+  const [kelasList, setKelasList] = useState<Kelas[]>([]);
+  const [anakList, setAnakList]   = useState<Anak[]>([]);
+  const [aspekList, setAspekList] = useState<Aspek[]>([]);
 
   // ── Loading state ──
-  const [loadingKelas, setLoadingKelas] = useState(false);
-  const [loadingAnak, setLoadingAnak]   = useState(false);
-  const [loadingAspek, setLoadingAspek] = useState(false);
+  const [loadingKelas, setLoadingKelas]   = useState(false);
+  const [loadingAnak, setLoadingAnak]     = useState(false);
+  const [loadingAspek, setLoadingAspek]   = useState(false);
   const [loadingSimpan, setLoadingSimpan] = useState(false);
 
   // ── Pilih aspek/kegiatan/indikator ──
-  const [aspekDipilih, setAspekDipilih]           = useState<number[]>([]);
-  const [kegiatanDipilih, setKegiatanDipilih]     = useState<string[]>([]); // "id_aspek::nama_kegiatan"
-  const [indikatorDipilih, setIndikatorDipilih]   = useState<number[]>([]);
-  const [expandedKegiatan, setExpandedKegiatan]   = useState<string[]>([]);
-  const [nilaiMap, setNilaiMap]                   = useState<Record<number, NilaiEntry>>({});
+  const [aspekDipilih, setAspekDipilih]         = useState<number[]>([]);
+  const [kegiatanDipilih, setKegiatanDipilih]   = useState<string[]>([]);
+  const [indikatorDipilih, setIndikatorDipilih] = useState<number[]>([]);
+  const [expandedKegiatan, setExpandedKegiatan] = useState<string[]>([]);
+  const [nilaiMap, setNilaiMap]                 = useState<Record<number, NilaiEntry>>({});
 
   // ── Lainnya ──
-  const [tanggal, setTanggal]   = useState(() => new Date().toISOString().split("T")[0]);
-  const [komentar, setKomentar] = useState("");
+  const [tanggal, setTanggal]         = useState(() => new Date().toISOString().split("T")[0]);
+  const [komentar, setKomentar]       = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError]     = useState(false);
   const [errorFields, setErrorFields] = useState<string[]>([]);
 
-  // ── tahun ajaran unik dari kelas list ──
   const tahunAjaranList = useMemo(
     () => [...new Set(kelasList.map((k) => k.tahun_ajaran))].sort().reverse(),
     [kelasList]
   );
 
-  // ── kelas yang sesuai tahun ajaran dipilih ──
   const kelasFiltered = useMemo(
     () => kelasList.filter((k) => k.tahun_ajaran === tahunAjaran),
     [kelasList, tahunAjaran]
@@ -145,33 +142,33 @@ export default function PenilaianPage() {
 
   // ── 1. Fetch kelas guru saat mount ──
   useEffect(() => {
-  setLoadingKelas(true);
-  
-  // Fetch profil guru dan kelas bersamaan
-  Promise.all([
-    apiFetch<{ guru?: { nama_guru: string } }>("/profil"),
-    apiFetch<Kelas[]>("/kelas"),
-  ])
-    .then(([profil, kelas]) => {
-      const namaGuru = profil.guru?.nama_guru ?? "";
-      
-      // Filter kelas yang wali_kelasnya adalah guru ini
-      const kelasSaya = kelas.filter(
-        (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru.toLowerCase()
-      );
-      
-      setKelasList(kelasSaya);
-      
-      if (kelasSaya.length > 0) {
-        const latest = [...kelasSaya].sort((a, b) =>
-          b.tahun_ajaran.localeCompare(a.tahun_ajaran)
-        )[0].tahun_ajaran;
-        setTahunAjaran(latest);
-      }
-    })
-    .catch(() => setErrorFields(["Gagal memuat data kelas."]))
-    .finally(() => setLoadingKelas(false));
-}, []);
+    setLoadingKelas(true);
+    Promise.all([
+      apiFetch<{ guru?: { nama_guru: string } }>("/profil"),
+      apiFetch<Kelas[]>("/kelas"),
+    ])
+      .then(([profil, kelas]) => {
+        const namaGuru = profil.guru?.nama_guru ?? "";
+        const kelasSaya = kelas.filter(
+          (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru.toLowerCase()
+        );
+        setKelasList(kelasSaya);
+        if (kelasSaya.length > 0) {
+          const latest = [...kelasSaya].sort((a, b) =>
+            b.tahun_ajaran.localeCompare(a.tahun_ajaran)
+          )[0];
+          setTahunAjaran(latest.tahun_ajaran);
+          if (kelasSaya.length === 1) {
+            setSelectedKelas(kelasSaya[0]);
+          } else {
+            const kelasTerbaru = kelasSaya.filter((k) => k.tahun_ajaran === latest.tahun_ajaran);
+            if (kelasTerbaru.length === 1) setSelectedKelas(kelasTerbaru[0]);
+          }
+        }
+      })
+      .catch(() => setErrorFields(["Gagal memuat data kelas."]))
+      .finally(() => setLoadingKelas(false));
+  }, []);
 
   // ── 2. Fetch anak saat kelas dipilih ──
   useEffect(() => {
@@ -184,38 +181,27 @@ export default function PenilaianPage() {
       .finally(() => setLoadingAnak(false));
   }, [selectedKelas]);
 
-  // ── 3. Fetch aspek saat masuk step isi-nilai ──
+  // ── 3. Fetch aspek saat masuk step pilih-aspek ──
   useEffect(() => {
-  if (step !== "pilih-aspek" || aspekList.length > 0) return;
-  setLoadingAspek(true);
-  apiFetch<Aspek[]>("/aspek")
-    .then(setAspekList)
-    .catch(() => {
-      setErrorFields(["Gagal memuat data aspek."]);
-      setShowError(true);
-    })
-    .finally(() => setLoadingAspek(false));
-}, [step]);
+    if (step !== "pilih-aspek" || aspekList.length > 0) return;
+    setLoadingAspek(true);
+    apiFetch<Aspek[]>("/aspek")
+      .then(setAspekList)
+      .catch(() => { setErrorFields(["Gagal memuat data aspek."]); setShowError(true); })
+      .finally(() => setLoadingAspek(false));
+  }, [step]);
 
   // ── Handler cascade ──
   const handleTahunAjaranChange = (val: string) => {
     setTahunAjaran(val);
-    setSelectedKelas(null);
+    const kelasTahunIni = kelasList.filter((k) => k.tahun_ajaran === val);
+    if (kelasTahunIni.length === 1) setSelectedKelas(kelasTahunIni[0]);
+    else setSelectedKelas(null);
     setSelectedAnak(null);
   };
-  const handleSemesterChange = (val: string) => {
-    setSemester(val);
-    setSelectedKelas(null);
-    setSelectedAnak(null);
-  };
-  const handleKelasChange = (id: string) => {
-    const kelas = kelasList.find((k) => k.id_kelas === Number(id)) ?? null;
-    setSelectedKelas(kelas);
-  };
-  const handleAnakChange = (id: string) => {
-    const anak = anakList.find((a) => a.id_anak === Number(id)) ?? null;
-    setSelectedAnak(anak);
-  };
+  const handleSemesterChange = (val: string) => { setSemester(val); setSelectedAnak(null); };
+  const handleKelasChange = (id: string) => setSelectedKelas(kelasList.find((k) => k.id_kelas === Number(id)) ?? null);
+  const handleAnakChange = (id: string) => setSelectedAnak(anakList.find((a) => a.id_anak === Number(id)) ?? null);
 
   // ── Step 1 → 2 ──
   const handleTampilkan = () => {
@@ -224,7 +210,7 @@ export default function PenilaianPage() {
       setShowError(true); return;
     }
     setAspekDipilih([]); setKegiatanDipilih([]);
-    setIndikatorDipilih([]); setNilaiMap({}); setExpandedKegiatan([]);
+    setIndikatorDipilih([]); setNilaiMap([]); setExpandedKegiatan([]);
     setStep("pilih-aspek");
   };
 
@@ -256,8 +242,7 @@ export default function PenilaianPage() {
       setNilaiMap((prev) => { const n = { ...prev }; ids.forEach((id) => delete n[id]); return n; });
     } else {
       setKegiatanDipilih((prev) => [...prev, key]);
-      if (!expandedKegiatan.includes(key))
-        setExpandedKegiatan((prev) => [...prev, key]);
+      if (!expandedKegiatan.includes(key)) setExpandedKegiatan((prev) => [...prev, key]);
     }
   };
 
@@ -307,7 +292,6 @@ export default function PenilaianPage() {
     try {
       const token = localStorage.getItem("token");
 
-      // Upload foto dulu kalau ada, satu per satu
       const penilaian = await Promise.all(
         indikatorDipilih.map(async (id) => {
           const entry = nilaiMap[id];
@@ -321,7 +305,6 @@ export default function PenilaianPage() {
             fd.append("tanggal", tanggal);
             fd.append("nilai", entry.nilai);
             fd.append("komentar", komentar);
-            // Upload via endpoint single (yang sudah ada) untuk dapat path foto
             const res = await fetch(`${API_URL}/observasi`, {
               method: "POST",
               headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
@@ -329,13 +312,12 @@ export default function PenilaianPage() {
             });
             const json = await res.json();
             fotoPath = json.data?.foto ?? "";
-            return null; // sudah tersimpan via single endpoint
+            return null;
           }
           return { id_indikator: id, nilai: entry.nilai, foto: fotoPath };
         })
       );
 
-      // Batch insert untuk yang tidak punya foto
       const batchItems = penilaian.filter(Boolean);
       if (batchItems.length > 0) {
         const res = await fetch(`${API_URL}/observasi/batch`, {
@@ -357,7 +339,7 @@ export default function PenilaianPage() {
       }
 
       setShowSuccess(true);
-    } catch (err) {
+    } catch {
       setErrorFields(["Terjadi kesalahan saat menyimpan. Coba lagi."]);
       setShowError(true);
     } finally {
@@ -377,6 +359,7 @@ export default function PenilaianPage() {
   const aspekTerpilih = aspekList.filter((a) => aspekDipilih.includes(a.id_aspek));
   const totalInd = indikatorDipilih.length;
   const sudahNilaiCount = indikatorDipilih.filter((id) => nilaiMap[id]?.nilai).length;
+  const isKelasAuto = kelasFiltered.length <= 1;
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
@@ -468,26 +451,28 @@ export default function PenilaianPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">
                   Kelas
-                  {semester && kelasFiltered.length > 0 && (
-                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">
-                      {kelasFiltered.length} kelas
-                    </span>
+                  {isKelasAuto && selectedKelas && (
+                    <span className="ml-1.5 text-[10px] font-normal text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">otomatis</span>
+                  )}
+                  {!isKelasAuto && kelasFiltered.length > 0 && (
+                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">{kelasFiltered.length} kelas</span>
                   )}
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedKelas?.id_kelas ?? ""}
-                    onChange={(e) => handleKelasChange(e.target.value)}
-                    disabled={!semester}
-                    className={selectClass}
-                  >
-                    <option value="">Pilih kelas</option>
-                    {kelasFiltered.map((k) => (
-                      <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>
-                    ))}
-                  </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
-                </div>
+                {isKelasAuto ? (
+                  <div className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-700 min-h-[42px] flex items-center">
+                    {selectedKelas
+                      ? <span className="font-medium">{selectedKelas.nama_kelas}</span>
+                      : <span className="text-gray-400 text-xs">Pilih tahun ajaran dahulu</span>}
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <select value={selectedKelas?.id_kelas ?? ""} onChange={(e) => handleKelasChange(e.target.value)} disabled={!semester} className={selectClass}>
+                      <option value="">Pilih kelas</option>
+                      {kelasFiltered.map((k) => <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>)}
+                    </select>
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▼</span>
+                  </div>
+                )}
               </div>
 
               {/* 4. Nama Anak */}
@@ -495,9 +480,7 @@ export default function PenilaianPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">
                   Nama Anak
                   {selectedKelas && anakList.length > 0 && (
-                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">
-                      {anakList.length} siswa
-                    </span>
+                    <span className="ml-1.5 text-[10px] font-normal text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">{anakList.length} siswa</span>
                   )}
                 </label>
                 <div className="relative">
@@ -506,16 +489,9 @@ export default function PenilaianPage() {
                       <Loader2 size={14} className="animate-spin" /> Memuat...
                     </div>
                   ) : (
-                    <select
-                      value={selectedAnak?.id_anak ?? ""}
-                      onChange={(e) => handleAnakChange(e.target.value)}
-                      disabled={!selectedKelas}
-                      className={selectClass}
-                    >
+                    <select value={selectedAnak?.id_anak ?? ""} onChange={(e) => handleAnakChange(e.target.value)} disabled={!selectedKelas} className={selectClass}>
                       <option value="">Pilih nama anak</option>
-                      {anakList.map((a) => (
-                        <option key={a.id_anak} value={a.id_anak}>{a.nama_anak}</option>
-                      ))}
+                      {anakList.map((a) => <option key={a.id_anak} value={a.id_anak}>{a.nama_anak}</option>)}
                     </select>
                   )}
                   {!loadingAnak && (
@@ -539,7 +515,6 @@ export default function PenilaianPage() {
         <div className="space-y-4">
           <InfoBar anak={selectedAnak?.nama_anak ?? ""} kelas={selectedKelas?.nama_kelas ?? ""} semester={semester} tahunAjaran={tahunAjaran} onGanti={() => setStep("filter")} />
 
-          {/* Fetch aspek di step ini kalau belum ada */}
           {aspekList.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               {loadingAspek ? (
@@ -547,8 +522,7 @@ export default function PenilaianPage() {
                   <Loader2 size={16} className="animate-spin" /> Memuat aspek perkembangan...
                 </div>
               ) : (
-                <button onClick={() => apiFetch<Aspek[]>("/api/aspek").then(setAspekList)}
-                  className="text-sm text-blue-500 hover:underline">Muat ulang aspek</button>
+                <button onClick={() => apiFetch<Aspek[]>("/aspek").then(setAspekList)} className="text-sm text-blue-500 hover:underline">Muat ulang aspek</button>
               )}
             </div>
           ) : (
@@ -746,10 +720,10 @@ export default function PenilaianPage() {
             })
           )}
 
-          {/* Komentar */}
+          {/* Komentar global */}
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-            <p className="text-xs font-semibold text-gray-500 mb-2">Komentar / Catatan Guru</p>
-            <textarea placeholder="Tuliskan catatan perkembangan anak hari ini..."
+            <p className="text-xs font-semibold text-gray-500 mb-2">Komentar / Catatan Umum Guru</p>
+            <textarea placeholder="Tuliskan catatan perkembangan anak hari ini secara umum..."
               value={komentar} onChange={(e) => setKomentar(e.target.value)}
               className="w-full bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none resize-none" rows={3} />
           </div>

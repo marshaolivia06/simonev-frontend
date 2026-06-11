@@ -21,7 +21,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 }
 
 // ─── TYPES ───────────────────────────────────────────────────────
-interface AnakProfil { id_anak: number; nama_anak: string; kelas?: { nama_kelas: string; tahun_ajaran: string; wali_kelas?: string } }
+interface AnakProfil { id_anak: number; nama_anak: string; tanggal_lahir?: string; kelas?: { nama_kelas: string; tahun_ajaran: string; wali_kelas?: string } }
 interface GuruProfil { nama_guru: string; nip: string | null; foto_ttd: string | null }
 interface RekapAspek { aspek: string; nilai: string | null; jumlah: number }
 interface RiwayatItem {
@@ -69,6 +69,16 @@ const aspekDefinisi: Record<string, string> = {
 
 function getAspekAbbr(name: string): string {
   return aspekAbbrMap[name] ?? name.split(" ").filter(w => !["Perkembangan", "dan", "atau"].includes(w)).map(w => w.substring(0, 3).toUpperCase()).join("");
+}
+function hitungUmur(tanggalLahir: string): string {
+  const lahir = new Date(tanggalLahir);
+  const sekarang = new Date();
+  let tahun = sekarang.getFullYear() - lahir.getFullYear();
+  let bulan = sekarang.getMonth() - lahir.getMonth();
+  if (bulan < 0) { tahun--; bulan += 12; }
+  if (tahun === 0) return `${bulan} Bulan`;
+  if (bulan === 0) return `${tahun} Tahun`;
+  return `${tahun} Tahun ${bulan} Bulan`;
 }
 function formatTanggal(tanggal: string): string {
   return new Date(tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
@@ -121,7 +131,6 @@ export default function LaporanPerkembanganOrangTuaPage() {
         const list = [`${baseYear}/${baseYear + 1}`, `${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`];
         setTahunAjaranList(list);
         setTahunAjaran(tahunKelas ?? list[0]);
-        // Fetch profil guru wali kelas anak
         const waliKelas = anak.kelas?.wali_kelas;
         if (waliKelas) {
           apiFetch<any[]>("/guru")
@@ -151,21 +160,35 @@ export default function LaporanPerkembanganOrangTuaPage() {
     if (!vals.length) return { ...item, nilai: null };
     return { ...item, nilai: numToNilai[Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)] ?? null };
   });
+
+  // Komentar terbaru dari riwayat
+  const getKomentarTerbaru = (): string => {
+    if (!laporan?.riwayat?.length) return laporan?.komentar ?? "";
+    const withKomentar = [...laporan.riwayat]
+      .filter((r) => r.komentar && r.komentar.trim() !== "")
+      .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+    return withKomentar[0]?.komentar ?? laporan?.komentar ?? "";
+  };
+
   const chartData = rekapWithNilai.map((item, i) => ({ name: getAspekAbbr(item.aspek), fullName: item.aspek, nilai: nilaiToNum[item.nilai ?? ""] ?? 0, color: ASPEK_COLORS[i % ASPEK_COLORS.length] }));
   const aspekOptions = ["Semua aspek", ...new Set((laporan?.riwayat ?? []).map(r => r.indikator?.aspek?.nama_aspek).filter(Boolean))];
   const riwayatFiltered = aspekFilter === "Semua aspek" ? (laporan?.riwayat ?? []) : (laporan?.riwayat ?? []).filter(r => r.indikator?.aspek?.nama_aspek === aspekFilter);
-  const nilaiList = (laporan?.riwayat ?? []).map(r => nilaiToNum[r.nilai] ?? 0).filter(Boolean);
-  const rataRata = nilaiList.length > 0 ? numToNilai[Math.round(nilaiList.reduce((a, b) => a + b, 0) / nilaiList.length)] : null;
+  const nilaiAspekList = rekapWithNilai.map(item => nilaiToNum[item.nilai ?? ""] ?? 0).filter(Boolean);
+  const rataRata = nilaiAspekList.length > 0 ? numToNilai[Math.round(nilaiAspekList.reduce((a, b) => a + b, 0) / nilaiAspekList.length)] : null;
   const namaAnak = laporan?.anak?.nama_anak ?? anakProfil?.nama_anak ?? "";
+  const kelasNama = laporan?.anak?.kelas?.nama_kelas ?? anakProfil?.kelas?.nama_kelas ?? "";
   const initials = namaAnak.split(" ").map(n => n[0]).join("").substring(0, 2);
+  const komentarTerbaru = getKomentarTerbaru();
 
-  // ─── Export PDF ───────────────────────────────────────────────
+  // ─── Export PDF ──────────────
   const handleExportPDF = async () => {
     if (!laporan) return;
     setLoadingPdf(true);
     try {
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = 210, pageH = 297, margin = 14;
+      const pageW = 210;
+      const pageH = 297;
+      const margin = 14;
       const contentW = pageW - margin * 2;
       let y = margin;
 
@@ -184,147 +207,283 @@ export default function LaporanPerkembanganOrangTuaPage() {
       const namaWaliKelas = waliKelasProfil?.nama_guru || anakProfil?.kelas?.wali_kelas || "Wali Kelas";
       const nipWaliKelas = waliKelasProfil?.nip || "";
 
-      // ── HEADER dalam satu kotak ──
-      const headerH = 38, rightColW = 44, leftColW = 28;
-      pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.5);
+      const setLineGray = () => pdf.setDrawColor(160, 160, 160);
+      const setLineDark = () => pdf.setDrawColor(0, 0, 0);
+
+      // ── HEADER ──
+      const headerH = 38;
+      const rightColW = 44;
+      const leftColW = 28;
+
+      setLineGray();
+      pdf.setLineWidth(0.5);
       pdf.rect(margin, y, contentW, headerH, "S");
+
+      setLineGray();
       pdf.setLineWidth(0.4);
       pdf.line(margin + leftColW, y, margin + leftColW, y + headerH);
       pdf.line(margin + contentW - rightColW, y, margin + contentW - rightColW, y + headerH);
       pdf.line(margin + contentW - rightColW, y + headerH / 2, margin + contentW, y + headerH / 2);
 
-      if (logo) { const ls = 24; pdf.addImage(logo, "PNG", margin + (leftColW - ls) / 2, y + (headerH - ls) / 2, ls, ls); }
+      if (logo) {
+        const logoSize = 24;
+        const logoX = margin + (leftColW - logoSize) / 2;
+        const logoY = y + (headerH - logoSize) / 2;
+        pdf.addImage(logo, "PNG", logoX, logoY, logoSize, logoSize);
+      }
 
-      const titleCenterX = margin + leftColW + (contentW - leftColW - rightColW) / 2;
-      pdf.setFontSize(14); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("LAPORAN PERKEMBANGAN ANAK", titleCenterX, y + 10, { align: "center" });
-      const lw = pdf.getTextWidth("LAPORAN PERKEMBANGAN ANAK");
-      pdf.setLineWidth(0.35); pdf.line(titleCenterX - lw / 2, y + 11, titleCenterX + lw / 2, y + 11);
-      pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
-      pdf.text(ps.nama_sekolah || "TK AL MUHAJIRIN DOTAMANA", titleCenterX, y + 20, { align: "center" });
-      pdf.setFontSize(9.5); pdf.setFont("helvetica", "normal");
+      const titleAreaX = margin + leftColW;
+      const titleAreaW = contentW - leftColW - rightColW;
+      const titleCenterX = titleAreaX + titleAreaW / 2;
+
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      const line1Y = y + 10;
+      pdf.text("LAPORAN PERKEMBANGAN ANAK", titleCenterX, line1Y, { align: "center" });
+      const line1W = pdf.getTextWidth("LAPORAN PERKEMBANGAN ANAK");
+      pdf.setLineWidth(0.35);
+      pdf.line(titleCenterX - line1W / 2, line1Y + 1, titleCenterX + line1W / 2, line1Y + 1);
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      const namaSekolah = ps.nama_sekolah || "TK AL MUHAJIRIN DOTAMANA";
+      pdf.text(namaSekolah, titleCenterX, y + 20, { align: "center" });
+
+      pdf.setFontSize(9.5);
+      pdf.setFont("helvetica", "normal");
       pdf.text(`TAHUN AJARAN ${tahunAjaran}`, titleCenterX, y + 29, { align: "center" });
 
       const rightColX = margin + contentW - rightColW;
-      pdf.setFontSize(7.5); pdf.setFont("helvetica", "normal"); pdf.setTextColor(80, 80, 80);
+      pdf.setFontSize(7.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(80, 80, 80);
       pdf.text("Nomor Rapor", rightColX + 3, y + 6);
-      pdf.setFontSize(8.5); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
       pdf.text(nomorRapor, rightColX + 3, y + 13);
-      pdf.setFontSize(7.5); pdf.setFont("helvetica", "normal"); pdf.setTextColor(80, 80, 80);
+      pdf.setFontSize(7.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(80, 80, 80);
       pdf.text("Semester", rightColX + 3, y + headerH / 2 + 6);
-      pdf.setFontSize(8.5); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
       pdf.text(semesterLabel, rightColX + 3, y + headerH / 2 + 13);
+
       y += headerH + 6;
 
       // ── IDENTITAS ANAK ──
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
-      pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("IDENTITAS ANAK", margin + 3, y + 5); y += 7;
-      pdf.rect(margin, y, contentW, 20, "S");
-      const col1x = margin + 4, col2x = margin + 94;
-      [["Nama", namaAnak], ["Kelas", laporan?.anak?.kelas?.nama_kelas ?? anakProfil?.kelas?.nama_kelas ?? "-"], ["Semester", semesterLabel]].forEach(([label, value], i) => {
-        const ry = y + 5 + i * 6;
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(60, 60, 60);
-        pdf.text(label, col1x, ry); pdf.setTextColor(0, 0, 0); pdf.text(`: ${value}`, col1x + 22, ry);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("IDENTITAS ANAK", margin + 3, y + 5);
+      y += 7;
+
+      setLineGray();
+      pdf.rect(margin, y, contentW, 28, "S");
+
+      const tglLahirAnak = anakProfil?.tanggal_lahir ?? "";
+      const umurAnak = tglLahirAnak ? hitungUmur(tglLahirAnak) : "-";
+      const tglLahirFormatted = tglLahirAnak ? formatTanggal(tglLahirAnak) : "-";
+
+      const col1x = margin + 4;
+      const col2x = margin + 94;
+
+      const rows1 = [
+        ["Nama", namaAnak],
+        ["Kelas", kelasNama],
+        ["Semester", semesterLabel],
+      ];
+      const rows2 = [
+        ["Tahun Ajaran", tahunAjaran],
+        ["Tanggal Lahir", tglLahirFormatted],
+        ["Usia", umurAnak],
+      ];
+
+      rows1.forEach(([label, value], i) => {
+        const rowY = y + 6 + i * 8;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(label, col1x, rowY);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`: ${value}`, col1x + 22, rowY);
       });
-      [["Tahun Ajaran", tahunAjaran], ["Total Aspek", String(rekapWithNilai.length)], ["Total Penilaian", String(laporan.total)]].forEach(([label, value], i) => {
-        const ry = y + 5 + i * 6;
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(60, 60, 60);
-        pdf.text(label, col2x, ry); pdf.setTextColor(0, 0, 0); pdf.text(`: ${value}`, col2x + 28, ry);
+
+      rows2.forEach(([label, value], i) => {
+        const rowY = y + 6 + i * 8;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(label, col2x, rowY);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`: ${value}`, col2x + 28, rowY);
       });
-      y += 28;
+
+      y += 36;
 
       // ── ASPEK PERKEMBANGAN ──
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
-      pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("ASPEK PERKEMBANGAN", margin + 3, y + 5); y += 7;
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("ASPEK PERKEMBANGAN", margin + 3, y + 5);
+      y += 7;
 
-      const colWidths = [10, 52, 18, 0];
-      colWidths[3] = contentW - colWidths[0] - colWidths[1] - colWidths[2];
-      const colX = [margin, margin + colWidths[0], margin + colWidths[0] + colWidths[1], margin + colWidths[0] + colWidths[1] + colWidths[2]];
+      // Kolom: No | Aspek Perkembangan | Definisi Aspek | Nilai
+      const colWidths = [10, 42, 0, 18];
+      colWidths[2] = contentW - colWidths[0] - colWidths[1] - colWidths[3];
+      const colX = [
+        margin,
+        margin + colWidths[0],
+        margin + colWidths[0] + colWidths[1],
+        margin + colWidths[0] + colWidths[1] + colWidths[2],
+      ];
 
-      pdf.setFillColor(240, 240, 240); pdf.rect(margin, y, contentW, 7, "FD");
-      pdf.setFontSize(8); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
+      // Header tabel aspek
+      setLineGray();
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(margin, y, contentW, 7, "FD");
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
       pdf.text("No", colX[0] + colWidths[0] / 2, y + 4.8, { align: "center" });
       pdf.text("Aspek Perkembangan", colX[1] + 3, y + 4.8);
-      pdf.text("Nilai", colX[2] + colWidths[2] / 2, y + 4.8, { align: "center" });
-      pdf.text("Keterangan", colX[3] + 3, y + 4.8);
-      colX.forEach((x, i) => { if (i > 0) pdf.line(x, y, x, y + 7); });
-      pdf.line(margin + contentW, y, margin + contentW, y + 7); y += 7;
-
-      const komentarPerAspek: Record<string, string> = {};
-      const indikatorPerAspek: Record<string, string[]> = {};
-      (laporan.riwayat ?? []).forEach(r => {
-        const aspek = r.indikator?.aspek?.nama_aspek ?? "";
-        if (r.komentar && aspek && !komentarPerAspek[aspek]) komentarPerAspek[aspek] = r.komentar;
-        const ind = r.indikator?.nama_indikator ?? "";
-        if (aspek && ind) { if (!indikatorPerAspek[aspek]) indikatorPerAspek[aspek] = []; if (!indikatorPerAspek[aspek].includes(ind)) indikatorPerAspek[aspek].push(ind); }
+      pdf.text("Definisi Aspek", colX[2] + 3, y + 4.8);
+      pdf.text("Nilai", colX[3] + colWidths[3] / 2, y + 4.8, { align: "center" });
+      [1, 2, 3].forEach((ci) => {
+        setLineGray();
+        pdf.line(colX[ci], y, colX[ci], y + 7);
       });
+      setLineGray();
+      pdf.line(margin + contentW, y, margin + contentW, y + 7);
+      y += 7;
 
       rekapWithNilai.forEach((item, i) => {
-        let ket = komentarPerAspek[item.aspek] ?? "";
-        if (!ket && indikatorPerAspek[item.aspek]?.length) ket = indikatorPerAspek[item.aspek].slice(0, 3).join(", ") + ".";
-        if (!ket) ket = "-";
-        const ketLines = pdf.splitTextToSize(ket, colWidths[3] - 5);
-        const rowH = Math.max(10, ketLines.length * 4.5 + 4);
-        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
-        pdf.setDrawColor(0, 0, 0); pdf.rect(margin, y, contentW, rowH, "FD");
-        colX.forEach((x, ci) => { if (ci > 0) pdf.line(x, y, x, y + rowH); });
+        const definisi = aspekDefinisi[item.aspek] ?? "-";
+        const definisiLines = pdf.splitTextToSize(definisi, colWidths[2] - 5);
+        const rowH = Math.max(10, definisiLines.length * 4.5 + 4);
+
+        setLineGray();
+        pdf.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        [1, 2, 3].forEach((ci) => {
+          setLineGray();
+          pdf.line(colX[ci], y, colX[ci], y + rowH);
+        });
+        setLineGray();
         pdf.line(margin + contentW, y, margin + contentW, y + rowH);
+
         const midY = y + rowH / 2 + 1.5;
-        pdf.setFontSize(8); pdf.setFont("helvetica", "normal"); pdf.setTextColor(80, 80, 80);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(80, 80, 80);
         pdf.text(String(i + 1), colX[0] + colWidths[0] / 2, midY, { align: "center" });
-        pdf.setTextColor(0, 0, 0); pdf.text(item.aspek, colX[1] + 3, midY);
-        if (item.nilai) { pdf.setFont("helvetica", "bold"); pdf.text(item.nilai, colX[2] + colWidths[2] / 2, midY, { align: "center" }); }
-        else { pdf.setTextColor(150, 150, 150); pdf.text("-", colX[2] + colWidths[2] / 2, midY, { align: "center" }); }
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(60, 60, 60);
-        pdf.text(ketLines, colX[3] + 3, y + (rowH - ketLines.length * 4.5) / 2 + 4);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(item.aspek, colX[1] + 3, midY);
+
+        pdf.setFontSize(7.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(60, 60, 60);
+        const textStartY = y + (rowH - definisiLines.length * 4.5) / 2 + 4;
+        pdf.text(definisiLines, colX[2] + 3, textStartY);
+
+        pdf.setFontSize(8);
+        if (item.nilai) {
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(0, 0, 0);
+          pdf.text(item.nilai, colX[3] + colWidths[3] / 2, midY, { align: "center" });
+        } else {
+          pdf.setTextColor(150, 150, 150);
+          pdf.text("-", colX[3] + colWidths[3] / 2, midY, { align: "center" });
+        }
         y += rowH;
       });
+
       y += 8;
 
       // ── KOMENTAR GURU ──
-      if (laporan.komentar) {
+      const komentarPdf = komentarTerbaru;
+      if (komentarPdf) {
         if (y > pageH - 50) { pdf.addPage(); y = margin; }
-        pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+        setLineGray();
+        pdf.setLineWidth(0.3);
+        pdf.setFillColor(255, 255, 255);
         pdf.rect(margin, y, contentW, 7, "FD");
-        pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-        pdf.text("KOMENTAR GURU", margin + 3, y + 5); y += 7;
-        const kLines = pdf.splitTextToSize(laporan.komentar, contentW - 8);
-        const kH = kLines.length * 5 + 8;
-        pdf.setFillColor(255, 255, 255); pdf.rect(margin, y, contentW, kH, "FD");
-        pdf.setFontSize(8.5); pdf.setFont("helvetica", "normal"); pdf.setTextColor(0, 0, 0);
-        pdf.text(kLines, margin + 4, y + 6); y += kH + 8;
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text("KOMENTAR GURU", margin + 3, y + 5);
+        y += 7;
+
+        const komentarLines = pdf.splitTextToSize(komentarPdf, contentW - 8);
+        const komentarH = komentarLines.length * 5 + 8;
+        setLineGray();
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(margin, y, contentW, komentarH, "FD");
+        pdf.setFontSize(8.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(komentarLines, margin + 4, y + 6);
+        y += komentarH + 8;
       }
 
       // ── RIWAYAT PENILAIAN ──
       if (y > pageH - 50) { pdf.addPage(); y = margin; }
-      pdf.setFillColor(230, 230, 230); pdf.setDrawColor(0, 0, 0); pdf.setLineWidth(0.3);
+      setLineGray();
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y, contentW, 7, "FD");
-      pdf.setFontSize(9); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("RIWAYAT PENILAIAN", margin + 3, y + 5); y += 7;
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("RIWAYAT PENILAIAN", margin + 3, y + 5);
+      y += 7;
 
       const rColW = [10, 22, 36, 36, 52, 16];
       const rColX = rColW.reduce<number[]>((acc, w, i) => { acc.push(i === 0 ? margin : acc[i - 1] + rColW[i - 1]); return acc; }, []);
       const rHeaders = ["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai"];
+
       const drawRiwayatHeader = () => {
-        pdf.setFillColor(240, 240, 240); pdf.setDrawColor(0, 0, 0);
+        setLineGray();
+        pdf.setFillColor(245, 245, 245);
         pdf.rect(margin, y, contentW, 7, "FD");
-        pdf.setFontSize(7.5); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-        rHeaders.forEach((h, i) => { pdf.text(h, rColX[i] + (i === 0 || i === 5 ? rColW[i] / 2 : 2), y + 4.8, { align: i === 0 || i === 5 ? "center" : "left" }); if (i > 0) pdf.line(rColX[i], y, rColX[i], y + 7); });
-        pdf.line(margin + contentW, y, margin + contentW, y + 7); y += 7;
+        pdf.setFontSize(7.5);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        rHeaders.forEach((h, i) => {
+          pdf.text(h, rColX[i] + (i === 0 || i === 5 ? rColW[i] / 2 : 2), y + 4.8, { align: i === 0 || i === 5 ? "center" : "left" });
+          if (i > 0) { setLineGray(); pdf.line(rColX[i], y, rColX[i], y + 7); }
+        });
+        setLineGray();
+        pdf.line(margin + contentW, y, margin + contentW, y + 7);
+        y += 7;
       };
       drawRiwayatHeader();
+
       (laporan.riwayat ?? []).forEach((item, i) => {
         const rowH = 8;
         if (y + rowH > pageH - margin - 30) { pdf.addPage(); y = margin; drawRiwayatHeader(); }
-        pdf.setFillColor(i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248, i % 2 === 0 ? 255 : 248);
-        pdf.setDrawColor(0, 0, 0); pdf.rect(margin, y, contentW, rowH, "FD");
-        rColW.forEach((_, ci) => { if (ci > 0) pdf.line(rColX[ci], y, rColX[ci], y + rowH); });
+        setLineGray();
+        pdf.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250);
+        pdf.rect(margin, y, contentW, rowH, "FD");
+        rColW.forEach((_, ci) => {
+          if (ci > 0) { setLineGray(); pdf.line(rColX[ci], y, rColX[ci], y + rowH); }
+        });
+        setLineGray();
         pdf.line(margin + contentW, y, margin + contentW, y + rowH);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(0, 0, 0);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(0, 0, 0);
         pdf.text(String(i + 1), rColX[0] + rColW[0] / 2, y + 5, { align: "center" });
         pdf.text(item.tanggal ?? "-", rColX[1] + 2, y + 5);
         pdf.text(pdf.splitTextToSize(item.indikator?.aspek?.nama_aspek ?? "-", rColW[2] - 3)[0], rColX[2] + 2, y + 5);
@@ -333,69 +492,113 @@ export default function LaporanPerkembanganOrangTuaPage() {
         if (item.nilai) { pdf.setFont("helvetica", "bold"); pdf.text(item.nilai, rColX[5] + rColW[5] / 2, y + 5, { align: "center" }); }
         y += rowH;
       });
+
       y += 10;
 
       // ── KETERANGAN NILAI ──
       if (y > pageH - 90) { pdf.addPage(); y = margin; }
-      pdf.setFontSize(8); pdf.setFont("helvetica", "bold"); pdf.setTextColor(0, 0, 0);
-      pdf.text("Keterangan Nilai:", margin, y); y += 5;
-      ["BSB : Berkembang Sangat Baik", "BSH : Berkembang Sesuai Harapan", "MB  : Mulai Berkembang", "BB  : Belum Berkembang"].forEach(line => {
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(60, 60, 60);
-        pdf.text(line, margin, y); y += 5;
-      });
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Keterangan Nilai:", margin, y);
+      y += 5;
+      const keteranganNilai = [
+        "BSB : Berkembang Sangat Baik",
+        "BSH : Berkembang Sesuai Harapan",
+        "MB  : Mulai Berkembang",
+        "BB  : Belum Berkembang",
+      ];
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(60, 60, 60);
+      keteranganNilai.forEach((line) => { pdf.text(line, margin, y); y += 5; });
+
       y += 8;
 
       // ── TANDA TANGAN ──
       if (y > pageH - 70) { pdf.addPage(); y = margin; }
+
       const ttdStartY = y;
       const ttdBoxW = 60;
       const ttdKiriCenterX = margin + ttdBoxW / 2;
       const ttdKananCenterX = pageW - margin - ttdBoxW / 2;
 
-      pdf.setFontSize(9); pdf.setFont("helvetica", "normal"); pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(0, 0, 0);
       pdf.text("Mengetahui,", pageW / 2, ttdStartY, { align: "center" });
       pdf.text("Kepala Sekolah", ttdKiriCenterX, ttdStartY + 7, { align: "center" });
       pdf.text("Wali Kelas", ttdKananCenterX, ttdStartY + 7, { align: "center" });
 
-      const ttdImgW = 40, ttdImgH = 18, ttdImgY = ttdStartY + 10;
+      const ttdImgW = 40;
+      const ttdImgH = 18;
+      const ttdImgY = ttdStartY + 10;
+
       if (ttdKS) pdf.addImage(ttdKS, "PNG", ttdKiriCenterX - ttdImgW / 2, ttdImgY, ttdImgW, ttdImgH);
       if (ttdGuru) pdf.addImage(ttdGuru, "PNG", ttdKananCenterX - ttdImgW / 2, ttdImgY, ttdImgW, ttdImgH);
 
       const namaNipY = ttdImgY + ttdImgH + 4;
 
-      // Nama KS
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(9); pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
       const namaKSW = pdf.getTextWidth(namaKS);
       pdf.text(namaKS, ttdKiriCenterX, namaNipY, { align: "center" });
-      pdf.setLineWidth(0.3); pdf.line(ttdKiriCenterX - namaKSW / 2, namaNipY + 1, ttdKiriCenterX + namaKSW / 2, namaNipY + 1);
-      if (nipKS) { pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.text(`NIP. ${nipKS}`, ttdKiriCenterX, namaNipY + 6, { align: "center" }); }
+      pdf.setLineWidth(0.3);
+      setLineDark();
+      pdf.line(ttdKiriCenterX - namaKSW / 2, namaNipY + 1, ttdKiriCenterX + namaKSW / 2, namaNipY + 1);
+      if (nipKS) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text(`NIP. ${nipKS}`, ttdKiriCenterX, namaNipY + 6, { align: "center" });
+      }
 
-      // Nama Wali Kelas
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(9); pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
       const namaGuruW = pdf.getTextWidth(namaWaliKelas);
       pdf.text(namaWaliKelas, ttdKananCenterX, namaNipY, { align: "center" });
-      pdf.setLineWidth(0.3); pdf.line(ttdKananCenterX - namaGuruW / 2, namaNipY + 1, ttdKananCenterX + namaGuruW / 2, namaNipY + 1);
-      if (nipWaliKelas) { pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.text(`NIP. ${nipWaliKelas}`, ttdKananCenterX, namaNipY + 6, { align: "center" }); }
+      setLineDark();
+      pdf.setLineWidth(0.3);
+      pdf.line(ttdKananCenterX - namaGuruW / 2, namaNipY + 1, ttdKananCenterX + namaGuruW / 2, namaNipY + 1);
+      if (nipWaliKelas) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text(`NIP. ${nipWaliKelas}`, ttdKananCenterX, namaNipY + 6, { align: "center" });
+      }
 
       const nipBottomY = nipKS || nipWaliKelas ? namaNipY + 6 : namaNipY;
       const tglY = nipBottomY + 9;
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(9); pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(0, 0, 0);
       pdf.text(`Dotamana, ${tglCetak}`, pageW / 2, tglY, { align: "center" });
+
       y = tglY + 10;
 
       // ── FOOTER ──
       const totalPages = (pdf as any).internal.getNumberOfPages();
       for (let p = 1; p <= totalPages; p++) {
         pdf.setPage(p);
-        pdf.setFontSize(7); pdf.setFont("helvetica", "normal"); pdf.setTextColor(150, 150, 150);
-        pdf.text(`Halaman ${p} dari ${totalPages}  •  ${ps.nama_sekolah || "TK Al Muhajirin Dotamana"}  •  Dicetak ${tglCetak}`, pageW / 2, pageH - 5, { align: "center" });
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          `Halaman ${p} dari ${totalPages}  •  ${ps.nama_sekolah || "TK Al Muhajirin Dotamana"}  •  Dicetak ${tglCetak}`,
+          pageW / 2, pageH - 5, { align: "center" }
+        );
       }
 
-      pdf.save(`Laporan_${namaAnak.replace(/\s+/g, "_")}_${semester.replace(" ", "")}_${tahunAjaran.replace("/", "-")}.pdf`);
-    } catch (err) { console.error(err); setError("Gagal membuat PDF. Coba lagi."); }
+      const fileName = `Laporan_${namaAnak.replace(/\s+/g, "_")}_${semester.replace(" ", "")}_${tahunAjaran.replace("/", "-")}.pdf`;
+      pdf.save(fileName);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal membuat PDF. Coba lagi.");
+    }
     setLoadingPdf(false);
   };
 
+  // ─── RENDER ──────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-4">
       {error && (
@@ -451,7 +654,12 @@ export default function LaporanPerkembanganOrangTuaPage() {
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-gray-800">{namaAnak || <span className="text-gray-400">-</span>}</h3>
-            <p className="text-sm text-gray-500">{laporan ? `${laporan.anak.kelas?.nama_kelas ?? anakProfil?.kelas?.nama_kelas ?? ""} • ${semester} • ${tahunAjaran}` : <span className="text-gray-300">Belum ada data dipilih</span>}</p>
+            <p className="text-sm text-gray-500">{laporan ? `${kelasNama} • ${semester} • ${tahunAjaran}` : <span className="text-gray-300">Belum ada data dipilih</span>}</p>
+            {anakProfil?.tanggal_lahir && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                {formatTanggal(anakProfil.tanggal_lahir)} • {hitungUmur(anakProfil.tanggal_lahir)}
+              </p>
+            )}
           </div>
           <div className="flex gap-6 text-center">
             <div><p className="text-2xl font-bold text-blue-500">{laporan ? laporan.rekap_aspek.length : "-"}</p><p className="text-xs text-gray-500">Aspek</p></div>
@@ -476,10 +684,10 @@ export default function LaporanPerkembanganOrangTuaPage() {
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} barSize={36} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                  <BarChart data={chartData} barSize={28} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6b7280", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 4]} ticks={[1, 2, 3, 4]} tickFormatter={v => numToNilai[v] ?? v} tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={40} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 4]} ticks={[1, 2, 3, 4]} tickFormatter={(v) => numToNilai[v] ?? v} tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} width={48} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
                     <Bar dataKey="nilai" radius={[8, 8, 0, 0]} minPointSize={4}>
                       {chartData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -489,11 +697,12 @@ export default function LaporanPerkembanganOrangTuaPage() {
               </div>
             </>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-300 text-sm">
+            <div className="h-48 flex items-center justify-center text-gray-300 text-sm">
               {loadingLaporan ? <Loader2 size={20} className="animate-spin text-blue-400" /> : "Belum ada data"}
             </div>
           )}
         </div>
+
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-800 mb-1">Ringkasan Aspek</h3>
           <p className="text-xs text-gray-500 mb-4">Capaian setiap aspek perkembangan</p>
@@ -511,38 +720,44 @@ export default function LaporanPerkembanganOrangTuaPage() {
       {/* Tabel Nilai Aspek */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-4">Tabel Nilai Aspek Perkembangan</h3>
-        <div className="rounded-xl border border-gray-200 overflow-visible">
+        <div className="rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-100 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-12">No</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/2">Aspek Perkembangan</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/4">Nilai</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 w-1/4">Jumlah Penilaian</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-10">No</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200 w-1/4">Aspek Perkembangan</th>
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 border-r border-gray-200">Definisi Aspek</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 w-20">Nilai</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {laporan && rekapWithNilai.length > 0 ? rekapWithNilai.map((item, i) => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500 text-center border-r border-gray-200">{i + 1}</td>
-                  <td className="px-4 py-3 text-gray-700 border-r border-gray-200">
-                    <div className="flex items-center gap-2 group relative">
-                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} />
-                      <span className="cursor-default">{item.aspek}</span>
-                      {aspekDefinisi[item.aspek] && (
-                        <div className="absolute left-0 bottom-full mb-2 z-50 hidden group-hover:block bg-white border border-gray-200 rounded-xl shadow-xl p-4 w-80">
-                          <p className="text-xs font-semibold mb-1" style={{ color: ASPEK_COLORS[i % ASPEK_COLORS.length] }}>{item.aspek}</p>
-                          <p className="text-xs text-gray-500 leading-relaxed">{aspekDefinisi[item.aspek]}</p>
-                        </div>
-                      )}
-                    </div>
+              {laporan && rekapWithNilai.length > 0 ? (
+                rekapWithNilai.map((item, i) => (
+                  <tr key={i} className="hover:bg-gray-50 align-top">
+                    <td className="px-4 py-3 text-gray-500 text-center border-r border-gray-200">{i + 1}</td>
+                    <td className="px-4 py-3 text-gray-700 border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: ASPEK_COLORS[i % ASPEK_COLORS.length] }} />
+                        <span className="font-medium">{item.aspek}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-xs leading-relaxed border-r border-gray-200">
+                      {aspekDefinisi[item.aspek] ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {item.nilai
+                        ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span>
+                        : <span className="text-gray-300 text-xs">-</span>}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-300 text-sm">
+                    {loadingLaporan ? "Memuat..." : "Pilih filter lalu klik Tampilkan"}
                   </td>
-                  <td className="px-4 py-3 border-r border-gray-200">
-                    {item.nilai ? <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai]}`}>{item.nilai}</span> : <span className="text-gray-300 text-xs">-</span>}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 text-xs">{item.jumlah} penilaian</td>
                 </tr>
-              )) : <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-300 text-sm">{loadingLaporan ? "Memuat..." : "Pilih filter lalu klik Tampilkan"}</td></tr>}
+              )}
             </tbody>
           </table>
         </div>
@@ -552,7 +767,9 @@ export default function LaporanPerkembanganOrangTuaPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-800 mb-1">Komentar Guru</h3>
         <p className="text-xs text-gray-500 mb-3">Catatan dan evaluasi dari wali kelas</p>
-        <p className="text-sm text-gray-600 leading-relaxed">{laporan?.komentar ? laporan.komentar : <span className="text-gray-300">-</span>}</p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {komentarTerbaru ? komentarTerbaru : <span className="text-gray-300">-</span>}
+        </p>
       </div>
 
       {/* Riwayat Penilaian */}
@@ -591,7 +808,7 @@ export default function LaporanPerkembanganOrangTuaPage() {
                       <a href={`${API_URL.replace("/api", "")}/storage/${item.foto}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                         Lihat
-                      </a>
+      </a>
                     ) : <span className="text-xs text-gray-300">-</span>}
                   </td>
                 </tr>
