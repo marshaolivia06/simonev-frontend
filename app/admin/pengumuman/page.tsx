@@ -301,7 +301,7 @@ export default function PengumumanPage() {
               </button>
               <button onClick={handleSimpan} disabled={saving}
                 className="bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors">
-                {saving ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah"}
+                {saving ? "Menyimpan..." : editData ? "Simpan" : "Tambah"}
               </button>
             </div>
           </div>

@@ -356,7 +356,7 @@ const handleEdit = (kelas: Kelas) => {
                 disabled={saving}
                 className="bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors"
               >
-                {saving ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah Data"}
+                {saving ? "Menyimpan..." : editData ? "Simpan" : "Tambah"}
               </button>
             </div>
 

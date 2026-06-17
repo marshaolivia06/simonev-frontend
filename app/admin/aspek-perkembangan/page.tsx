@@ -309,7 +309,7 @@ export default function AspekPage() {
                 disabled={loadingSubmit}
                 className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm shadow-green-200 disabled:opacity-60"
               >
-                {loadingSubmit ? "Menyimpan..." : editData ? "Simpan Perubahan" : "Tambah Data"}
+                {loadingSubmit ? "Menyimpan..." : editData ? "Simpan" : "Tambah"}
               </button>
             </div>
           </div>
