@@ -113,6 +113,17 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
     });
   } catch { return null; }
 }
+
+function getBulanValue(tanggal: string): string {
+  const d = new Date(tanggal);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+function getBulanLabel(value: string): string {
+  const [y, m] = value.split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  return d.toLocaleDateString("id-ID", { month: "long" });
+}
+
 function toApiStorageUrl(path: string): string {
   const parts = path.split("/");
   return `${process.env.NEXT_PUBLIC_API_URL}/storage-file/${parts[0]}/${parts.slice(1).join("/")}`;
@@ -151,6 +162,7 @@ export default function LaporanPerkembanganAdminPage() {
   const [selectedKelas, setSelectedKelas] = useState<Kelas | null>(null);
   const [selectedAnak, setSelectedAnak] = useState<Anak | null>(null);
   const [aspekFilter, setAspekFilter] = useState("Semua aspek");
+  const [bulanFilter, setBulanFilter] = useState("Semua bulan");
   const [laporan, setLaporan] = useState<LaporanData | null>(null);
   const [waliKelasProfil, setWaliKelasProfil] = useState<GuruProfil | null>(null);
   const [loadingKelas, setLoadingKelas] = useState(false);
@@ -188,7 +200,8 @@ export default function LaporanPerkembanganAdminPage() {
           if (data.length > 0) {
             const latest = [...data].sort((a, b) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
             const baseYear = parseInt(latest.split("/")[0]);
-            const extraTahun: Kelas[] = [`${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`]
+            const extraTahun: Kelas[] = [`${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`, `${baseYear + 3}/${baseYear + 4}`,
+            `${baseYear + 4}/${baseYear + 5}`,]
               .filter(t => !data.some(k => k.tahun_ajaran === t))
               .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, wali_kelas: "" }));
             setKelasList([...data, ...extraTahun]);
@@ -248,6 +261,7 @@ export default function LaporanPerkembanganAdminPage() {
       const json = await res.json();
       if (json.success) {
         setLaporan(json.data as LaporanData);
+        setBulanFilter("Semua bulan");
       } else {
         setError(json.message || "Gagal memuat laporan.");
       }
@@ -269,7 +283,13 @@ export default function LaporanPerkembanganAdminPage() {
   }));
 
   const aspekOptions = ["Semua aspek", ...new Set(riwayat.map(r => r.indikator?.aspek?.nama_aspek).filter(Boolean))];
-  const riwayatFiltered = aspekFilter === "Semua aspek" ? riwayat : riwayat.filter(r => r.indikator?.aspek?.nama_aspek === aspekFilter);
+  const bulanOptions = ["Semua bulan", ...new Set(riwayat.map(r => getBulanValue(r.tanggal)))].sort();
+
+  const riwayatFiltered = riwayat.filter(r => {
+    const matchAspek = aspekFilter === "Semua aspek" || r.indikator?.aspek?.nama_aspek === aspekFilter;
+    const matchBulan = bulanFilter === "Semua bulan" || getBulanValue(r.tanggal) === bulanFilter;
+    return matchAspek && matchBulan;
+  });
   const nilaiList = riwayat.map(r => nilaiToNum[r.nilai] ?? 0).filter(Boolean);
   const rataRata = nilaiList.length > 0 ? numToNilai[Math.round(nilaiList.reduce((a, b) => a + b, 0) / nilaiList.length)] : null;
   const initials = anakNama.split(" ").map(n => n[0]).join("").substring(0, 2);
@@ -793,60 +813,70 @@ export default function LaporanPerkembanganAdminPage() {
 
       {/* Riwayat Penilaian */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
           <h3 className="font-semibold text-gray-800">Riwayat Penilaian</h3>
-          <div className="relative">
-            <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[160px]">
-              {aspekOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDown /></span>
+          <div className="flex gap-2">
+            <div className="relative">
+              <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                {aspekOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDown /></span>
+            </div>
+            <div className="relative">
+              <select value={bulanFilter} onChange={e => setBulanFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                <option value="Semua bulan">Semua bulan</option>
+                {bulanOptions.filter(b => b !== "Semua bulan").map(b => <option key={b} value={b}>{getBulanLabel(b)}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDown /></span>
+            </div>
           </div>
         </div>
-        <div className="rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm border-collapse" style={{ minWidth: "720px" }}>
-            <thead>
-              <tr className="bg-gray-100 border-b border-gray-200">
-                {["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai", "Foto"].map((h, i) => (
-                  <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i >= 5 ? "text-center" : "text-left"}`}>{h}</th>
-                ))}
+      </div>
+      <div className="rounded-xl border border-gray-200 overflow-x-auto">
+        <table className="w-full text-sm border-collapse" style={{ minWidth: "720px" }}>
+          <thead>
+            <tr className="bg-gray-100 border-b border-gray-200">
+              {["No", "Tanggal", "Aspek", "Kegiatan", "Indikator", "Nilai", "Foto"].map((h, i) => (
+                <th key={h} className={`px-3 py-3 text-xs font-bold text-gray-700 border-r border-gray-200 last:border-r-0 ${i >= 5 ? "text-center" : "text-left"}`}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {laporan && riwayatFiltered.length > 0 ? riwayatFiltered.map((item, index) => (
+              <tr key={item.id_observasi} className="hover:bg-gray-50">
+                <td className="px-3 py-3 text-gray-600 border-r border-gray-200">{index + 1}</td>
+                <td className="px-3 py-3 text-gray-600 border-r border-gray-200 whitespace-nowrap">{item.tanggal}</td>
+                <td className="px-3 py-3 text-gray-700 border-r border-gray-200 whitespace-nowrap">{item.indikator?.aspek?.nama_aspek ?? "-"}</td>
+                <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator?.nama_kegiatan ?? "-"}</td>
+                <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator?.nama_indikator ?? "-"}</td>
+                <td className="px-3 py-3 text-center border-r border-gray-200">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai] ?? "bg-gray-100 text-gray-400"}`}>{item.nilai ?? "-"}</span>
+                </td>
+                <td className="px-3 py-3 text-center">
+                  {item.foto ? (
+                    <a href={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.foto}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                      </svg>
+                      Lihat
+                    </a>
+                  ) : <span className="text-xs text-gray-300">-</span>}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {laporan && riwayatFiltered.length > 0 ? riwayatFiltered.map((item, index) => (
-                <tr key={item.id_observasi} className="hover:bg-gray-50">
-                  <td className="px-3 py-3 text-gray-600 border-r border-gray-200">{index + 1}</td>
-                  <td className="px-3 py-3 text-gray-600 border-r border-gray-200 whitespace-nowrap">{item.tanggal}</td>
-                  <td className="px-3 py-3 text-gray-700 border-r border-gray-200 whitespace-nowrap">{item.indikator?.aspek?.nama_aspek ?? "-"}</td>
-                  <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator?.nama_kegiatan ?? "-"}</td>
-                  <td className="px-3 py-3 text-gray-700 border-r border-gray-200">{item.indikator?.nama_indikator ?? "-"}</td>
-                  <td className="px-3 py-3 text-center border-r border-gray-200">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${nilaiColorMap[item.nilai] ?? "bg-gray-100 text-gray-400"}`}>{item.nilai ?? "-"}</span>
-                  </td>
-                  <td className="px-3 py-3 text-center">
-                    {item.foto ? (
-                      <a href={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.foto}`} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-                        </svg>
-                        Lihat
-                      </a>
-                    ) : <span className="text-xs text-gray-300">-</span>}
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-gray-300">
-                    {loadingLaporan
-                      ? <Loader2 size={16} className="animate-spin text-blue-400 mx-auto" />
-                      : laporan ? "Tidak ada data untuk aspek ini" : "Pilih filter lalu klik Tampilkan"}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            )) : (
+              <tr>
+                <td colSpan={7} className="px-3 py-8 text-center text-gray-300">
+                  {loadingLaporan
+                    ? <Loader2 size={16} className="animate-spin text-blue-400 mx-auto" />
+                    : laporan ? "Tidak ada data untuk aspek ini" : "Pilih filter lalu klik Tampilkan"}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

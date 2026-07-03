@@ -152,6 +152,16 @@ function toApiStorageUrl(path: string): string {
   return `${API_URL}/storage-file/${folder}/${filename}`;
 }
 
+function getBulanValue(tanggal: string): string {
+  const d = new Date(tanggal);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+function getBulanLabel(value: string): string {
+  const [y, m] = value.split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  return d.toLocaleDateString("id-ID", { month: "long" }); // tanpa tahun
+}
+
 const semesterOptions = ["Semester 1", "Semester 2"];
 function getDefaultSemester(): string {
   return new Date().getMonth() + 1 >= 7 ? "Semester 1" : "Semester 2";
@@ -185,6 +195,7 @@ export default function LaporanPerkembanganGuruPage() {
   const [selectedAnak, setSelectedAnak] = useState<Anak | null>(null);
   const [semester, setSemester] = useState(getDefaultSemester);
   const [aspekFilter, setAspekFilter] = useState("Semua aspek");
+  const [bulanFilter, setBulanFilter] = useState("Semua bulan");
   const [laporan, setLaporan] = useState<LaporanData | null>(null);
   const [loadingKelas, setLoadingKelas] = useState(false);
   const [loadingAnak, setLoadingAnak] = useState(false);
@@ -196,6 +207,7 @@ export default function LaporanPerkembanganGuruPage() {
 
   const tahunAjaranList = [...new Set(kelasList.map((k) => k.tahun_ajaran))].sort();
   const kelasFiltered = kelasList.filter((k) => k.tahun_ajaran === tahunAjaran);
+  const kelasFilteredReal = kelasFiltered.filter((k) => k.id_kelas > 0);
 
   // ─── Helper: komentar terbaru dari riwayat ───────────────────
   // Ambil komentar dari observasi terbaru yang memiliki komentar
@@ -222,7 +234,16 @@ export default function LaporanPerkembanganGuruPage() {
         );
         if (kelasSaya.length > 0) {
           const latest = [...kelasSaya].sort((a, b) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
-          setKelasList(kelasSaya);
+          const baseYear = parseInt(latest.split("/")[0]);
+          const extraTahun: Kelas[] = [
+            `${baseYear + 1}/${baseYear + 2}`,
+            `${baseYear + 2}/${baseYear + 3}`,
+            `${baseYear + 3}/${baseYear + 4}`,
+            `${baseYear + 4}/${baseYear + 5}`,
+          ]
+            .filter((t) => !kelasSaya.some((k) => k.tahun_ajaran === t))
+            .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, wali_kelas: "" }));
+          setKelasList([...kelasSaya, ...extraTahun]);
           setTahunAjaran(latest);
         } else {
           setKelasList([]);
@@ -236,7 +257,7 @@ export default function LaporanPerkembanganGuruPage() {
   useEffect(() => {
     if (!tahunAjaran || kelasList.length === 0) return;
     const kelasDiTahun = kelasList.filter((k) => k.tahun_ajaran === tahunAjaran);
-    if (kelasDiTahun.length === 1) {
+    if (kelasDiTahun.length === 1 && kelasDiTahun[0].id_kelas > 0) {
       setSelectedKelas(kelasDiTahun[0]);
     }
   }, [kelasList, tahunAjaran]);
@@ -257,7 +278,7 @@ export default function LaporanPerkembanganGuruPage() {
     setError("");
     setLoadingLaporan(true);
     apiFetch<LaporanData>(`/observasi/anak/${selectedAnak.id_anak}?semester=${encodeURIComponent(semester)}`)
-      .then(setLaporan)
+      .then((data) => { setLaporan(data); setBulanFilter("Semua bulan"); })
       .catch(() => setError("Gagal memuat laporan. Coba lagi."))
       .finally(() => setLoadingLaporan(false));
   };
@@ -273,7 +294,7 @@ export default function LaporanPerkembanganGuruPage() {
     setSelectedAnak(null);
     setLaporan(null);
     const kelasDiTahun = kelasList.filter((k) => k.tahun_ajaran === val);
-    if (kelasDiTahun.length === 1) {
+    if (kelasDiTahun.length === 1 && kelasDiTahun[0].id_kelas > 0) {
       setSelectedKelas(kelasDiTahun[0]);
     } else {
       setSelectedKelas(null);
@@ -297,9 +318,12 @@ export default function LaporanPerkembanganGuruPage() {
   }));
 
   const aspekOptions = ["Semua aspek", ...new Set((laporan?.riwayat ?? []).map((r) => r.indikator?.aspek?.nama_aspek).filter(Boolean))];
-  const riwayatFiltered = aspekFilter === "Semua aspek"
-    ? (laporan?.riwayat ?? [])
-    : (laporan?.riwayat ?? []).filter((r) => r.indikator?.aspek?.nama_aspek === aspekFilter);
+  const bulanOptions = ["Semua bulan", ...new Set((laporan?.riwayat ?? []).map((r) => getBulanValue(r.tanggal)))].sort();
+  const riwayatFiltered = (laporan?.riwayat ?? []).filter((r) => {
+    const matchAspek = aspekFilter === "Semua aspek" || r.indikator?.aspek?.nama_aspek === aspekFilter;
+    const matchBulan = bulanFilter === "Semua bulan" || getBulanValue(r.tanggal) === bulanFilter;
+    return matchAspek && matchBulan;
+  });
 
   const nilaiAspekList = rekapWithNilai.map((item) => nilaiToNum[item.nilai ?? ""] ?? 0).filter(Boolean);
   const rataRata = nilaiAspekList.length > 0
@@ -754,9 +778,9 @@ export default function LaporanPerkembanganGuruPage() {
         <span>Kelas yang Anda ampu:</span>
         {loadingKelas
           ? <span className="text-gray-400 italic">Memuat...</span>
-          : kelasList.length === 0
+          : kelasList.filter((k) => k.id_kelas > 0).length === 0
             ? <span className="text-gray-400 italic">Tidak ada kelas</span>
-            : kelasList.map((k) => (
+            : kelasList.filter((k) => k.id_kelas > 0).map((k) => (
               <span key={k.id_kelas} className="inline-block px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
                 {k.nama_kelas}
               </span>
@@ -785,16 +809,20 @@ export default function LaporanPerkembanganGuruPage() {
 
           <div className="relative">
             <label className="block text-xs font-semibold text-gray-500 mb-1.5">Kelas</label>
-            {kelasFiltered.length === 1 ? (
+            {kelasFilteredReal.length === 1 ? (
               <div className={`${selectCls} flex items-center gap-2 cursor-default`}>
                 <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
-                <span className="text-gray-700 font-medium">{kelasFiltered[0].nama_kelas}</span>
+                <span className="text-gray-700 font-medium">{kelasFilteredReal[0].nama_kelas}</span>
+              </div>
+            ) : kelasFilteredReal.length === 0 ? (
+              <div className={`${selectCls} flex items-center text-gray-400 italic cursor-default`}>
+                Belum ada kelas
               </div>
             ) : (
               <>
                 <select value={selectedKelas?.id_kelas ?? ""} onChange={(e) => handleKelasChange(e.target.value)} disabled={!semester} className={selectCls}>
                   <option value="">Pilih kelas</option>
-                  {kelasFiltered.map((k) => <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>)}
+                  {kelasFilteredReal.map((k) => <option key={k.id_kelas} value={k.id_kelas}>{k.nama_kelas}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-3 bottom-3 text-gray-400"><ChevronDownIcon /></span>
               </>
@@ -995,14 +1023,24 @@ export default function LaporanPerkembanganGuruPage() {
 
       {/* Riwayat Penilaian */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
           <h3 className="font-semibold text-gray-800">Riwayat Penilaian</h3>
-          <div className="relative">
-            <select value={aspekFilter} onChange={(e) => setAspekFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[160px]">
-              {aspekOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+          <div className="flex gap-2">
+            <div className="relative">
+              <select value={aspekFilter} onChange={(e) => setAspekFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                {aspekOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+            </div>
+            <div className="relative">
+              <select value={bulanFilter} onChange={(e) => setBulanFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                <option value="Semua bulan">Semua bulan</option>
+                {bulanOptions.filter((b) => b !== "Semua bulan").map((b) => <option key={b} value={b}>{getBulanLabel(b)}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+            </div>
           </div>
         </div>
         <div className="rounded-xl border border-gray-200 overflow-x-auto">

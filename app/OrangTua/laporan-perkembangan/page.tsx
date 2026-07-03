@@ -94,6 +94,17 @@ function toApiStorageUrl(path: string): string {
   const parts = path.split("/");
   return `${API_URL}/storage-file/${parts[0]}/${parts.slice(1).join("/")}`;
 }
+
+function getBulanValue(tanggal: string): string {
+  const d = new Date(tanggal);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+function getBulanLabel(value: string): string {
+  const [y, m] = value.split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  return d.toLocaleDateString("id-ID", { month: "long" }); // tanpa tahun
+}
+
 function getDefaultSemester(): string { return new Date().getMonth() + 1 >= 7 ? "Semester 1" : "Semester 2"; }
 
 const semesterOptions = ["Semester 1", "Semester 2"];
@@ -113,6 +124,7 @@ export default function LaporanPerkembanganOrangTuaPage() {
   const [tahunAjaran, setTahunAjaran] = useState("");
   const [semester, setSemester] = useState(getDefaultSemester);
   const [aspekFilter, setAspekFilter] = useState("Semua aspek");
+  const [bulanFilter, setBulanFilter] = useState("Semua bulan");
   const [laporan, setLaporan] = useState<LaporanData | null>(null);
   const [waliKelasProfil, setWaliKelasProfil] = useState<GuruProfil | null>(null);
   const [loadingProfil, setLoadingProfil] = useState(false);
@@ -128,7 +140,13 @@ export default function LaporanPerkembanganOrangTuaPage() {
         setAnakProfil(anak);
         const tahunKelas = anak.kelas?.tahun_ajaran;
         const baseYear = tahunKelas ? parseInt(tahunKelas.split("/")[0]) : new Date().getFullYear() - 1;
-        const list = [`${baseYear}/${baseYear + 1}`, `${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`];
+        const list = [
+          `${baseYear}/${baseYear + 1}`,
+          `${baseYear + 1}/${baseYear + 2}`,
+          `${baseYear + 2}/${baseYear + 3}`,
+          `${baseYear + 3}/${baseYear + 4}`,
+          `${baseYear + 4}/${baseYear + 5}`,
+        ];
         setTahunAjaranList(list);
         setTahunAjaran(tahunKelas ?? list[0]);
         const waliKelas = anak.kelas?.wali_kelas;
@@ -150,7 +168,7 @@ export default function LaporanPerkembanganOrangTuaPage() {
     if (!anakProfil) { setError("Data anak tidak ditemukan."); return; }
     setError(""); setLoadingLaporan(true);
     apiFetch<LaporanData>(`/observasi/anak/${anakProfil.id_anak}?semester=${encodeURIComponent(semester)}`)
-      .then(setLaporan)
+      .then((data) => { setLaporan(data); setBulanFilter("Semua bulan"); })
       .catch(() => setError("Gagal memuat laporan. Coba lagi."))
       .finally(() => setLoadingLaporan(false));
   };
@@ -172,7 +190,13 @@ export default function LaporanPerkembanganOrangTuaPage() {
 
   const chartData = rekapWithNilai.map((item, i) => ({ name: getAspekAbbr(item.aspek), fullName: item.aspek, nilai: nilaiToNum[item.nilai ?? ""] ?? 0, color: ASPEK_COLORS[i % ASPEK_COLORS.length] }));
   const aspekOptions = ["Semua aspek", ...new Set((laporan?.riwayat ?? []).map(r => r.indikator?.aspek?.nama_aspek).filter(Boolean))];
-  const riwayatFiltered = aspekFilter === "Semua aspek" ? (laporan?.riwayat ?? []) : (laporan?.riwayat ?? []).filter(r => r.indikator?.aspek?.nama_aspek === aspekFilter);
+  const bulanOptions = ["Semua bulan", ...new Set((laporan?.riwayat ?? []).map(r => getBulanValue(r.tanggal)))].sort();
+
+  const riwayatFiltered = (laporan?.riwayat ?? []).filter(r => {
+    const matchAspek = aspekFilter === "Semua aspek" || r.indikator?.aspek?.nama_aspek === aspekFilter;
+    const matchBulan = bulanFilter === "Semua bulan" || getBulanValue(r.tanggal) === bulanFilter;
+    return matchAspek && matchBulan;
+  });
   const nilaiAspekList = rekapWithNilai.map(item => nilaiToNum[item.nilai ?? ""] ?? 0).filter(Boolean);
   const rataRata = nilaiAspekList.length > 0 ? numToNilai[Math.round(nilaiAspekList.reduce((a, b) => a + b, 0) / nilaiAspekList.length)] : null;
   const namaAnak = laporan?.anak?.nama_anak ?? anakProfil?.nama_anak ?? "";
@@ -774,13 +798,24 @@ export default function LaporanPerkembanganOrangTuaPage() {
 
       {/* Riwayat Penilaian */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
           <h3 className="font-semibold text-gray-800">Riwayat Penilaian</h3>
-          <div className="relative">
-            <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[160px]">
-              {aspekOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+          <div className="flex gap-2">
+            <div className="relative">
+              <select value={aspekFilter} onChange={e => setAspekFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                {aspekOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+            </div>
+            <div className="relative">
+              <select value={bulanFilter} onChange={e => setBulanFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none pr-8 cursor-pointer min-w-[140px]">
+                <option value="Semua bulan">Semua bulan</option>
+                {bulanOptions.filter(b => b !== "Semua bulan").map(b => <option key={b} value={b}>{getBulanLabel(b)}</option>)}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><ChevronDownIcon /></span>
+            </div>
           </div>
         </div>
         <div className="rounded-xl border border-gray-200 overflow-x-auto">
@@ -808,7 +843,7 @@ export default function LaporanPerkembanganOrangTuaPage() {
                       <a href={`${API_URL.replace("/api", "")}/storage/${item.foto}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                         Lihat
-      </a>
+                      </a>
                     ) : <span className="text-xs text-gray-300">-</span>}
                   </td>
                 </tr>
