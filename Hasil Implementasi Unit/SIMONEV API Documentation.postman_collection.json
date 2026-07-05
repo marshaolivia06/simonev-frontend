@@ -1,0 +1,2164 @@
+{
+  "info": {
+    "_postman_id": "d5ccc34d-4e57-4f4b-a441-3e7625481fce",
+    "name": "SIMONEV API Documentation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48780748",
+    "_collection_link": "https://go.postman.co/collection/48780748-d5ccc34d-4e57-4f4b-a441-3e7625481fce?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"salsa123\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk melakukan autentikasi pengguna (admin, guru, orang tua) ke dalam sistem SIMONEV. Mengembalikan token yang digunakan untuk mengakses endpoint lainnya."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1075|SB4feaJpfhEj6uF33t3jboBAanrEqk0eV4XAHgaUf8b9ff87",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "logout"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk keluar dari sistem SIMONEV dan menghapus token autentikasi pengguna yang sedang aktif"
+          },
+          "response": []
+        },
+        {
+          "name": "GET profil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1076|1pQevzFx2BARRyxJr6UltdB189MuKpC4hqcxCryT509a140a",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/profil",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "profil"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil data profil pengguna yang sedang login."
+          },
+          "response": []
+        },
+        {
+          "name": "Update profil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1077|WrJdEfiEsGQMYeSMGzd7KpY3QWC0STUDGhSmqL3G67df0ad1",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"email\": \"admin@simonev.com\",\r\n    \"password\": \"admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/profil",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "profil"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data profil pengguna yang sedang login."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "GET All Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/anak",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "anak"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data anak yang terdaftar dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_anak\": \"Budi Santoso\",\r\n    \"id_kelas\": 5,\r\n    \"id_orangtua\": 19,\r\n    \"jenis_kelamin\": \"L\",\r\n    \"tanggal_lahir\": \"2019-05-10\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/anak",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "anak"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan data anak baru ke dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Anak by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/anak/815",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "anak",
+                "815"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data anak berdasarkan ID anak."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_anak\": \"Budi Santoso Updated\",\r\n    \"id_kelas\": 5,\r\n    \"id_orangtua\": 19,\r\n    \"jenis_kelamin\": \"L\",\r\n    \"tanggal_lahir\": \"2019-05-10\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/anak/815",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "anak",
+                "815"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data anak berdasarkan ID anak."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/anak/815",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "anak",
+                "815"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data anak berdasarkan ID anak."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Guru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/guru",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "guru"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data guru yang terdaftar dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Guru by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/guru/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "guru",
+                "3"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data guru berdasarkan ID guru."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Guru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_guru\": \"Sabrina Rosa\",\r\n    \"nik\": \"1232222233212345\",\r\n    \"jenis_kelamin\": \"P\",\r\n    \"no_telp\": \"0895340402904\",\r\n    \"alamat\": \"Botania Garden\",\r\n    \"tanggal_lahir\": \"1987-08-20\",\r\n    \"nama_lembaga\": \"tk almuhajirin\",\r\n    \"jabatan\": \"Guru Kelas\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/guru/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "guru",
+                "3"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data guru berdasarkan ID guru."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Guru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/guru/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "guru",
+                "3"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data guru berdasarkan ID guru."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Kelas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/kelas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "kelas"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data kelas yang terdaftar dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Kelas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_kelas\": \"TK B1\",\r\n    \"wali_kelas\": \"Artha Martha\",\r\n    \"tahun_ajaran\": \"2025/2026\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/kelas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "kelas"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan data kelas baru ke dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Kelas by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/kelas/16",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "kelas",
+                "16"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data kelas berdasarkan ID kelas."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Kelas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_kelas\": \"TK B1\",\r\n    \"wali_kelas\": \"Artha\",\r\n    \"tahun_ajaran\": \"2025/2026\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/kelas/16",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "kelas",
+                "16"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data kelas berdasarkan ID kelas."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Kelas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/kelas/16",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "kelas",
+                "16"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data kelas berdasarkan ID kelas."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Orangtua",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/orang-tua",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "orang-tua"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data orang tua yang terdaftar dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Orangtua by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/orang-tua/19",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "orang-tua",
+                "19"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data orang tua berdasarkan ID orang tua."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Orangtua",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_orangtua\": \"Fitri nabila aprianti\",\r\n    \"nik\": \"1414141414123456\",\r\n    \"no_telp\": \"081289896354\",\r\n    \"alamat\": \"Perumahan Buana Vista Indah 1\",\r\n    \"hubungan\": \"Ibu\",\r\n    \"pekerjaan\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/orang-tua/19",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "orang-tua",
+                "19"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data orang tua berdasarkan ID orang tua."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Orangtua",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/orang-tua/19",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "orang-tua",
+                "19"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data orang tua berdasarkan ID orang tua."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Verifikasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/verifikasi",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "verifikasi"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data akun pengguna yang menunggu verifikasi oleh admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Verifikasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/verifikasi/38/accept",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "verifikasi",
+                "38",
+                "accept"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menyetujui/menerima akun pengguna yang menunggu verifikasi berdasarkan ID user."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Verifikasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/verifikasi/38/reject",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "verifikasi",
+                "38",
+                "reject"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menolak akun pengguna yang menunggu verifikasi berdasarkan ID user."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Verifikasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/verifikasi/38",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "verifikasi",
+                "38"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data akun pengguna dari daftar verifikasi berdasarkan ID user."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Profil sekolah",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/profil-sekolah",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "profil-sekolah"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil data profil sekolah dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profil sekolah",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_sekolah\": \"TK Al-Muhajirin Dotamana\",\r\n    \"email\": \"admin@tkalmuhajirin.sch.id\",\r\n    \"alamat\": \"dotamana 1 blok i no 12\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/profil-sekolah",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "profil-sekolah"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data profil sekolah dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Pengumuman",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/pengumuman",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "pengumuman"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data pengumuman yang tersedia dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Pengumuman by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/pengumuman/7",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "pengumuman",
+                "7"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail pengumuman berdasarkan ID pengumuman."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Pengumuman",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"judul_pengumuman\": \"Libur Semester Ganjil\",\r\n    \"isi_pengumuman\": \"Diberitahukan kepada seluruh siswa dan guru bahwa kegiatan belajar mengajar diliburkan dalam rangka libur semester ganjil.\",\r\n    \"tanggal\": \"1 Juli 2026\",\r\n    \"kategori\": \"Libur\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/pengumuman",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "pengumuman"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan pengumuman baru ke dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Pengumuman",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"judul_pengumuman\": \"Libur Semester Ganjil Updated\",\r\n    \"isi_pengumuman\": \"Diberitahukan kepada seluruh siswa dan guru bahwa kegiatan belajar mengajar diliburkan dalam rangka libur semester ganjil.\",\r\n    \"tanggal\": \"1 Juli 2026\",\r\n    \"kategori\": \"Libur\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/pengumuman/8",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "pengumuman",
+                "8"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data pengumuman berdasarkan ID pengumuman."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Pengumuman",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/pengumuman/8",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "pengumuman",
+                "8"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data pengumuman berdasarkan ID pengumuman."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Aspek",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/aspek",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "aspek"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data aspek perkembangan anak dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Aspek",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_aspek\": \"Kemandirian\",\r\n    \"definisi_aspek\": \"Aspek perkembangan yang berkaitan dengan kemampuan anak dalam melakukan aktivitas sehari-hari secara mandiri tanpa bantuan orang lain.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/aspek",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "aspek"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Aspek by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/aspek/10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "aspek",
+                "10"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data aspek perkembangan berdasarkan ID aspek."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Aspek",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nama_aspek\": \"Kemandirian Updated\",\r\n    \"definisi_aspek\": \"Aspek perkembangan yang berkaitan dengan kemampuan anak dalam melakukan aktivitas sehari-hari secara mandiri tanpa bantuan orang lain.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/aspek/10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "aspek",
+                "10"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data aspek perkembangan berdasarkan ID aspek."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Aspek",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/aspek/10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "aspek",
+                "10"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data aspek perkembangan berdasarkan ID aspek."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Indikator Penilaian",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/indikator",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "indikator"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data indikator penilaian dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Indikator",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_aspek\": 4,\r\n    \"nama_indikator\": \"Anak mampu bersyukur atas nikmat yang diterima\",\r\n    \"nama_kegiatan\": \"Mengucapkan alhamdulillah setelah makan bersama\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/indikator",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "indikator"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan data indikator penilaian baru ke dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Indikator by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/indikator/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "indikator",
+                "14"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data indikator penilaian berdasarkan ID indikator."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Indikator",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_aspek\": 4,\r\n    \"nama_indikator\": \"Anak mampu bersyukur atas nikmat yang diterima Updated\",\r\n    \"nama_kegiatan\": \"Mengucapkan alhamdulillah setelah makan bersama\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/indikator/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "indikator",
+                "14"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data indikator penilaian berdasarkan ID indikator."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Indikator",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1078|RhiOyNoq52PHpaObNqKc484dlHGJQECerC8EHfXSd09408b8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/indikator/14",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "indikator",
+                "14"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data indikator penilaian berdasarkan ID indikator."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Guru",
+      "item": [
+        {
+          "name": "Dashboard Guru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/dashboard-guru",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dashboard-guru"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil data dashboard guru yang sedang login, mencakup informasi kelas dan rekap perkembangan anak."
+          },
+          "response": []
+        },
+        {
+          "name": "Anak by Skala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/dashboard-guru/anak-by-skala?skala=MB",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "dashboard-guru",
+                "anak-by-skala"
+              ],
+              "query": [
+                {
+                  "key": "skala",
+                  "value": "MB"
+                }
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil daftar anak berdasarkan skala perkembangan (BB/MB/BSH/BSB) pada kelas guru yang sedang login."
+          },
+          "response": []
+        },
+        {
+          "name": "GET All Observasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/observasi",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data observasi perkembangan anak dalam sistem SIMONEV."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Observasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_anak\": 7,\r\n    \"id_indikator\": 2,\r\n    \"semester\": \"Semester 2\",\r\n    \"tanggal\": \"2026-06-23\",\r\n    \"nilai\": \"BSH\",\r\n    \"komentar\": \"Syamil sudah mulai berkembang dengan baik\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/observasi",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan data observasi perkembangan anak."
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Observasi Batch",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_anak\": 7,\r\n    \"semester\": \"Semester 2\",\r\n    \"tanggal\": \"2026-06-23\",\r\n    \"komentar\": \"Syamil menunjukkan perkembangan yang baik\",\r\n    \"penilaian\": [\r\n        {\r\n            \"id_indikator\": 4,\r\n            \"nilai\": \"BSH\"\r\n        },\r\n        {\r\n            \"id_indikator\": 5,\r\n            \"nilai\": \"MB\"\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/observasi/batch",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi",
+                "batch"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menambahkan beberapa data observasi sekaligus dalam satu request."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Observasi by Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/observasi/anak/7",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi",
+                "anak",
+                "7"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil seluruh data observasi berdasarkan ID anak."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Observasi by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/observasi/29",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi",
+                "29"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil detail data observasi berdasarkan ID observasi."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Observasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_anak\": 7,\r\n    \"id_indikator\": 2,\r\n    \"semester\": \"Semester 2\",\r\n    \"tanggal\": \"2026-06-23\",\r\n    \"nilai\": \"BSB\",\r\n    \"komentar\": \"Syamil sudah berkembang sangat baik\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/observasi/29",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi",
+                "29"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk memperbarui data observasi berdasarkan ID observasi."
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Observasi",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1080|k4JKieyapwXgNscAkFhum9vMIYb5rmsT5KfxKmeh7a1540ef",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/observasi/29",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "observasi",
+                "29"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk menghapus data observasi berdasarkan ID observasi."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orangtua",
+      "item": [
+        {
+          "name": "Profil Anak",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "1088|VAaLnh0AuDInxWpLc1PDjQdQCZ6bsyRsphVZHkI1002c3cdf",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/orang-tua/profil/anak",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "orang-tua",
+                "profil",
+                "anak"
+              ]
+            },
+            "description": "Endpoint ini digunakan untuk mengambil data profil anak milik orang tua yang sedang login."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
