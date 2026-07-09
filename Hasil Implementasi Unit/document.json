@@ -1,0 +1,4237 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Laravel",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api"
+    }
+  ],
+  "paths": {
+    "/anak": {
+      "get": {
+        "operationId": "anak.index",
+        "description": "Mengembalikan daftar seluruh anak yang orang tuanya sudah diverifikasi admin,\nbisa difilter berdasarkan id_kelas.",
+        "summary": "Ambil semua data anak",
+        "tags": [
+          "Anak"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Anak"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "anak.store",
+        "description": "Menyimpan data anak baru ke database beserta relasi kelas dan orang tua.",
+        "summary": "Tambah data anak baru",
+        "tags": [
+          "Anak"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_kelas": {
+                    "type": "integer"
+                  },
+                  "nama_anak": {
+                    "type": "string"
+                  },
+                  "jenis_kelamin": {
+                    "type": "string",
+                    "enum": [
+                      "L",
+                      "P"
+                    ]
+                  },
+                  "tanggal_lahir": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "id_orangtua": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id_kelas",
+                  "nama_anak",
+                  "jenis_kelamin"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Anak"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/anak/{id}": {
+      "get": {
+        "operationId": "anak.show",
+        "description": "Mengembalikan data detail anak berdasarkan ID beserta relasi kelas, orang tua, dan observasi.",
+        "summary": "Ambil detail data anak",
+        "tags": [
+          "Anak"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "anak.update",
+        "description": "Mengubah data anak berdasarkan ID.",
+        "summary": "Update data anak",
+        "tags": [
+          "Anak"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "anak.destroy",
+        "description": "Menghapus data anak berdasarkan ID dari database.",
+        "summary": "Hapus data anak",
+        "tags": [
+          "Anak"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/aspek": {
+      "get": {
+        "operationId": "aspekPerkembangan.index",
+        "description": "Mengembalikan daftar seluruh aspek perkembangan beserta indikator-indikatornya.",
+        "summary": "Ambil semua aspek perkembangan",
+        "tags": [
+          "AspekPerkembangan"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AspekPerkembangan"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "aspekPerkembangan.store",
+        "description": "Menyimpan data aspek perkembangan baru ke database.",
+        "summary": "Tambah aspek perkembangan baru",
+        "tags": [
+          "AspekPerkembangan"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nama_aspek": {
+                    "type": "string"
+                  },
+                  "definisi_aspek": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "nama_aspek"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AspekPerkembangan"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/aspek/{id}": {
+      "get": {
+        "operationId": "aspekPerkembangan.show",
+        "description": "Mengembalikan data detail aspek perkembangan berdasarkan ID beserta indikatornya.",
+        "summary": "Ambil detail aspek perkembangan",
+        "tags": [
+          "AspekPerkembangan"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "aspekPerkembangan.update",
+        "description": "Mengubah data aspek perkembangan berdasarkan ID.",
+        "summary": "Update aspek perkembangan",
+        "tags": [
+          "AspekPerkembangan"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "aspekPerkembangan.destroy",
+        "description": "Menghapus data aspek perkembangan berdasarkan ID dari database.",
+        "summary": "Hapus aspek perkembangan",
+        "tags": [
+          "AspekPerkembangan"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "operationId": "auth.register",
+        "description": "Mendaftarkan pengguna baru dengan role guru atau orang tua,\nakun akan berstatus pending hingga diverifikasi admin.",
+        "summary": "Registrasi akun baru",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "guru",
+                      "orang_tua"
+                    ]
+                  },
+                  "nama": {
+                    "type": "string"
+                  },
+                  "nik": {
+                    "type": "string",
+                    "minLength": 16,
+                    "maxLength": 16
+                  },
+                  "no_telp": {
+                    "type": "string"
+                  },
+                  "alamat": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "jabatan": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "tanggal_lahir": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "jenis_kelamin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "L",
+                      "P"
+                    ]
+                  },
+                  "tanggal_lahir_anak": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "username",
+                  "email",
+                  "password",
+                  "role",
+                  "nama",
+                  "nik",
+                  "no_telp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Pendaftaran berhasil, menunggu verifikasi admin"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "operationId": "auth.login",
+        "description": "Autentikasi pengguna berdasarkan username dan password,\nmengembalikan Bearer token jika berhasil dan akun sudah diverifikasi.",
+        "summary": "Login pengguna",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Login berhasil"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "token",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Username atau password salah"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "enum": [
+                        "Akun kamu masih menunggu verifikasi admin.",
+                        "Akun kamu ditolak oleh admin.",
+                        "Akun kamu belum diverifikasi admin."
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "operationId": "auth.logout",
+        "description": "Menghapus token autentikasi pengguna yang sedang login.",
+        "summary": "Logout pengguna",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Logout berhasil"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/profil": {
+      "get": {
+        "operationId": "auth.profile",
+        "description": "Mengembalikan data profil pengguna yang sedang login beserta relasi guru atau orang tua.",
+        "summary": "Ambil profil pengguna",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "auth.updateProfile",
+        "description": "Memperbarui data profil pengguna yang sedang login termasuk data guru jika rolenya guru.",
+        "summary": "Update profil pengguna",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Profil berhasil diperbarui"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/dashboard-guru": {
+      "get": {
+        "operationId": "guru.dashboard",
+        "description": "Mengembalikan ringkasan data kelas guru yang sedang login,\ntermasuk total anak dan jumlah per skala perkembangan BB/MB/BSH/BSB.",
+        "summary": "Ambil data dashboard guru",
+        "tags": [
+          "Guru"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "nama_kelas": {
+                              "type": "string"
+                            },
+                            "total_anak": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "BB": {
+                              "type": "integer"
+                            },
+                            "MB": {
+                              "type": "integer"
+                            },
+                            "BSH": {
+                              "type": "integer"
+                            },
+                            "BSB": {
+                              "type": "integer"
+                            },
+                            "belum_dinilai": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "nama_kelas",
+                            "total_anak",
+                            "BB",
+                            "MB",
+                            "BSH",
+                            "BSB",
+                            "belum_dinilai"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "nama_kelas": {
+                              "type": "null"
+                            },
+                            "total_anak": {
+                              "type": "integer"
+                            },
+                            "BB": {
+                              "type": "integer"
+                            },
+                            "MB": {
+                              "type": "integer"
+                            },
+                            "BSH": {
+                              "type": "integer"
+                            },
+                            "BSB": {
+                              "type": "integer"
+                            },
+                            "belum_dinilai": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "nama_kelas",
+                            "total_anak",
+                            "BB",
+                            "MB",
+                            "BSH",
+                            "BSB",
+                            "belum_dinilai"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/dashboard-guru/anak-by-skala": {
+      "get": {
+        "operationId": "guru.anakBySkala",
+        "description": "Mengembalikan daftar anak di kelas guru yang sedang login\nberdasarkan skala perkembangan tertentu (BB, MB, BSH, atau BSB).",
+        "summary": "Ambil daftar anak berdasarkan skala perkembangan",
+        "tags": [
+          "Guru"
+        ],
+        "parameters": [
+          {
+            "name": "skala",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BB",
+                "MB",
+                "BSH",
+                "BSB"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id_anak": {
+                                "type": "integer"
+                              },
+                              "nama_anak": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id_anak",
+                              "nama_anak"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 0,
+                          "maxItems": 0,
+                          "additionalItems": false
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/guru": {
+      "get": {
+        "operationId": "guru.index",
+        "description": "Mengembalikan daftar seluruh guru yang sudah diverifikasi admin, diurutkan berdasarkan nama.",
+        "summary": "Ambil semua data guru",
+        "tags": [
+          "Guru"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Guru"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/guru/by-kelas/{id_kelas}": {
+      "get": {
+        "operationId": "guru.byKelas",
+        "description": "Mengembalikan data guru yang menjadi wali kelas berdasarkan ID kelas.",
+        "summary": "Ambil guru berdasarkan kelas",
+        "tags": [
+          "Guru"
+        ],
+        "parameters": [
+          {
+            "name": "id_kelas",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/components/schemas/Guru"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "null"
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/guru/{id}": {
+      "get": {
+        "operationId": "guru.show",
+        "description": "Mengembalikan data detail guru berdasarkan ID beserta relasi user dan observasi.",
+        "summary": "Ambil detail data guru",
+        "tags": [
+          "Guru"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/guru/{guru}": {
+      "put": {
+        "operationId": "guru.update",
+        "description": "Mengubah data guru berdasarkan ID.",
+        "summary": "Update data guru",
+        "tags": [
+          "Guru"
+        ],
+        "parameters": [
+          {
+            "name": "guru",
+            "in": "path",
+            "required": true,
+            "description": "The guru id guru",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_user": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "nik": {
+                    "type": "string",
+                    "maxLength": 20
+                  },
+                  "nama_guru": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "jenis_kelamin": {
+                    "type": "string",
+                    "enum": [
+                      "L",
+                      "P"
+                    ]
+                  },
+                  "no_telp": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20
+                  },
+                  "alamat": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "tanggal_lahir": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "nama_lembaga": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  },
+                  "jabatan": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data guru berhasil diperbarui."
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/Guru"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "guru.destroy",
+        "description": "Menghapus data guru berdasarkan ID dari database.",
+        "summary": "Hapus data guru",
+        "tags": [
+          "Guru"
+        ],
+        "parameters": [
+          {
+            "name": "guru",
+            "in": "path",
+            "required": true,
+            "description": "The guru id guru",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data guru berhasil dihapus."
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/indikator": {
+      "get": {
+        "operationId": "indikatorPenilaian.index",
+        "description": "Mengembalikan daftar seluruh indikator penilaian beserta aspek perkembangannya.",
+        "summary": "Ambil semua indikator penilaian",
+        "tags": [
+          "IndikatorPenilaian"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/IndikatorPenilaian"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "indikatorPenilaian.store",
+        "description": "Menyimpan data indikator penilaian baru ke database berdasarkan aspek perkembangan.",
+        "summary": "Tambah indikator penilaian baru",
+        "tags": [
+          "IndikatorPenilaian"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_aspek": {
+                    "type": "integer"
+                  },
+                  "nama_indikator": {
+                    "type": "string"
+                  },
+                  "nama_kegiatan": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id_aspek",
+                  "nama_indikator"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/IndikatorPenilaian"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/indikator/{id}": {
+      "get": {
+        "operationId": "indikatorPenilaian.show",
+        "description": "Mengembalikan data detail indikator penilaian berdasarkan ID beserta aspek perkembangannya.",
+        "summary": "Ambil detail indikator penilaian",
+        "tags": [
+          "IndikatorPenilaian"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "indikatorPenilaian.update",
+        "description": "Mengubah data indikator penilaian berdasarkan ID.",
+        "summary": "Update indikator penilaian",
+        "tags": [
+          "IndikatorPenilaian"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "indikatorPenilaian.destroy",
+        "description": "Menghapus data indikator penilaian berdasarkan ID dari database.",
+        "summary": "Hapus indikator penilaian",
+        "tags": [
+          "IndikatorPenilaian"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/kelas": {
+      "get": {
+        "operationId": "kelas.index",
+        "description": "Mengembalikan daftar kelas yang tersedia.\nData yang dikembalikan disesuaikan berdasarkan role pengguna yang sedang login.",
+        "summary": "Ambil semua data kelas",
+        "tags": [
+          "Kelas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Fallback",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 0,
+                          "maxItems": 0,
+                          "additionalItems": false
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Kelas"
+                          }
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "kelas.store",
+        "description": "Menyimpan data kelas baru ke database beserta wali kelas dan tahun ajaran.",
+        "summary": "Tambah kelas baru",
+        "tags": [
+          "Kelas"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nama_kelas": {
+                    "type": "string"
+                  },
+                  "wali_kelas": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "tahun_ajaran": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nama_kelas",
+                  "tahun_ajaran"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Kelas"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/kelas/{id}": {
+      "get": {
+        "operationId": "kelas.show",
+        "description": "Mengembalikan data detail kelas berdasarkan ID.",
+        "summary": "Ambil detail kelas",
+        "tags": [
+          "Kelas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "kelas.update",
+        "description": "Mengubah data kelas berdasarkan ID.",
+        "summary": "Update data kelas",
+        "tags": [
+          "Kelas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "kelas.destroy",
+        "description": "Menghapus data kelas berdasarkan ID dari database.",
+        "summary": "Hapus data kelas",
+        "tags": [
+          "Kelas"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/observasi": {
+      "get": {
+        "operationId": "observasi.index",
+        "description": "Mengembalikan daftar seluruh observasi, bisa difilter berdasarkan id_anak dan semester.",
+        "summary": "Ambil semua data observasi",
+        "tags": [
+          "Observasi"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Observasi"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "observasi.store",
+        "description": "Menyimpan satu data observasi perkembangan anak oleh guru, termasuk upload foto.",
+        "summary": "Tambah data observasi baru",
+        "tags": [
+          "Observasi"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_anak": {
+                    "type": "integer"
+                  },
+                  "id_indikator": {
+                    "type": "integer"
+                  },
+                  "nilai": {
+                    "type": "string",
+                    "enum": [
+                      "BB",
+                      "MB",
+                      "BSH",
+                      "BSB"
+                    ]
+                  },
+                  "tanggal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "semester": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id_anak",
+                  "id_indikator",
+                  "nilai",
+                  "tanggal",
+                  "semester"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Observasi"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/observasi/batch": {
+      "post": {
+        "operationId": "observasi.storeBatch",
+        "description": "Menyimpan beberapa observasi sekaligus untuk satu anak dalam satu sesi penilaian,\nbeserta komentar global dan keterangan per aspek perkembangan.",
+        "summary": "Tambah observasi secara batch",
+        "tags": [
+          "Observasi"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_anak": {
+                    "type": "integer"
+                  },
+                  "semester": {
+                    "type": "string"
+                  },
+                  "tanggal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "komentar": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "keterangan_aspek": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "penilaian": {
+                    "type": "array",
+                    "description": "[BARU]",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id_indikator": {
+                          "type": "integer"
+                        },
+                        "nilai": {
+                          "type": "string",
+                          "enum": [
+                            "BB",
+                            "MB",
+                            "BSH",
+                            "BSB"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id_indikator",
+                        "nilai"
+                      ]
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "id_anak",
+                  "semester",
+                  "tanggal",
+                  "penilaian"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Observasi"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/observasi/anak/{id_anak}": {
+      "get": {
+        "operationId": "observasi.byAnak",
+        "description": "Mengembalikan laporan perkembangan anak berdasarkan ID anak,\nberisi rekap per aspek, riwayat observasi, komentar, dan keterangan aspek.\nBisa difilter berdasarkan semester.",
+        "summary": "Ambil rekap observasi per anak",
+        "tags": [
+          "Observasi"
+        ],
+        "parameters": [
+          {
+            "name": "id_anak",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "semester",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "anak": {
+                              "$ref": "#/components/schemas/Anak"
+                            },
+                            "rekap_aspek": {
+                              "type": "array",
+                              "items": {}
+                            },
+                            "riwayat": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Observasi"
+                              }
+                            },
+                            "komentar": {
+                              "type": "string"
+                            },
+                            "keterangan_aspek": {
+                              "type": "string"
+                            },
+                            "total": {
+                              "type": "integer",
+                              "description": "[BARU]",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "anak",
+                            "rekap_aspek",
+                            "riwayat",
+                            "komentar",
+                            "keterangan_aspek",
+                            "total"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "anak": {
+                              "type": "string"
+                            },
+                            "rekap_aspek": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "minItems": 0,
+                              "maxItems": 0,
+                              "additionalItems": false
+                            },
+                            "riwayat": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "minItems": 0,
+                              "maxItems": 0,
+                              "additionalItems": false
+                            },
+                            "komentar": {
+                              "type": "string"
+                            },
+                            "keterangan_aspek": {
+                              "type": "string"
+                            },
+                            "total": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "anak",
+                            "rekap_aspek",
+                            "riwayat",
+                            "komentar",
+                            "keterangan_aspek",
+                            "total"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/observasi/{id}": {
+      "get": {
+        "operationId": "observasi.show",
+        "description": "Mengembalikan data detail observasi berdasarkan ID.",
+        "summary": "Ambil detail observasi",
+        "tags": [
+          "Observasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "observasi.update",
+        "description": "Mengubah data observasi berdasarkan ID, termasuk update foto dan keterangan aspek.",
+        "summary": "Update data observasi",
+        "tags": [
+          "Observasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nilai": {
+                    "type": "string",
+                    "enum": [
+                      "BB",
+                      "MB",
+                      "BSH",
+                      "BSB"
+                    ]
+                  },
+                  "tanggal": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "observasi.destroy",
+        "description": "Menghapus data observasi berdasarkan ID beserta foto yang tersimpan.",
+        "summary": "Hapus data observasi",
+        "tags": [
+          "Observasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Observasi dihapus."
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/orang-tua": {
+      "get": {
+        "operationId": "orangTua.index",
+        "description": "Mengembalikan daftar seluruh orang tua beserta relasi user dan data anak.",
+        "summary": "Ambil semua data orang tua",
+        "tags": [
+          "OrangTua"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrangTua"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/orang-tua/profil/anak": {
+      "get": {
+        "operationId": "orangTua.profilAnak",
+        "description": "Mengembalikan data anak beserta kelas dari orang tua yang sedang login.",
+        "summary": "Ambil profil anak milik orang tua",
+        "tags": [
+          "OrangTua"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "$ref": "#/components/schemas/Anak"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/orang-tua/{id}": {
+      "get": {
+        "operationId": "orangTua.show",
+        "description": "Mengembalikan data detail orang tua berdasarkan ID beserta relasi user dan anak.",
+        "summary": "Ambil detail data orang tua",
+        "tags": [
+          "OrangTua"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "orangTua.update",
+        "description": "Mengubah data orang tua berdasarkan ID.",
+        "summary": "Update data orang tua",
+        "tags": [
+          "OrangTua"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "orangTua.destroy",
+        "description": "Menghapus data orang tua berdasarkan ID dari database.",
+        "summary": "Hapus data orang tua",
+        "tags": [
+          "OrangTua"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/pengumuman": {
+      "get": {
+        "operationId": "pengumuman.index",
+        "description": "Mengembalikan daftar seluruh pengumuman beserta data user pembuatnya,\ndiurutkan dari yang terbaru.",
+        "summary": "Ambil semua pengumuman",
+        "tags": [
+          "Pengumuman"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Pengumuman"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "pengumuman.store",
+        "description": "Menyimpan pengumuman baru ke database dengan kategori Kegiatan, Libur, Penting, atau Info.\nID user diambil otomatis dari token pengguna yang sedang login.",
+        "summary": "Tambah pengumuman baru",
+        "tags": [
+          "Pengumuman"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "judul_pengumuman": {
+                    "type": "string"
+                  },
+                  "isi_pengumuman": {
+                    "type": "string"
+                  },
+                  "tanggal": {
+                    "type": "string"
+                  },
+                  "kategori": {
+                    "type": "string",
+                    "enum": [
+                      "Kegiatan",
+                      "Libur",
+                      "Penting",
+                      "Info"
+                    ]
+                  }
+                },
+                "required": [
+                  "judul_pengumuman",
+                  "isi_pengumuman",
+                  "tanggal",
+                  "kategori"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Pengumuman"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/pengumuman/{id}": {
+      "get": {
+        "operationId": "pengumuman.show",
+        "description": "Mengembalikan data detail pengumuman berdasarkan ID beserta data user pembuatnya.",
+        "summary": "Ambil detail pengumuman",
+        "tags": [
+          "Pengumuman"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "pengumuman.update",
+        "description": "Mengubah data pengumuman berdasarkan ID, semua field bersifat opsional.",
+        "summary": "Update pengumuman",
+        "tags": [
+          "Pengumuman"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "judul_pengumuman": {
+                    "type": "string"
+                  },
+                  "isi_pengumuman": {
+                    "type": "string"
+                  },
+                  "tanggal": {
+                    "type": "string"
+                  },
+                  "kategori": {
+                    "type": "string",
+                    "enum": [
+                      "Kegiatan",
+                      "Libur",
+                      "Penting",
+                      "Info"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "pengumuman.destroy",
+        "description": "Menghapus data pengumuman berdasarkan ID dari database.",
+        "summary": "Hapus pengumuman",
+        "tags": [
+          "Pengumuman"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Data berhasil dihapus"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/profil-sekolah": {
+      "get": {
+        "operationId": "profilSekolah.show",
+        "description": "Mengembalikan data profil sekolah yang tersimpan di database.",
+        "summary": "Ambil profil sekolah",
+        "tags": [
+          "ProfilSekolah"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ProfilSekolah"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "profilSekolah.update",
+        "description": "Memperbarui data profil sekolah termasuk upload foto tanda tangan kepala sekolah.\nJika profil belum ada, data baru akan dibuat otomatis.",
+        "summary": "Update profil sekolah",
+        "tags": [
+          "ProfilSekolah"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nama_sekolah": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "email"
+                  },
+                  "telepon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "alamat": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nama_kepala_sekolah": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nip_kepala_sekolah": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "foto_ttd_ks": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "binary",
+                    "contentMediaType": "application/octet-stream",
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "nama_sekolah"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Profil sekolah berhasil diperbarui"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProfilSekolah"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/storage-file/{folder}/{filename}": {
+      "get": {
+        "operationId": "storage.serveFile",
+        "description": "Mengembalikan file dari storage berdasarkan folder dan nama file,\ndengan header CORS untuk akses publik.",
+        "summary": "Ambil file dari storage",
+        "tags": [
+          "Storage"
+        ],
+        "parameters": [
+          {
+            "name": "folder",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/verifikasi": {
+      "get": {
+        "operationId": "verifikasi.index",
+        "description": "Mengembalikan daftar seluruh pengguna non-admin beserta detail guru atau orang tua,\ndiurutkan dari yang terbaru.",
+        "summary": "Ambil semua data pengguna untuk verifikasi",
+        "tags": [
+          "Verifikasi"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "detail": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/components/schemas/Guru"
+                              },
+                              {
+                                "$ref": "#/components/schemas/OrangTua"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "username",
+                          "email",
+                          "role",
+                          "status",
+                          "created_at",
+                          "detail"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/verifikasi/{id}/accept": {
+      "post": {
+        "operationId": "verifikasi.accept",
+        "description": "Mengubah status akun pengguna menjadi approved. Jika role orang tua,\ndata anak akan otomatis dibuat dan dimasukkan ke kelas yang sesuai.",
+        "summary": "Terima pendaftaran akun",
+        "tags": [
+          "Verifikasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Akun ini sudah diproses sebelumnya."
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/verifikasi/{id}/reject": {
+      "post": {
+        "operationId": "verifikasi.reject",
+        "description": "Mengubah status akun pengguna menjadi rejected beserta alasan penolakan.",
+        "summary": "Tolak pendaftaran akun",
+        "tags": [
+          "Verifikasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "alasan": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Akun ini sudah diproses sebelumnya."
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/verifikasi/{id}": {
+      "delete": {
+        "operationId": "verifikasi.destroy",
+        "description": "Menghapus data akun pengguna berdasarkan ID dari database.",
+        "summary": "Hapus akun pengguna",
+        "tags": [
+          "Verifikasi"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Akun berhasil dihapus."
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Anak": {
+        "type": "object",
+        "properties": {
+          "id_anak": {
+            "type": "integer"
+          },
+          "id_kelas": {
+            "type": "integer"
+          },
+          "nama_anak": {
+            "type": "string"
+          },
+          "id_orangtua": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "jenis_kelamin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tanggal_lahir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_anak",
+          "id_kelas",
+          "nama_anak",
+          "id_orangtua",
+          "jenis_kelamin",
+          "tanggal_lahir",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Anak"
+      },
+      "AspekPerkembangan": {
+        "type": "object",
+        "properties": {
+          "id_aspek": {
+            "type": "integer"
+          },
+          "nama_aspek": {
+            "type": "string"
+          },
+          "definisi_aspek": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_aspek",
+          "nama_aspek",
+          "definisi_aspek",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AspekPerkembangan"
+      },
+      "Guru": {
+        "type": "object",
+        "properties": {
+          "id_guru": {
+            "type": "integer"
+          },
+          "id_user": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "nik": {
+            "type": "string"
+          },
+          "nip": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "foto_ttd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama_lembaga": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jabatan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "surat_tugas": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama_guru": {
+            "type": "string"
+          },
+          "no_telp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alamat": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jenis_kelamin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tanggal_lahir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_guru",
+          "id_user",
+          "nik",
+          "nip",
+          "foto_ttd",
+          "nama_lembaga",
+          "jabatan",
+          "surat_tugas",
+          "nama_guru",
+          "no_telp",
+          "email",
+          "alamat",
+          "jenis_kelamin",
+          "tanggal_lahir",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Guru"
+      },
+      "IndikatorPenilaian": {
+        "type": "object",
+        "properties": {
+          "id_indikator": {
+            "type": "integer"
+          },
+          "id_aspek": {
+            "type": "integer"
+          },
+          "nama_indikator": {
+            "type": "string"
+          },
+          "nama_kegiatan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_indikator",
+          "id_aspek",
+          "nama_indikator",
+          "nama_kegiatan",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "IndikatorPenilaian"
+      },
+      "Kelas": {
+        "type": "object",
+        "properties": {
+          "id_kelas": {
+            "type": "integer"
+          },
+          "nama_kelas": {
+            "type": "string"
+          },
+          "wali_kelas": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tahun_ajaran": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_kelas",
+          "nama_kelas",
+          "wali_kelas",
+          "tahun_ajaran",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Kelas"
+      },
+      "Observasi": {
+        "type": "object",
+        "properties": {
+          "id_observasi": {
+            "type": "integer"
+          },
+          "id_guru": {
+            "type": "integer"
+          },
+          "id_anak": {
+            "type": "integer"
+          },
+          "id_indikator": {
+            "type": "integer"
+          },
+          "semester": {
+            "type": "string"
+          },
+          "tanggal": {
+            "type": "string"
+          },
+          "nilai": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "komentar": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "keterangan_aspek": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "foto": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_observasi",
+          "id_guru",
+          "id_anak",
+          "id_indikator",
+          "semester",
+          "tanggal",
+          "nilai",
+          "komentar",
+          "keterangan_aspek",
+          "foto",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Observasi"
+      },
+      "OrangTua": {
+        "type": "object",
+        "properties": {
+          "id_orangtua": {
+            "type": "integer"
+          },
+          "id_user": {
+            "type": "integer"
+          },
+          "nik": {
+            "type": "string"
+          },
+          "nama_orangtua": {
+            "type": "string"
+          },
+          "no_telp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alamat": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pekerjaan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hubungan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama_anak": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kelas_anak": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tanggal_lahir_anak": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jenis_kelamin_anak": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "foto_ktp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_orangtua",
+          "id_user",
+          "nik",
+          "nama_orangtua",
+          "no_telp",
+          "alamat",
+          "pekerjaan",
+          "hubungan",
+          "nama_anak",
+          "kelas_anak",
+          "tanggal_lahir_anak",
+          "jenis_kelamin_anak",
+          "foto_ktp",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OrangTua"
+      },
+      "Pengumuman": {
+        "type": "object",
+        "properties": {
+          "id_pengumuman": {
+            "type": "integer"
+          },
+          "id_user": {
+            "type": "integer"
+          },
+          "judul_pengumuman": {
+            "type": "string"
+          },
+          "isi_pengumuman": {
+            "type": "string"
+          },
+          "tanggal": {
+            "type": "string"
+          },
+          "kategori": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id_pengumuman",
+          "id_user",
+          "judul_pengumuman",
+          "isi_pengumuman",
+          "tanggal",
+          "kategori",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Pengumuman"
+      },
+      "ProfilSekolah": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nama_sekolah": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "telepon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alamat": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama_kepala_sekolah": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nip_kepala_sekolah": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "foto_ttd_ks": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "nama_sekolah",
+          "email",
+          "telepon",
+          "alamat",
+          "nama_kepala_sekolah",
+          "nip_kepala_sekolah",
+          "foto_ttd_ks",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProfilSekolah"
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "email_verified_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "email_verified_at",
+          "role",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "User"
+      }
+    },
+    "responses": {
+      "ValidationException": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Errors overview."
+                },
+                "errors": {
+                  "type": "object",
+                  "description": "A detailed description of each field that failed validation.",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "message",
+                "errors"
+              ]
+            }
+          }
+        }
+      },
+      "ModelNotFoundException": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Error overview."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          }
+        }
+      },
+      "AuthenticationException": {
+        "description": "Unauthenticated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Error overview."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
