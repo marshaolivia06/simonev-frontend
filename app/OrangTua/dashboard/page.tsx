@@ -80,7 +80,7 @@ export default function OrangtuaDashboard() {
           setIdAnak(anak.id_anak);
 
           // ambil wali kelas dari data kelas jika ada
-          setGuruKelas(anak.kelas?.wali_kelas ?? "-");
+          setGuruKelas(anak.kelas?.guru?.nama_guru ?? "-");
 
           // 2. Fetch observasi anak untuk perkembangan terakhir
           fetch(`${API}/observasi/anak/${anak.id_anak}?semester=${encodeURIComponent(semester)}`, { headers: h })

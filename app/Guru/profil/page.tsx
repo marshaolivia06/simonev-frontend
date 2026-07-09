@@ -67,7 +67,7 @@ export default function ProfilePage() {
 
             if (dataKelas.success) {
               const kelasGuru = (dataKelas.data as any[])
-                .filter((k: any) => k.wali_kelas?.toLowerCase() === guru.nama_guru?.toLowerCase())
+                .filter((k: any) => k.id_guru === guru.id_guru)
                 .map((k: any) => k.nama_kelas)
               setKelas(kelasGuru)
             }

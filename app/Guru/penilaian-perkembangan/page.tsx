@@ -25,7 +25,7 @@ interface Kelas {
   id_kelas: number;
   nama_kelas: string;
   tahun_ajaran: string;
-  wali_kelas: string;
+  id_guru: number | null;
 }
 interface Anak {
   id_anak: number;
@@ -144,14 +144,14 @@ export default function PenilaianPage() {
   useEffect(() => {
     setLoadingKelas(true);
     Promise.all([
-      apiFetch<{ guru?: { nama_guru: string } }>("/profil"),
+      apiFetch<{ guru?: { id_guru: number; nama_guru: string } }>("/profil"),
       apiFetch<Kelas[]>("/kelas"),
     ])
       .then(([profil, kelas]) => {
-        const namaGuru = profil.guru?.nama_guru ?? "";
-        const kelasSaya = kelas.filter(
-          (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru.toLowerCase()
-        );
+  const idGuru = profil.guru?.id_guru;
+  const kelasSaya = kelas.filter(
+    (k) => k.id_guru === idGuru
+  );
         setKelasList(kelasSaya);
         if (kelasSaya.length > 0) {
           const latest = [...kelasSaya].sort((a, b) =>

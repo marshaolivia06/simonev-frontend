@@ -74,7 +74,7 @@ export default function DataAnakPage() {
 const profilJson = await profilRes.json();
 if (!profilJson.success) throw new Error("Gagal memuat profil guru");
 
-const namaGuru = profilJson.data.guru?.nama_guru as string; // ← fix di sini
+const idGuru = profilJson.data.guru?.id_guru as number;
 console.log("FULL DATA:", JSON.stringify(profilJson.data)); // ← ini
 
       const kelasRes = await fetch(`${API_BASE}/kelas`, { headers: authHeaders() });
@@ -83,7 +83,7 @@ const kelasList = kelasJson.data as Record<string, unknown>[];
 
 // Langsung ambil kelas pertama (sudah difilter by guru di backend)
 const kelasSaya = kelasList.find(
-  (k) => (k.wali_kelas as string)?.toLowerCase() === namaGuru?.toLowerCase()
+  (k) => (k.id_guru as number) === idGuru
 ) ?? null;
 
       if (!kelasSaya) {

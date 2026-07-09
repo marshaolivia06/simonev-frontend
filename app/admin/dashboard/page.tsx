@@ -242,7 +242,7 @@ export default function DashboardAdmin() {
     avatarBg: "bg-rose-100", avatarText: "text-rose-600", ring: "ring-rose-100",
     icon: School,
     items: kelasData
-      .map((k: any) => ({ primary: k.nama_kelas, secondary: k.wali_kelas ? `Wali Kelas: ${k.wali_kelas}` : "Belum ada wali kelas" }))
+      .map((k: any) => ({ primary: k.nama_kelas, secondary: k.guru?.nama_guru ? `Wali Kelas: ${k.guru.nama_guru}` : "Belum ada wali kelas" }))
       .sort((a, b) => a.primary.localeCompare(b.primary)),
     emptyText: "Belum ada data kelas",
   });
@@ -260,17 +260,22 @@ export default function DashboardAdmin() {
   });
 
   const openVerifModal = () => setModalContent({
-    title: "Akun Perlu Verifikasi",
-    unit: "akun",
-    gradient: "from-yellow-500 to-amber-400",
-    avatarBg: "bg-yellow-100", avatarText: "text-yellow-700", ring: "ring-yellow-100",
-    icon: ShieldCheck,
-    items: verifData.map((u: any) => ({
-      primary: u.name ?? u.nama ?? "-",
-      secondary: u.email ?? u.role ?? undefined,
-    })),
-    emptyText: "Tidak ada akun yang perlu diverifikasi",
-  });
+  title: "Akun Perlu Verifikasi",
+  unit: "akun",
+  gradient: "from-yellow-500 to-amber-400",
+  avatarBg: "bg-yellow-100", avatarText: "text-yellow-700", ring: "ring-yellow-100",
+  icon: ShieldCheck,
+  items: verifData.map((u: any) => {
+    const namaAsli = u.role === "guru"
+      ? u.detail?.nama_guru
+      : u.detail?.nama_orangtua;
+    return {
+      primary: namaAsli || u.username || "-",
+      secondary: `${u.role === "guru" ? "Guru" : "Orang Tua"} • ${u.email}`,
+    };
+  }),
+  emptyText: "Tidak ada akun yang perlu diverifikasi",
+});
 
   const openKelasAnakModal = (namaKelas: string, themeIdx: number) => {
     const theme = kelasModalTheme[themeIdx % kelasModalTheme.length];

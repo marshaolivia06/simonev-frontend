@@ -21,7 +21,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 }
 
 // ─── TYPES ───────────────────────────────────────────────────────
-interface AnakProfil { id_anak: number; nama_anak: string; tanggal_lahir?: string; kelas?: { nama_kelas: string; tahun_ajaran: string; wali_kelas?: string } }
+interface AnakProfil { id_anak: number; nama_anak: string; tanggal_lahir?: string; kelas?: { nama_kelas: string; tahun_ajaran: string; id_guru?: number | null; guru?: { nama_guru: string; nip?: string | null; foto_ttd?: string | null } } }
 interface GuruProfil { nama_guru: string; nip: string | null; foto_ttd: string | null }
 interface RekapAspek { aspek: string; nilai: string | null; jumlah: number }
 interface RiwayatItem {
@@ -133,36 +133,33 @@ export default function LaporanPerkembanganOrangTuaPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoadingProfil(true);
-    apiFetch<AnakProfil>("/orang-tua/profil/anak")
-      .then((data) => {
-        const anak = Array.isArray(data) ? data[0] : data;
-        setAnakProfil(anak);
-        const tahunKelas = anak.kelas?.tahun_ajaran;
-        const baseYear = tahunKelas ? parseInt(tahunKelas.split("/")[0]) : new Date().getFullYear() - 1;
-        const list = [
-          `${baseYear}/${baseYear + 1}`,
-          `${baseYear + 1}/${baseYear + 2}`,
-          `${baseYear + 2}/${baseYear + 3}`,
-          `${baseYear + 3}/${baseYear + 4}`,
-          `${baseYear + 4}/${baseYear + 5}`,
-        ];
-        setTahunAjaranList(list);
-        setTahunAjaran(tahunKelas ?? list[0]);
-        const waliKelas = anak.kelas?.wali_kelas;
-        if (waliKelas) {
-          apiFetch<any[]>("/guru")
-            .then(guruList => {
-              const guru = guruList.find((g: any) => g.nama_guru?.toLowerCase() === waliKelas.toLowerCase());
-              if (guru) setWaliKelasProfil({ nama_guru: guru.nama_guru, nip: guru.nip ?? null, foto_ttd: guru.foto_ttd ?? null });
-              else setWaliKelasProfil({ nama_guru: waliKelas, nip: null, foto_ttd: null });
-            })
-            .catch(() => setWaliKelasProfil({ nama_guru: waliKelas, nip: null, foto_ttd: null }));
-        }
-      })
-      .catch(() => setError("Gagal memuat data profil anak."))
-      .finally(() => setLoadingProfil(false));
-  }, []);
+  setLoadingProfil(true);
+  apiFetch<AnakProfil>("/orang-tua/profil/anak")
+    .then((data) => {
+      const anak = Array.isArray(data) ? data[0] : data;
+      setAnakProfil(anak);
+      const tahunKelas = anak.kelas?.tahun_ajaran;
+      const baseYear = tahunKelas ? parseInt(tahunKelas.split("/")[0]) : new Date().getFullYear() - 1;
+      const list = [
+        `${baseYear}/${baseYear + 1}`,
+        `${baseYear + 1}/${baseYear + 2}`,
+        `${baseYear + 2}/${baseYear + 3}`,
+        `${baseYear + 3}/${baseYear + 4}`,
+        `${baseYear + 4}/${baseYear + 5}`,
+      ];
+      setTahunAjaranList(list);
+      setTahunAjaran(tahunKelas ?? list[0]);
+      if (anak.kelas?.guru) {
+        setWaliKelasProfil({
+          nama_guru: anak.kelas.guru.nama_guru,
+          nip: anak.kelas.guru.nip ?? null,
+          foto_ttd: anak.kelas.guru.foto_ttd ?? null,
+        });
+      }
+    })   // ← ini yang tadinya hilang
+    .catch(() => setError("Gagal memuat data profil anak."))
+    .finally(() => setLoadingProfil(false));
+}, []);
 
   const handleTampilkan = () => {
     if (!anakProfil) { setError("Data anak tidak ditemukan."); return; }
@@ -228,7 +225,7 @@ export default function LaporanPerkembanganOrangTuaPage() {
       ]);
       const namaKS = ps.nama_kepala_sekolah || "Kepala Sekolah";
       const nipKS = ps.nip_kepala_sekolah || "";
-      const namaWaliKelas = waliKelasProfil?.nama_guru || anakProfil?.kelas?.wali_kelas || "Wali Kelas";
+      const namaWaliKelas = waliKelasProfil?.nama_guru || "Wali Kelas";
       const nipWaliKelas = waliKelasProfil?.nip || "";
 
       const setLineGray = () => pdf.setDrawColor(160, 160, 160);

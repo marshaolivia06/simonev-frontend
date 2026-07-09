@@ -9,7 +9,7 @@ import {
 } from "recharts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-interface Kelas { id_kelas: number; nama_kelas: string; tahun_ajaran: string; wali_kelas?: string }
+interface Kelas { id_kelas: number; nama_kelas: string; tahun_ajaran: string; id_guru?: number | null }
 interface GuruProfil { nama_guru: string; nip: string | null; foto_ttd: string | null }
 interface Anak { id_anak: number; nama_anak: string; tanggal_lahir?: string }
 interface RekapAspek {
@@ -124,6 +124,8 @@ function getBulanLabel(value: string): string {
   return d.toLocaleDateString("id-ID", { month: "long" });
 }
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace("/api", "");
+
 function toApiStorageUrl(path: string): string {
   const parts = path.split("/");
   return `${process.env.NEXT_PUBLIC_API_URL}/storage-file/${parts[0]}/${parts.slice(1).join("/")}`;
@@ -203,7 +205,7 @@ export default function LaporanPerkembanganAdminPage() {
             const extraTahun: Kelas[] = [`${baseYear + 1}/${baseYear + 2}`, `${baseYear + 2}/${baseYear + 3}`, `${baseYear + 3}/${baseYear + 4}`,
             `${baseYear + 4}/${baseYear + 5}`,]
               .filter(t => !data.some(k => k.tahun_ajaran === t))
-              .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, wali_kelas: "" }));
+              .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, id_guru: null }));
             setKelasList([...data, ...extraTahun]);
             setTahunAjaran(latest);
           }
@@ -243,12 +245,11 @@ export default function LaporanPerkembanganAdminPage() {
         .then(r => r.json())
         .then(json => {
           if (json.success) {
-            const guru = json.data.find((g: any) => g.nama_guru?.toLowerCase() === kelas.wali_kelas?.toLowerCase());
+            const guru = json.data.find((g: any) => g.id_guru === kelas.id_guru);
             if (guru) setWaliKelasProfil({ nama_guru: guru.nama_guru, nip: guru.nip ?? null, foto_ttd: guru.foto_ttd ?? null });
-            else if (kelas.wali_kelas) setWaliKelasProfil({ nama_guru: kelas.wali_kelas, nip: null, foto_ttd: null });
           }
         })
-        .catch(() => { if (kelas.wali_kelas) setWaliKelasProfil({ nama_guru: kelas.wali_kelas, nip: null, foto_ttd: null }); });
+        .catch(() => { /* gagal memuat profil guru, biarkan waliKelasProfil null */ });
     }
   };
 
@@ -321,7 +322,7 @@ export default function LaporanPerkembanganAdminPage() {
       ]);
       const namaKS = ps.nama_kepala_sekolah || "Kepala Sekolah";
       const nipKS = ps.nip_kepala_sekolah || "";
-      const namaWaliKelas = waliKelasProfil?.nama_guru || selectedKelas?.wali_kelas || "Wali Kelas";
+      const namaWaliKelas = waliKelasProfil?.nama_guru || "Wali Kelas";
       const nipWaliKelas = waliKelasProfil?.nip || "";
 
       const setLineGray = () => { pdf.setDrawColor(160, 160, 160); pdf.setLineWidth(0.5); };
@@ -856,7 +857,7 @@ export default function LaporanPerkembanganAdminPage() {
                 </td>
                 <td className="px-3 py-3 text-center">
                   {item.foto ? (
-                    <a href={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.foto}`} target="_blank" rel="noopener noreferrer"
+                    <a href={`${API_BASE}/storage/${item.foto}`} target="_blank" rel="noopener noreferrer"
                       className="text-xs text-blue-500 hover:text-blue-700 hover:underline whitespace-nowrap flex items-center justify-center gap-1">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />

@@ -6,7 +6,8 @@ import { Pencil, Trash2, Plus, Search, X, Users } from "lucide-react";
 interface Kelas {
   id_kelas: number;
   nama_kelas: string;
-   wali_kelas: string | null;
+  id_guru: number | null;
+  guru?: { id_guru: number; nama_guru: string } | null;
   tahun_ajaran: string;
 }
 
@@ -23,14 +24,13 @@ const getToken = () =>
 const authHeaders = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${getToken()}`,
-    "Accept": "application/json",
+  "Accept": "application/json",
 });
 
 // Generate tahun ajaran otomatis mulai dari sekarang + 5 tahun ke depan
 const generateTahunAjaran = (): string[] => {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1–12
-  // Jika sudah memasuki semester 2 (Juli ke atas), tahun ajaran aktif = tahun ini/tahun depan
   const startYear = currentMonth >= 7 ? now.getFullYear() : now.getFullYear() - 1;
   return Array.from({ length: 6 }, (_, i) => `${startYear + i}/${startYear + i + 1}`);
 };
@@ -45,11 +45,11 @@ export default function DataKelasPage() {
   const [saving, setSaving] = useState(false);
 
   const tahunAjaranOptions = generateTahunAjaran();
-  const defaultTahunAjaran = tahunAjaranOptions[0]; // tahun ajaran sekarang
+  const defaultTahunAjaran = tahunAjaranOptions[0];
 
   const [form, setForm] = useState({
     nama_kelas: "",
-    wali_kelas: "",
+    id_guru: "",
     tahun_ajaran: defaultTahunAjaran,
   });
 
@@ -82,29 +82,30 @@ export default function DataKelasPage() {
   }, []);
 
   const filtered = data
-  .filter((k) =>
-    k.nama_kelas.toLowerCase().includes(search.toLowerCase()) ||
-    (k.wali_kelas ?? "").toLowerCase().includes(search.toLowerCase()) || // ← fix
-    k.tahun_ajaran.includes(search)
-  ) 
+    .filter((k) =>
+      k.nama_kelas.toLowerCase().includes(search.toLowerCase()) ||
+      (k.guru?.nama_guru ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      k.tahun_ajaran.includes(search)
+    )
     .sort((a, b) => a.nama_kelas.localeCompare(b.nama_kelas));
 
   const handleTambah = () => {
     setEditData(null);
-    setForm({ nama_kelas: "", wali_kelas: "", tahun_ajaran: defaultTahunAjaran });
+    setForm({ nama_kelas: "", id_guru: "", tahun_ajaran: defaultTahunAjaran });
+    fetchGuru(); // refetch guru terbaru setiap buka modal tambah
     setShowModal(true);
   };
 
-  // SESUDAH
-const handleEdit = (kelas: Kelas) => {
-  setEditData(kelas);
-  setForm({
-    nama_kelas: kelas.nama_kelas,
-    wali_kelas: kelas.wali_kelas ?? "",  // ← null jadi ""
-    tahun_ajaran: kelas.tahun_ajaran,
-  });
-  setShowModal(true);
-};
+  const handleEdit = (kelas: Kelas) => {
+    setEditData(kelas);
+    setForm({
+      nama_kelas: kelas.nama_kelas,
+      id_guru: kelas.id_guru ? String(kelas.id_guru) : "",
+      tahun_ajaran: kelas.tahun_ajaran,
+    });
+    fetchGuru(); // refetch guru terbaru setiap buka modal edit
+    setShowModal(true);
+  };
 
   const handleHapus = async (id: number) => {
     if (!confirm("Yakin ingin hapus data ini?")) return;
@@ -121,31 +122,38 @@ const handleEdit = (kelas: Kelas) => {
   };
 
   const handleSimpan = async () => {
-  if (!form.nama_kelas.trim() || !form.tahun_ajaran) {
-    alert("Nama kelas dan tahun ajaran wajib diisi!");
-    return;
-  }
-
-  // ← Cek apakah guru sudah mengajar kelas lain
-  if (form.wali_kelas) {
-    const kelasGuru = data.find(
-      (k) => k.wali_kelas === form.wali_kelas && k.id_kelas !== editData?.id_kelas
-    );
-    if (kelasGuru) {
-      alert(`Guru "${form.wali_kelas}" sudah mengajar kelas "${kelasGuru.nama_kelas}". Pilih guru lain.`);
+    if (!form.nama_kelas.trim() || !form.tahun_ajaran) {
+      alert("Nama kelas dan tahun ajaran wajib diisi!");
       return;
     }
-  }
 
-  setSaving(true);
+    // Cek apakah guru sudah menjadi wali kelas lain
+    if (form.id_guru) {
+      const kelasGuru = data.find(
+        (k) => k.id_guru === Number(form.id_guru) && k.id_kelas !== editData?.id_kelas
+      );
+      if (kelasGuru) {
+        alert(`Guru ini sudah mengajar kelas "${kelasGuru.nama_kelas}". Pilih guru lain.`);
+        return;
+      }
+    }
+
+    setSaving(true);
     try {
       const url = editData
         ? `${API_BASE}/kelas/${editData.id_kelas}`
         : `${API_BASE}/kelas`;
+
+      const payload = {
+        nama_kelas: form.nama_kelas,
+        id_guru: form.id_guru ? Number(form.id_guru) : null,
+        tahun_ajaran: form.tahun_ajaran,
+      };
+
       const res = await fetch(url, {
         method: editData ? "PUT" : "POST",
         headers: authHeaders(),
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       setShowModal(false);
@@ -236,7 +244,9 @@ const handleEdit = (kelas: Kelas) => {
                       {k.nama_kelas}
                     </div>
                   </td>
-                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">{k.wali_kelas}</td>
+                  <td className="px-5 py-3 border-r border-gray-200 text-gray-700 font-medium">
+                    {k.guru?.nama_guru ?? "-"}
+                  </td>
                   <td className="px-5 py-3 border-r border-gray-200 text-gray-600">{k.tahun_ajaran}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center gap-2">
@@ -288,8 +298,8 @@ const handleEdit = (kelas: Kelas) => {
               {/* Nama Kelas — input manual */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-  Nama Kelas <span className="text-red-500">*</span>
-</label>
+                  Nama Kelas <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={form.nama_kelas}
@@ -299,19 +309,19 @@ const handleEdit = (kelas: Kelas) => {
                 />
               </div>
 
-              {/* Wali Kelas — dropdown dari data guru */}
+              {/* Wali Kelas — dropdown dari data guru, kirim id_guru */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
                   Wali Kelas
                 </label>
                 <select
-                  value={form.wali_kelas}
-                  onChange={(e) => setForm({ ...form, wali_kelas: e.target.value })}
+                  value={form.id_guru}
+                  onChange={(e) => setForm({ ...form, id_guru: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 >
                   <option value="">-- Pilih Wali Kelas --</option>
                   {guruList.map((g) => (
-                    <option key={g.id_guru} value={g.nama_guru}>
+                    <option key={g.id_guru} value={g.id_guru}>
                       {g.nama_guru}
                     </option>
                   ))}
@@ -326,9 +336,9 @@ const handleEdit = (kelas: Kelas) => {
               {/* Tahun Ajaran — dropdown dengan default otomatis */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-  Tahun Ajaran <span className="text-red-500">*</span>
-  <span className="ml-1.5 text-green-600 font-normal">(otomatis tahun ini)</span>
-</label>
+                  Tahun Ajaran <span className="text-red-500">*</span>
+                  <span className="ml-1.5 text-green-600 font-normal">(otomatis tahun ini)</span>
+                </label>
                 <select
                   value={form.tahun_ajaran}
                   onChange={(e) => setForm({ ...form, tahun_ajaran: e.target.value })}

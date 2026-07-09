@@ -29,7 +29,7 @@ interface Kelas {
   id_kelas: number;
   nama_kelas: string;
   tahun_ajaran: string;
-  wali_kelas: string;
+  id_guru: number | null;
 }
 interface Anak {
   id_anak: number;
@@ -68,6 +68,7 @@ interface ProfilSekolah {
   foto_ttd_ks: string | null;
 }
 interface GuruProfil {
+  id_guru: number;
   nama_guru: string;
   nip: string | null;
   foto_ttd: string | null;
@@ -227,10 +228,10 @@ export default function LaporanPerkembanganGuruPage() {
       apiFetch<Kelas[]>("/kelas"),
     ])
       .then(([profil, data]) => {
-        const namaGuru = (profil as any).guru?.nama_guru ?? "";
+        const idGuru = profil.guru?.id_guru;
         setGuruProfil((profil as any).guru ?? null);
         const kelasSaya = data.filter(
-          (k) => (k as any).wali_kelas?.toLowerCase() === namaGuru.toLowerCase()
+          (k) => (k as any).id_guru === idGuru
         );
         if (kelasSaya.length > 0) {
           const latest = [...kelasSaya].sort((a, b) => b.tahun_ajaran.localeCompare(a.tahun_ajaran))[0].tahun_ajaran;
@@ -242,7 +243,7 @@ export default function LaporanPerkembanganGuruPage() {
             `${baseYear + 4}/${baseYear + 5}`,
           ]
             .filter((t) => !kelasSaya.some((k) => k.tahun_ajaran === t))
-            .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, wali_kelas: "" }));
+            .map((t, i) => ({ id_kelas: -(i + 1), nama_kelas: "", tahun_ajaran: t, id_guru: null }));
           setKelasList([...kelasSaya, ...extraTahun]);
           setTahunAjaran(latest);
         } else {
@@ -361,7 +362,7 @@ export default function LaporanPerkembanganGuruPage() {
 
       const namaKS = ps.nama_kepala_sekolah || "Kepala Sekolah";
       const nipKS = ps.nip_kepala_sekolah || "";
-      const namaWaliKelas = guruProfil?.nama_guru || selectedKelas?.wali_kelas || "Wali Kelas";
+      const namaWaliKelas = guruProfil?.nama_guru || "Wali Kelas";
       const nipWaliKelas = guruProfil?.nip || "";
 
       const setLineGray = () => pdf.setDrawColor(160, 160, 160);
